@@ -300,3 +300,142 @@ public class FileController {
     // 기타 파일 다운로드 및 삭제 엔드포인트 구현
 }
 ```
+## 로그인 설정
+
+React에서 로그인 요청을 `POST` 방식으로 보내는 경우, RESTful한 접근 방식으로 서버 측에서 세션을 관리하는 방법을 설명하겠습니다. RESTful API를 설계하면서 세션 기반 인증을 구현하는 방법은 다음과 같습니다:
+
+### 1. **백엔드(Spring Framework) 설정**
+
+#### A. **Spring Security 설정**
+
+- **RESTful 로그인 엔드포인트**: 로그인 요청을 처리할 엔드포인트를 설정합니다. 로그인 성공 시 세션을 생성하고, 클라이언트에 세션 ID를 포함한 쿠키를 설정합니다.
+
+  ```java
+  @RestController
+  @RequestMapping("/api")
+  public class AuthController {
+
+      @Autowired
+      private AuthenticationManager authenticationManager;
+
+      @PostMapping("/login")
+      public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+          UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                  loginRequest.getEmail(), loginRequest.getPassword());
+          Authentication authentication = authenticationManager.authenticate(authenticationToken);
+
+          // 세션 생성
+          HttpSession session = request.getSession(true);
+          session.setAttribute("user", authentication.getPrincipal());
+
+          return ResponseEntity.ok().build();
+      }
+
+      // 로그아웃 처리
+      @PostMapping("/logout")
+      public ResponseEntity<?> logout(HttpServletRequest request) {
+          HttpSession session = request.getSession(false);
+          if (session != null) {
+              session.invalidate();
+          }
+          return ResponseEntity.ok().build();
+      }
+  }
+  ```
+
+- **Spring Security 설정**: `WebSecurityConfigurerAdapter`를 통해 세션을 관리하고, CSRF 보호를 비활성화할 수 있습니다. RESTful API에서는 CSRF 보호가 불필요할 수 있습니다.
+
+  ```java
+  @Configuration
+  @EnableWebSecurity
+  public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+      @Override
+      protected void configure(HttpSecurity http) throws Exception {
+          http
+              .csrf().disable() // CSRF 비활성화
+              .authorizeRequests()
+                  .antMatchers("/api/login", "/api/logout").permitAll()
+                  .anyRequest().authenticated()
+                  .and()
+              .sessionManagement()
+                  .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
+      }
+  }
+  ```
+
+### 2. **프론트엔드(React) 설정**
+
+#### A. **로그인 요청 보내기**
+
+- React에서 로그인 요청을 `POST` 방식으로 서버에 보냅니다. 서버는 로그인 성공 시 쿠키를 통해 세션 ID를 클라이언트에 설정합니다.
+
+  ```javascript
+  const handleLogin = async () => {
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include', // 쿠키를 포함하여 요청
+        body: JSON.stringify({
+          email: email,
+          password: password
+        })
+      });
+
+      if (response.ok) {
+        // 로그인 성공, 세션 ID가 쿠키에 저장됨
+        // 클라이언트 상태를 업데이트하거나 리다이렉트
+      } else {
+        // 로그인 실패 처리
+      }
+    } catch (error) {
+      console.error('로그인 오류:', error);
+    }
+  };
+  ```
+
+#### B. **인증된 사용자만 접근 가능한 기능 구현**
+
+- 인증된 사용자만 접근할 수 있는 페이지나 컴포넌트를 보호합니다. 서버 측 세션을 활용하여 인증된 사용자만 접근하도록 합니다.
+
+  ```javascript
+  import { Route, Redirect } from 'react-router-dom';
+
+  const PrivateRoute = ({ component: Component, ...rest }) => (
+    <Route
+      {...rest}
+      render={props =>
+        // 서버에서 세션을 확인하기 위해 API 요청을 사용
+        fetch('/api/check-session', { credentials: 'include' })
+          .then(response => response.ok ? <Component {...props} /> : <Redirect to="/login" />)
+          .catch(() => <Redirect to="/login" />)
+      }
+    />
+  );
+  ```
+
+### 3. **세션 확인 API**
+
+- 세션 확인을 위한 API를 추가하여 클라이언트가 로그인 상태를 확인할 수 있도록 합니다.
+
+  ```java
+  @RestController
+  @RequestMapping("/api")
+  public class SessionController {
+
+      @GetMapping("/check-session")
+      public ResponseEntity<?> checkSession(HttpSession session) {
+          if (session.getAttribute("user") != null) {
+              return ResponseEntity.ok().build();
+          }
+          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      }
+  }
+  ```
+
+### 4. **결론**
+
+세션 기반 인증을 RESTful하게 구현하는 것은 가능합니다. 로그인 요청을 처리하고 세션을 관리하며, 클라이언트에서 세션 기반 인증을 확인하여 사용자가 로그인된 상태에서만 특정 기능에 접근할 수 있도록 설정할 수 있습니다. 이 방식은 RESTful API와 세션 관리를 통합하여 보안성을 유지하면서도 사용자 인증 상태를 관리할 수 있습니다.
