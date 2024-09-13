@@ -130,10 +130,6 @@ REACT_APP_API_BASE_URL=http://localhost:8080/api
 3. 브랜치에서 작업 후, PR(Pull Request)을 생성합니다.
 4. 코드 리뷰를 통해 코드의 품질을 향상시킵니다.
 
-## 라이선스
-
-이 프로젝트는 MIT 라이선스를 따릅니다. 자세한 내용은 `LICENSE` 파일을 참고하세요.
-
 ## 문의
 
 궁금한 점이 있거나 문제가 발생했다면 [이슈](https://github.com/your-repo/my-board-app/issues)에 등록하거나 이메일로 연락주세요: your.email@example.com.
