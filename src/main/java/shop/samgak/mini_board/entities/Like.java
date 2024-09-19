@@ -1,4 +1,4 @@
-package shop.samgak.mini_board.entity;
+package shop.samgak.mini_board.entities;
 
 import java.time.LocalDateTime;
 
@@ -9,15 +9,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "comments")
+@Table(name = "likes")
 @Data
-public class Comment {
+public class Like {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -32,14 +31,9 @@ public class Comment {
     private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_comment_id")
-    private Comment parentComment;
+    @JoinColumn(name = "comment_id")
+    private Comment comment;
 
-    @Lob
-    @Column(name = "content")
-    private String content;
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 }

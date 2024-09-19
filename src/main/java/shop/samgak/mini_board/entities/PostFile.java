@@ -1,4 +1,4 @@
-package shop.samgak.mini_board.entity;
+package shop.samgak.mini_board.entities;
 
 import java.time.LocalDateTime;
 
@@ -15,7 +15,7 @@ import lombok.Data;
 @Entity
 @Table(name = "posts_files")
 @Data
-public class PostFiles {
+public class PostFile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

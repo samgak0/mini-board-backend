@@ -1,4 +1,4 @@
-package shop.samgak.mini_board.entity;
+package shop.samgak.mini_board.entities;
 
 import java.time.LocalDateTime;
 
