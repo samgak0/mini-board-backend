@@ -133,6 +133,14 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+COMMENT ON TABLE users IS '사용자 정보 저장 테이블';
+COMMENT ON COLUMN users.id IS '사용자의 고유 식별자';
+COMMENT ON COLUMN users.username IS '사용자의 로그인 이름';
+COMMENT ON COLUMN users.email IS '사용자의 이메일 주소';
+COMMENT ON COLUMN users.password IS '사용자의 암호';
+COMMENT ON COLUMN users.created_at IS '사용자가 생성된 시간';
+COMMENT ON COLUMN users.updated_at IS '사용자 정보가 마지막으로 수정된 시간';
 ```
 
 #### B. **게시글 테이블 (posts)**
@@ -146,6 +154,14 @@ CREATE TABLE posts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+COMMENT ON TABLE posts IS '게시물 정보 저장 테이블';
+COMMENT ON COLUMN posts.id IS '게시물의 고유 식별자';
+COMMENT ON COLUMN posts.user_id IS '게시물을 작성한 사용자의 ID';
+COMMENT ON COLUMN posts.title IS '게시물의 제목';
+COMMENT ON COLUMN posts.content IS '게시물의 내용';
+COMMENT ON COLUMN posts.created_at IS '게시물이 생성된 시간';
+COMMENT ON COLUMN posts.updated_at IS '게시물 정보가 마지막으로 수정된 시간';
 ```
 
 #### C. **댓글 테이블 (comments)**
@@ -159,6 +175,14 @@ CREATE TABLE comments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     parent_comment_id NUMBER REFERENCES comments(id)
 );
+
+COMMENT ON TABLE comments IS '댓글 정보 저장 테이블';
+COMMENT ON COLUMN comments.id IS '댓글의 고유 식별자';
+COMMENT ON COLUMN comments.post_id IS '댓글이 달린 게시물의 ID';
+COMMENT ON COLUMN comments.user_id IS '댓글을 작성한 사용자의 ID';
+COMMENT ON COLUMN comments.content IS '댓글의 내용';
+COMMENT ON COLUMN comments.created_at IS '댓글이 생성된 시간';
+COMMENT ON COLUMN comments.parent_comment_id IS '부모 댓글의 ID';
 ```
 
 #### D. **좋아요 테이블 (likes)**
@@ -170,6 +194,12 @@ CREATE TABLE likes (
     post_id NUMBER REFERENCES posts(id),
     comment_id NUMBER REFERENCES comments(id)
 );
+
+COMMENT ON TABLE likes IS '좋아요 정보 저장 테이블';
+COMMENT ON COLUMN likes.id IS '좋아요의 고유 식별자';
+COMMENT ON COLUMN likes.user_id IS '좋아요를 누른 사용자의 ID';
+COMMENT ON COLUMN likes.post_id IS '좋아요가 달린 게시물의 ID';
+COMMENT ON COLUMN likes.comment_id IS '좋아요가 달린 댓글의 ID';
 ```
 
 #### E. **파일 테이블 (files)**
@@ -186,3 +216,12 @@ CREATE TABLE files (
     entity_id NUMBER
 );
 ```
+COMMENT ON TABLE files IS '파일 정보 저장 테이블';
+COMMENT ON COLUMN files.id IS '파일의 고유 식별자';
+COMMENT ON COLUMN files.file_name IS '파일의 이름';
+COMMENT ON COLUMN files.original_name IS '업로드된 파일의 원래 이름';
+COMMENT ON COLUMN files.file_path IS '파일이 저장된 경로';
+COMMENT ON COLUMN files.file_size IS '파일의 크기 (바이트)';
+COMMENT ON COLUMN files.uploaded_at IS '파일이 업로드된 시간';
+COMMENT ON COLUMN files.entity_type IS '파일이 연결된 엔티티의 유형 (POST, COMMENT)';
+COMMENT ON COLUMN files.entity_id IS '파일이 연결된 엔티티의 ID';
