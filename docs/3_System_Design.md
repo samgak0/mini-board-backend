@@ -46,7 +46,7 @@
 - **user_id**: NUMBER (FK) - 사용자 ID (users 테이블의 id)
 - **post_id**: NUMBER (FK) - 게시글 ID (posts 테이블의 id)
 - **comment_id**: NUMBER (FK) - 댓글 ID (comments 테이블의 id)
-- **created_at**: TIMESTAMP - 좋아요가 눌린 시간 (기본값: 현재 시간)=
+- **created_at**: TIMESTAMP - 좋아요가 눌린 시간 (기본값: 현재 시간)
 
 #### E. **파일 테이블 (files)**
 
