@@ -194,7 +194,8 @@ CREATE TABLE likes (
     id NUMBER PRIMARY KEY,
     user_id NUMBER REFERENCES users(id),
     post_id NUMBER REFERENCES posts(id),
-    comment_id NUMBER REFERENCES comments(id)
+    comment_id NUMBER REFERENCES comments(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 COMMENT ON TABLE likes IS 'Table for storing like information';
@@ -202,6 +203,7 @@ COMMENT ON COLUMN likes.id IS 'Unique identifier for each like action';
 COMMENT ON COLUMN likes.user_id IS 'ID of the user who liked the content';
 COMMENT ON COLUMN likes.post_id IS 'ID of the post that received a like';
 COMMENT ON COLUMN likes.comment_id IS 'ID of the comment that received a like';
+COMMENT ON COLUMN likes.created_at IS 'Timestamp when the like action occurred';
 ```
 
 #### E. **Files Table (files)**
