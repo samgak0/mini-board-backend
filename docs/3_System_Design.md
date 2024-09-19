@@ -215,7 +215,8 @@ CREATE TABLE files (
     entity_type VARCHAR2(20) CHECK (entity_type IN ('POST', 'COMMENT')),
     entity_id NUMBER
 );
-```
+
+
 COMMENT ON TABLE files IS '파일 정보 저장 테이블';
 COMMENT ON COLUMN files.id IS '파일의 고유 식별자';
 COMMENT ON COLUMN files.file_name IS '파일의 이름';
@@ -225,3 +226,4 @@ COMMENT ON COLUMN files.file_size IS '파일의 크기 (바이트)';
 COMMENT ON COLUMN files.uploaded_at IS '파일이 업로드된 시간';
 COMMENT ON COLUMN files.entity_type IS '파일이 연결된 엔티티의 유형 (POST, COMMENT)';
 COMMENT ON COLUMN files.entity_id IS '파일이 연결된 엔티티의 ID';
+```
