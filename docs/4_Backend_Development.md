@@ -269,10 +269,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByPostId(Long postId);
 }
 
-public interface FileRepository extends JpaRepository<FileEntity, Long> {
-    List<FileEntity> findByEntityTypeAndEntityId(String entityType, Long entityId);
-}
-
 public interface LikeRepository extends JpaRepository<Like, Long> {
     long countByPost(Post post);
     long countByComment(Comment comment);
