@@ -129,37 +129,81 @@ public class Comment {
 }
 ```
 
-4. **File 엔티티**
+4. **PostFile 엔티티**
 
-```java
+```
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import javax.persistence.*;
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "files")
+@Table(name = "post_files")
 @Getter
 @Setter
 @NoArgsConstructor
-public class FileEntity {
+public class PostFile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String fileName;
-    
-    private String originalName;
-    
-    private String filePath;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id", nullable = false)
+    private Post post;  // 게시글과의 관계
 
-    private Long fileSize;
+    private String fileName;       // 저장된 파일 이름
+    private String originalName;   // 원래 파일 이름
+    private String filePath;       // 파일이 저장된 경로
+    private Long fileSize;         // 파일 크기
+    private LocalDateTime createdAt; // 업로드 일자
 
-    private LocalDateTime uploadedAt;
-
-    @Column(name = "entity_type")
-    private String entityType;  // 'POST' 또는 'COMMENT'
-
-    @Column(name = "entity_id")
-    private Long entityId;  // 관련 엔티티 ID
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();  // 생성 시 현재 시간 설정
+    }
 }
-```
-5. ### **Like 엔티티**
+
+
+5. **CommentFile 엔티티**
+
+```java
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import javax.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "comment_files")
+@Getter
+@Setter
+@NoArgsConstructor
+public class CommentFile {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "comment_id", nullable = false)
+    private Comment comment;  // 댓글과의 관계
+
+    private String fileName;       // 저장된 파일 이름
+    private String originalName;   // 원래 파일 이름
+    private String filePath;       // 파일이 저장된 경로
+    private Long fileSize;         // 파일 크기
+    private LocalDateTime createdAt; // 업로드 일자
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();  // 생성 시 현재 시간 설정
+    }
+}
+
+6. ### **Like 엔티티**
 
 ```java
 import lombok.Getter;
@@ -231,6 +275,14 @@ public interface FileRepository extends JpaRepository<FileEntity, Long> {
 public interface LikeRepository extends JpaRepository<Like, Long> {
     long countByPost(Post post);
     long countByComment(Comment comment);
+}
+
+public interface PostFileRepository extends JpaRepository<PostFile, Long> {
+    List<PostFile> findByPost(Post post);
+}
+
+public interface CommentFileRepository extends JpaRepository<CommentFile, Long> {
+    List<CommentFile> findByComment(Comment comment);
 }
 ```
 
