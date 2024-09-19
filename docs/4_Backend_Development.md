@@ -167,6 +167,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "likes")
@@ -189,6 +190,8 @@ public class Like {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comment_id")
     private Comment comment;
+
+    private LocalDateTime createdAt;
 
     // 추가적인 메서드나 필드를 필요에 따라 정의할 수 있습니다.
 }
