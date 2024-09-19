@@ -40,11 +40,17 @@
 - **created_at**: TIMESTAMP - 댓글 작성 일자
 - **parent_comment_id**: NUMBER (FK) - 부모 댓글 ID (comments 테이블의 id, 1단계 깊이의 답글만 허용)
 
-#### D. **좋아요 테이블 (likes)**
+#### D. **게시글 좋아요 테이블 (post_likes)**
 
 - **id**: NUMBER (PK) - 좋아요 고유 식별자
 - **user_id**: NUMBER (FK) - 사용자 ID (users 테이블의 id)
 - **post_id**: NUMBER (FK) - 게시글 ID (posts 테이블의 id)
+- **created_at**: TIMESTAMP - 좋아요가 눌린 시간 (기본값: 현재 시간)
+- 
+#### D. **댓글 좋아요 테이블 (comment_likes)**
+
+- **id**: NUMBER (PK) - 좋아요 고유 식별자
+- **user_id**: NUMBER (FK) - 사용자 ID (users 테이블의 id)
 - **comment_id**: NUMBER (FK) - 댓글 ID (comments 테이블의 id)
 - **created_at**: TIMESTAMP - 좋아요가 눌린 시간 (기본값: 현재 시간)
 
@@ -197,26 +203,41 @@ COMMENT ON COLUMN comments.created_at IS 'Timestamp when the comment was created
 COMMENT ON COLUMN comments.parent_comment_id IS 'ID of the parent comment for nested replies';
 ```
 
-#### D. **Likes Table (likes)**
+#### D. **Post Likes Table (likes)**
 
 ```sql
-CREATE TABLE likes (
+CREATE TABLE post_likes (
     id NUMBER PRIMARY KEY,
     user_id NUMBER REFERENCES users(id),
     post_id NUMBER REFERENCES posts(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE likes IS 'Table for storing post like information';
+COMMENT ON COLUMN likes.id IS 'Unique identifier for each like action';
+COMMENT ON COLUMN likes.user_id IS 'ID of the user who liked the content';
+COMMENT ON COLUMN likes.post_id IS 'ID of the post that received a like';
+COMMENT ON COLUMN likes.created_at IS 'Timestamp when the like action occurred';
+```
+
+#### E. **Comment Likes Table (likes)**
+
+```sql
+CREATE TABLE comment_likes (
+    id NUMBER PRIMARY KEY,
+    user_id NUMBER REFERENCES users(id),
     comment_id NUMBER REFERENCES comments(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE likes IS 'Table for storing like information';
+COMMENT ON TABLE likes IS 'Table for storing comment like information';
 COMMENT ON COLUMN likes.id IS 'Unique identifier for each like action';
 COMMENT ON COLUMN likes.user_id IS 'ID of the user who liked the content';
-COMMENT ON COLUMN likes.post_id IS 'ID of the post that received a like';
 COMMENT ON COLUMN likes.comment_id IS 'ID of the comment that received a like';
 COMMENT ON COLUMN likes.created_at IS 'Timestamp when the like action occurred';
 ```
 
-### E. **Post File Table (post_files)**
+### F. **Post File Table (post_files)**
 
 ```sql
 CREATE TABLE post_files (
@@ -239,7 +260,7 @@ COMMENT ON COLUMN post_files.file_size IS 'Size of the file in bytes';
 COMMENT ON COLUMN post_files.created_at IS 'Timestamp when the file was uploaded';
 ```
 
-### F. **Comment File Table (comment_files)**
+### G. **Comment File Table (comment_files)**
 
 ```sql
 CREATE TABLE comment_files (
