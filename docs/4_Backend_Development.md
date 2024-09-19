@@ -131,8 +131,7 @@ public class Comment {
 
 4. **PostFile 엔티티**
 
-```
-
+```java
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -165,6 +164,7 @@ public class PostFile {
         this.createdAt = LocalDateTime.now();  // 생성 시 현재 시간 설정
     }
 }
+```
 
 
 5. **CommentFile 엔티티**
@@ -202,6 +202,7 @@ public class CommentFile {
         this.createdAt = LocalDateTime.now();  // 생성 시 현재 시간 설정
     }
 }
+```
 
 6. ### **Like 엔티티**
 
