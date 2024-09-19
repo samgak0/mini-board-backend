@@ -57,7 +57,7 @@
 - **original_name**: VARCHAR2(255) - 사용자가 업로드한 원래 파일 이름
 - **file_path**: VARCHAR2(255) - 파일이 저장된 폴더 경로
 - **file_size**: NUMBER - 파일 크기 (KB, MB 단위)
-- **uploaded_at**: TIMESTAMP - 파일 업로드 일자
+- **created_at**: TIMESTAMP - 파일 업로드 일자
 - **entity_type**: VARCHAR2(20) - 파일이 속한 엔티티 유형 ('POST' 또는 'COMMENT')
 - **entity_id**: NUMBER - 파일이 속한 엔티티의 ID (게시글 ID 또는 댓글 ID)
 
@@ -216,7 +216,7 @@ CREATE TABLE files (
     original_name VARCHAR2(255) NOT NULL,
     file_path VARCHAR2(255) NOT NULL,
     file_size NUMBER NOT NULL,
-    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     entity_type VARCHAR2(20) CHECK (entity_type IN ('POST', 'COMMENT')),
     entity_id NUMBER
 );
