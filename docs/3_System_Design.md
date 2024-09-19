@@ -120,9 +120,11 @@
 
 Oracle SQL을 사용하여 제시된 데이터베이스 설계를 테이블로 변형해보겠습니다. Oracle SQL에서는 데이터 타입이 다소 다를 수 있으므로 적절하게 변환하였습니다. 각 테이블의 `CREATE TABLE` 문을 아래와 같이 작성할 수 있습니다.
 
-### 5. **DB 스키마**
+아래는 각 테이블과 칼럼에 대한 주석을 약간 더 길게 작성한 버전입니다.
 
-#### A. **사용자 테이블 (users)**
+### 5. **DB Schema**
+
+#### A. **Users Table (users)**
 
 ```sql
 CREATE TABLE users (
@@ -134,16 +136,16 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE users IS '사용자 정보 저장 테이블';
-COMMENT ON COLUMN users.id IS '사용자의 고유 식별자';
-COMMENT ON COLUMN users.username IS '사용자의 로그인 이름';
-COMMENT ON COLUMN users.email IS '사용자의 이메일 주소';
-COMMENT ON COLUMN users.password IS '사용자의 암호';
-COMMENT ON COLUMN users.created_at IS '사용자가 생성된 시간';
-COMMENT ON COLUMN users.updated_at IS '사용자 정보가 마지막으로 수정된 시간';
+COMMENT ON TABLE users IS 'Table for storing user information';
+COMMENT ON COLUMN users.id IS 'Unique identifier for each user';
+COMMENT ON COLUMN users.username IS 'User login name for authentication';
+COMMENT ON COLUMN users.email IS 'Email address for communication and recovery';
+COMMENT ON COLUMN users.password IS 'Encrypted password for user authentication';
+COMMENT ON COLUMN users.created_at IS 'Timestamp when the user was created';
+COMMENT ON COLUMN users.updated_at IS 'Timestamp when the user information was last updated';
 ```
 
-#### B. **게시글 테이블 (posts)**
+#### B. **Posts Table (posts)**
 
 ```sql
 CREATE TABLE posts (
@@ -155,16 +157,16 @@ CREATE TABLE posts (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE posts IS '게시물 정보 저장 테이블';
-COMMENT ON COLUMN posts.id IS '게시물의 고유 식별자';
-COMMENT ON COLUMN posts.user_id IS '게시물을 작성한 사용자의 ID';
-COMMENT ON COLUMN posts.title IS '게시물의 제목';
-COMMENT ON COLUMN posts.content IS '게시물의 내용';
-COMMENT ON COLUMN posts.created_at IS '게시물이 생성된 시간';
-COMMENT ON COLUMN posts.updated_at IS '게시물 정보가 마지막으로 수정된 시간';
+COMMENT ON TABLE posts IS 'Table for storing post information';
+COMMENT ON COLUMN posts.id IS 'Unique identifier for each post';
+COMMENT ON COLUMN posts.user_id IS 'ID of the user who created the post';
+COMMENT ON COLUMN posts.title IS 'Title of the post for display';
+COMMENT ON COLUMN posts.content IS 'Content of the post in text format';
+COMMENT ON COLUMN posts.created_at IS 'Timestamp when the post was created';
+COMMENT ON COLUMN posts.updated_at IS 'Timestamp when the post information was last updated';
 ```
 
-#### C. **댓글 테이블 (comments)**
+#### C. **Comments Table (comments)**
 
 ```sql
 CREATE TABLE comments (
@@ -176,16 +178,16 @@ CREATE TABLE comments (
     parent_comment_id NUMBER REFERENCES comments(id)
 );
 
-COMMENT ON TABLE comments IS '댓글 정보 저장 테이블';
-COMMENT ON COLUMN comments.id IS '댓글의 고유 식별자';
-COMMENT ON COLUMN comments.post_id IS '댓글이 달린 게시물의 ID';
-COMMENT ON COLUMN comments.user_id IS '댓글을 작성한 사용자의 ID';
-COMMENT ON COLUMN comments.content IS '댓글의 내용';
-COMMENT ON COLUMN comments.created_at IS '댓글이 생성된 시간';
-COMMENT ON COLUMN comments.parent_comment_id IS '부모 댓글의 ID';
+COMMENT ON TABLE comments IS 'Table for storing comment information';
+COMMENT ON COLUMN comments.id IS 'Unique identifier for each comment';
+COMMENT ON COLUMN comments.post_id IS 'ID of the post to which the comment belongs';
+COMMENT ON COLUMN comments.user_id IS 'ID of the user who wrote the comment';
+COMMENT ON COLUMN comments.content IS 'Text content of the comment';
+COMMENT ON COLUMN comments.created_at IS 'Timestamp when the comment was created';
+COMMENT ON COLUMN comments.parent_comment_id IS 'ID of the parent comment for nested replies';
 ```
 
-#### D. **좋아요 테이블 (likes)**
+#### D. **Likes Table (likes)**
 
 ```sql
 CREATE TABLE likes (
@@ -195,14 +197,14 @@ CREATE TABLE likes (
     comment_id NUMBER REFERENCES comments(id)
 );
 
-COMMENT ON TABLE likes IS '좋아요 정보 저장 테이블';
-COMMENT ON COLUMN likes.id IS '좋아요의 고유 식별자';
-COMMENT ON COLUMN likes.user_id IS '좋아요를 누른 사용자의 ID';
-COMMENT ON COLUMN likes.post_id IS '좋아요가 달린 게시물의 ID';
-COMMENT ON COLUMN likes.comment_id IS '좋아요가 달린 댓글의 ID';
+COMMENT ON TABLE likes IS 'Table for storing like information';
+COMMENT ON COLUMN likes.id IS 'Unique identifier for each like action';
+COMMENT ON COLUMN likes.user_id IS 'ID of the user who liked the content';
+COMMENT ON COLUMN likes.post_id IS 'ID of the post that received a like';
+COMMENT ON COLUMN likes.comment_id IS 'ID of the comment that received a like';
 ```
 
-#### E. **파일 테이블 (files)**
+#### E. **Files Table (files)**
 
 ```sql
 CREATE TABLE files (
@@ -216,14 +218,13 @@ CREATE TABLE files (
     entity_id NUMBER
 );
 
-
-COMMENT ON TABLE files IS '파일 정보 저장 테이블';
-COMMENT ON COLUMN files.id IS '파일의 고유 식별자';
-COMMENT ON COLUMN files.file_name IS '파일의 이름';
-COMMENT ON COLUMN files.original_name IS '업로드된 파일의 원래 이름';
-COMMENT ON COLUMN files.file_path IS '파일이 저장된 경로';
-COMMENT ON COLUMN files.file_size IS '파일의 크기 (바이트)';
-COMMENT ON COLUMN files.uploaded_at IS '파일이 업로드된 시간';
-COMMENT ON COLUMN files.entity_type IS '파일이 연결된 엔티티의 유형 (POST, COMMENT)';
-COMMENT ON COLUMN files.entity_id IS '파일이 연결된 엔티티의 ID';
+COMMENT ON TABLE files IS 'Table for storing file information';
+COMMENT ON COLUMN files.id IS 'Unique identifier for each file';
+COMMENT ON COLUMN files.file_name IS 'Name of the file as stored in the system';
+COMMENT ON COLUMN files.original_name IS 'Original name of the file as uploaded by the user';
+COMMENT ON COLUMN files.file_path IS 'File path indicating where the file is stored';
+COMMENT ON COLUMN files.file_size IS 'Size of the file in bytes';
+COMMENT ON COLUMN files.uploaded_at IS 'Timestamp when the file was uploaded';
+COMMENT ON COLUMN files.entity_type IS 'Type of entity associated with the file (e.g., POST or COMMENT)';
+COMMENT ON COLUMN files.entity_id IS 'ID of the entity that the file is linked to';
 ```
