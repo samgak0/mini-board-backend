@@ -2,6 +2,8 @@ package shop.samgak.mini_board.entities;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,6 +20,7 @@ public class User {
     private Long id;
     private String username;
     private String email;
+    @JsonIgnore
     private String password;
     private LocalDateTime created_at;
     private LocalDateTime updated_at;
