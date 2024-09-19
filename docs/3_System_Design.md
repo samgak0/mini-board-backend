@@ -48,30 +48,39 @@
 - **comment_id**: NUMBER (FK) - 댓글 ID (comments 테이블의 id)
 - **created_at**: TIMESTAMP - 좋아요가 눌린 시간 (기본값: 현재 시간)
 
-#### E. **파일 테이블 (files)**
+#### E. **게시글 파일 테이블 (post_files)**
 
-게시글과 댓글에 업로드된 파일을 관리하는 테이블입니다.
+게시글에 업로드된 파일을 관리하는 테이블입니다.
 
 - **id**: NUMBER (PK) - 파일 고유 식별자
-- **file_name**: VARCHAR2(255) - 실제 저장된 파일 이름(유니크한 랜덤 이름)
+- **post_id**: NUMBER (FK) - 파일이 연결된 게시글의 ID
+- **file_name**: VARCHAR2(255) - 실제 저장된 파일 이름 (유니크한 랜덤 이름)
 - **original_name**: VARCHAR2(255) - 사용자가 업로드한 원래 파일 이름
 - **file_path**: VARCHAR2(255) - 파일이 저장된 폴더 경로
 - **file_size**: NUMBER - 파일 크기 (KB, MB 단위)
 - **created_at**: TIMESTAMP - 파일 업로드 일자
-- **entity_type**: VARCHAR2(20) - 파일이 속한 엔티티 유형 ('POST' 또는 'COMMENT')
-- **entity_id**: NUMBER - 파일이 속한 엔티티의 ID (게시글 ID 또는 댓글 ID)
+
+#### F. **댓글 파일 테이블 (comment_files)**
+
+댓글에 업로드된 파일을 관리하는 테이블입니다.
+
+- **id**: NUMBER (PK) - 파일 고유 식별자
+- **comment_id**: NUMBER (FK) - 파일이 연결된 댓글의 ID
+- **file_name**: VARCHAR2(255) - 실제 저장된 파일 이름 (유니크한 랜덤 이름)
+- **original_name**: VARCHAR2(255) - 사용자가 업로드한 원래 파일 이름
+- **file_path**: VARCHAR2(255) - 파일이 저장된 폴더 경로
+- **file_size**: NUMBER - 파일 크기 (KB, MB 단위)
+- **created_at**: TIMESTAMP - 파일 업로드 일자
 
 ### 3. **API 설계**
 
 #### A. **사용자 API**
-
 - **POST /api/users/register**: 회원가입
 - **POST /api/users/login**: 로그인
 - **POST /api/users/logout**: 로그아웃
 - **PUT /api/users/{id}/password**: 비밀번호 변경
 
 #### B. **게시글 API**
-
 - **GET /api/posts**: 게시글 목록 조회
 - **GET /api/posts/{id}**: 게시글 상세 조회
 - **POST /api/posts**: 게시글 작성
@@ -79,22 +88,22 @@
 - **DELETE /api/posts/{id}**: 게시글 삭제
 
 #### C. **댓글 API**
-
 - **GET /api/posts/{postId}/comments**: 특정 게시글의 댓글 목록 조회
 - **POST /api/posts/{postId}/comments**: 댓글 작성
 - **PUT /api/comments/{id}**: 댓글 수정
 - **DELETE /api/comments/{id}**: 댓글 삭제
 
 #### D. **좋아요 API**
+- **POST /api/posts/{postId}/likes**: 게시글 좋아요
+- **POST /api/comments/{commentId}/likes**: 댓글 좋아요
 
-- **POST /api/posts/{postId}/like**: 게시글 좋아요
-- **POST /api/comments/{commentId}/like**: 댓글 좋아요
-
-#### E. **파일 API**
-
-- **POST /api/files/upload?entityType={entityType}&entityId={entityId}**: 특정 엔티티에 다수의 파일 업로드.
-- **GET /api/files/{fileId}**: 파일 다운로드.
-- **DELETE /api/files/{fileId}**: 파일 삭제.
+### E. **파일 API**
+- **POST /api/posts/{postId}/files**: 게시글에 다수의 파일 업로드
+- **POST /api/comments/{commentId}/files**: 댓글에 다수의 파일 업로드
+- **GET /api/posts/{postId}/files/{fileId}**: 게시글 파일 다운로드
+- **GET /api/comments/{commentId}/files/{fileId}**: 댓글 파일 다운로드
+- **DELETE /api/posts/{postId}/files/{fileId}**: 게시글 파일 삭제
+- **DELETE /api/comments/{commentId}/files/{fileId}**: 댓글 파일 삭제
 
 ### 4. **프론트엔드 구조 설계**
 
@@ -207,27 +216,55 @@ COMMENT ON COLUMN likes.comment_id IS 'ID of the comment that received a like';
 COMMENT ON COLUMN likes.created_at IS 'Timestamp when the like action occurred';
 ```
 
-#### E. **Files Table (files)**
+### E. **Post File Table (post_files)**
 
 ```sql
-CREATE TABLE files (
+CREATE TABLE post_files (
     id NUMBER PRIMARY KEY,
+    post_id NUMBER REFERENCES posts(id),
     file_name VARCHAR2(255) NOT NULL,
     original_name VARCHAR2(255) NOT NULL,
     file_path VARCHAR2(255) NOT NULL,
     file_size NUMBER NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    entity_type VARCHAR2(20) CHECK (entity_type IN ('POST', 'COMMENT')),
-    entity_id NUMBER
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE files IS 'Table for storing file information';
-COMMENT ON COLUMN files.id IS 'Unique identifier for each file';
-COMMENT ON COLUMN files.file_name IS 'Name of the file as stored in the system';
-COMMENT ON COLUMN files.original_name IS 'Original name of the file as uploaded by the user';
-COMMENT ON COLUMN files.file_path IS 'File path indicating where the file is stored';
-COMMENT ON COLUMN files.file_size IS 'Size of the file in bytes';
-COMMENT ON COLUMN files.uploaded_at IS 'Timestamp when the file was uploaded';
-COMMENT ON COLUMN files.entity_type IS 'Type of entity associated with the file (e.g., POST or COMMENT)';
-COMMENT ON COLUMN files.entity_id IS 'ID of the entity that the file is linked to';
+COMMENT ON TABLE post_files IS 'Table for storing files associated with posts';
+COMMENT ON COLUMN post_files.id IS 'Unique identifier for each post file';
+COMMENT ON COLUMN post_files.post_id IS 'ID of the post that the file is associated with';
+COMMENT ON COLUMN post_files.file_name IS 'Name of the file as stored in the system';
+COMMENT ON COLUMN post_files.original_name IS 'Original name of the file as uploaded by the user';
+COMMENT ON COLUMN post_files.file_path IS 'File path indicating where the file is stored';
+COMMENT ON COLUMN post_files.file_size IS 'Size of the file in bytes';
+COMMENT ON COLUMN post_files.created_at IS 'Timestamp when the file was uploaded';
 ```
+
+### F. **Comment File Table (comment_files)**
+
+```sql
+CREATE TABLE comment_files (
+    id NUMBER PRIMARY KEY,
+    comment_id NUMBER REFERENCES comments(id),
+    file_name VARCHAR2(255) NOT NULL,
+    original_name VARCHAR2(255) NOT NULL,
+    file_path VARCHAR2(255) NOT NULL,
+    file_size NUMBER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE comment_files IS 'Table for storing files associated with comments';
+COMMENT ON COLUMN comment_files.id IS 'Unique identifier for each comment file';
+COMMENT ON COLUMN comment_files.comment_id IS 'ID of the comment that the file is associated with';
+COMMENT ON COLUMN comment_files.file_name IS 'Name of the file as stored in the system';
+COMMENT ON COLUMN comment_files.original_name IS 'Original name of the file as uploaded by the user';
+COMMENT ON COLUMN comment_files.file_path IS 'File path indicating where the file is stored';
+COMMENT ON COLUMN comment_files.file_size IS 'Size of the file in bytes';
+COMMENT ON COLUMN comment_files.created_at IS 'Timestamp when the file was uploaded';
+```
+
+
+
+
+
+
+
