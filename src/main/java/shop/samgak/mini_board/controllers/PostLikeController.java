@@ -8,19 +8,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import shop.samgak.mini_board.dto.CommentDTO;
-import shop.samgak.mini_board.services.CommentService;
+import shop.samgak.mini_board.dto.PostLikeDTO;
+import shop.samgak.mini_board.services.PostLikeService;
 
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/api/comments")
-public class CommentController {
+@RequestMapping("/api/post/like")
+public class PostLikeController {
 
-    final CommentService commentService;
+    final PostLikeService postLikeService;
 
     @GetMapping
-    public List<CommentDTO> getAllComment() {
-        return commentService.getAll();
+    public List<PostLikeDTO> getAllPostLike() {
+        return postLikeService.getAll();
     }
 }

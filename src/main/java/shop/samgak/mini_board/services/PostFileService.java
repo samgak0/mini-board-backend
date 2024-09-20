@@ -6,16 +6,16 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import shop.samgak.mini_board.dto.PostDTO;
-import shop.samgak.mini_board.entities.Post;
-import shop.samgak.mini_board.repositories.PostRepository;
+import shop.samgak.mini_board.dto.PostFileDTO;
+import shop.samgak.mini_board.entities.PostFile;
+import shop.samgak.mini_board.repositories.PostFileRepository;
 
 @Service
 @RequiredArgsConstructor
 public class PostFileService {
-    final PostRepository postRepository;
+    final PostFileRepository postFileRepository;
 
-    public List<PostDTO> getAll() {
-        return postRepository.findAll().stream().map(Post::toDTO).collect(Collectors.toList());
+    public List<PostFileDTO> getAll() {
+        return postFileRepository.findAll().stream().map(PostFile::toDTO).collect(Collectors.toList());
     }
 }

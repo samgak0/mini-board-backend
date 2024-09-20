@@ -8,19 +8,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import shop.samgak.mini_board.dto.CommentDTO;
-import shop.samgak.mini_board.services.CommentService;
+import shop.samgak.mini_board.dto.CommentFileDTO;
+import shop.samgak.mini_board.services.CommentFileService;
 
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/api/comments")
-public class CommentController {
+@RequestMapping("/api/comment/files")
+public class CommentFileController {
 
-    final CommentService commentService;
+    final CommentFileService commentFileService;
 
     @GetMapping
-    public List<CommentDTO> getAllComment() {
-        return commentService.getAll();
+    public List<CommentFileDTO> getAllComment() {
+        return commentFileService.getAll();
     }
 }
