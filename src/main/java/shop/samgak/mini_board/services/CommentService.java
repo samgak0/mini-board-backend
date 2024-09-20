@@ -1,10 +1,12 @@
 package shop.samgak.mini_board.services;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import shop.samgak.mini_board.dto.CommentDTO;
 import shop.samgak.mini_board.entities.Comment;
 import shop.samgak.mini_board.repositories.CommentRepository;
 
@@ -13,7 +15,7 @@ import shop.samgak.mini_board.repositories.CommentRepository;
 public class CommentService {
     final CommentRepository commentRepository;
 
-    public List<Comment> getAll() {
-        return commentRepository.findAll();
+    public List<CommentDTO> getAll() {
+        return commentRepository.findAll().stream().map(Comment::toDTO).collect(Collectors.toList());
     }
 }
