@@ -2,8 +2,6 @@ package shop.samgak.mini_board.entities;
 
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,12 +9,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
-import lombok.ToString;
+import shop.samgak.mini_board.dto.UserDTO;
 
 @Entity
 @Table(name = "users")
 @Data
-@ToString(exclude = "password")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,11 +24,15 @@ public class User {
     @Column(name = "email")
     private String email;
     @Column(name = "password")
-    @JsonIgnore
     private String password;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public UserDTO toDTO() {
+        return new UserDTO(this.id, this.username);
+    }
 }

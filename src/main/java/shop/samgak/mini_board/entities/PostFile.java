@@ -11,6 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
+import shop.samgak.mini_board.entities.dto.PostFileDTO;
 
 @Entity
 @Table(name = "posts_files")
@@ -37,4 +38,13 @@ public class PostFile {
     @JoinColumn(name = "created_at")
     private LocalDateTime createdAt;
 
+    public PostFileDTO toDTO() {
+        return new PostFileDTO(
+                this.id,
+                this.post.toDTO(),
+                this.original_name,
+                this.filePath,
+                this.fileSize,
+                this.createdAt);
+    }
 }
