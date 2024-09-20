@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import shop.samgak.mini_board.entities.Post;
+import shop.samgak.mini_board.dto.PostDTO;
 import shop.samgak.mini_board.services.PostService;
 
 @RestController
@@ -21,12 +21,12 @@ public class PostController {
     final PostService postService;
 
     @GetMapping
-    public List<Post> getAllPost() {
+    public List<PostDTO> getAllPost() {
         return postService.getAll();
     }
 
     @GetMapping("/{id}")
-    public Post getPost(@PathVariable Long id) {
-        return postService.getPostById(id).orElseThrow();
+    public PostDTO getPost(@PathVariable Long id) {
+        return postService.getPostById(id);
     }
 }
