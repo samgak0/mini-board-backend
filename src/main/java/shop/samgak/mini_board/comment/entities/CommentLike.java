@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:src/main/java/shop/samgak/mini_board/comment/entities/CommentLike.java
 package shop.samgak.mini_board.comment.entities;
-========
-package shop.samgak.mini_board.comment;
->>>>>>>> ee801979c17f5c757c9d7a9c391714db90986425:src/main/java/shop/samgak/mini_board/comment/CommentLike.java
 
 import java.time.LocalDateTime;
 
@@ -16,11 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
-<<<<<<<< HEAD:src/main/java/shop/samgak/mini_board/comment/entities/CommentLike.java
 import shop.samgak.mini_board.user.entities.User;
-========
-import shop.samgak.mini_board.user.User;
->>>>>>>> ee801979c17f5c757c9d7a9c391714db90986425:src/main/java/shop/samgak/mini_board/comment/CommentLike.java
 
 @Entity
 @Table(name = "comment_likes")

@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:src/main/java/shop/samgak/mini_board/comment/entities/CommentFile.java
 package shop.samgak.mini_board.comment.entities;
-========
-package shop.samgak.mini_board.comment;
->>>>>>>> ee801979c17f5c757c9d7a9c391714db90986425:src/main/java/shop/samgak/mini_board/comment/CommentFile.java
 
 import java.time.LocalDateTime;
 
