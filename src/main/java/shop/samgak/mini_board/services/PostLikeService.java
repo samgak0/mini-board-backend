@@ -14,7 +14,7 @@ import shop.samgak.mini_board.repositories.PostLikeRepository;
 @RequiredArgsConstructor
 public class PostLikeService {
     final PostLikeRepository postLikeRepository;
-    ModelMapper modelMapper = new ModelMapper();;
+    final ModelMapper modelMapper;
 
     public List<PostLikeDTO> getAll() {
         return postLikeRepository.findAll().stream()

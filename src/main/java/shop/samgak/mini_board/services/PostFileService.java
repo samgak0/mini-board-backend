@@ -14,7 +14,7 @@ import shop.samgak.mini_board.repositories.PostFileRepository;
 @RequiredArgsConstructor
 public class PostFileService {
     final PostFileRepository postFileRepository;
-    ModelMapper modelMapper = new ModelMapper();;
+    final ModelMapper modelMapper;
 
     public List<PostFileDTO> getAll() {
         return postFileRepository.findAll().stream()
