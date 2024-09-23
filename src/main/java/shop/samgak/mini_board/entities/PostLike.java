@@ -12,7 +12,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
-import shop.samgak.mini_board.dto.PostLikeDTO;
 
 @Entity
 @Table(name = "post_likes")
@@ -33,12 +32,4 @@ public class PostLike {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-
-    public PostLikeDTO toDTO() {
-        return new PostLikeDTO(
-                this.id,
-                this.user.toDTO(), // UserDTO 변환
-                this.post.toDTO(),
-                this.createdAt);
-    }
 }

@@ -9,7 +9,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
-import shop.samgak.mini_board.dto.UserDTO;
 
 @Entity
 @Table(name = "users")
@@ -31,8 +30,4 @@ public class User {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    public UserDTO toDTO() {
-        return new UserDTO(this.id, this.username);
-    }
 }

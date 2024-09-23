@@ -1,7 +1,6 @@
 package shop.samgak.mini_board.entities;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,7 +13,6 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
-import shop.samgak.mini_board.dto.CommentDTO;
 
 @Entity
 @Table(name = "comments")
@@ -44,15 +42,4 @@ public class Comment {
     private LocalDateTime createdAt;
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    public CommentDTO toDTO() {
-        return new CommentDTO(
-                this.id,
-                this.user.toDTO(),
-                this.post.toDTO(),
-                Optional.ofNullable(this.parentComment).map(Comment::toDTO).orElse(null),
-                this.content,
-                this.createdAt,
-                this.updatedAt);
-    }
 }

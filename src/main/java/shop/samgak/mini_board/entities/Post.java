@@ -12,7 +12,6 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
-import shop.samgak.mini_board.dto.PostDTO;
 
 @Entity
 @Table(name = "posts")
@@ -37,14 +36,4 @@ public class Post {
     private LocalDateTime created_at;
     @Column(name = "updatedAt")
     private LocalDateTime updated_at;
-
-    public PostDTO toDTO() {
-        return new PostDTO(
-                this.id,
-                this.user.toDTO(),
-                this.title,
-                this.content,
-                this.created_at,
-                this.updated_at);
-    }
 }
