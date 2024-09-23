@@ -4,12 +4,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import shop.samgak.mini_board.exceptions.ResourceNotFoundException;
 import shop.samgak.mini_board.post.Repositories.PostRepository;
 import shop.samgak.mini_board.post.dto.PostDTO;
 
+@Service
 @RequiredArgsConstructor
 public class PostService {
     final PostRepository postRepository;

@@ -4,11 +4,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import shop.samgak.mini_board.comment.dto.CommentFileDTO;
 import shop.samgak.mini_board.comment.repository.CommentFileRepository;
 
+@Service
 @RequiredArgsConstructor
 public class CommentFileService {
     final CommentFileRepository commentFileRepository;
