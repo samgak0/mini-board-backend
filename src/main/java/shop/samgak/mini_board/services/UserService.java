@@ -14,7 +14,7 @@ import shop.samgak.mini_board.repositories.UserRepository;
 @RequiredArgsConstructor
 public class UserService {
     final UserRepository userRepository;
-    ModelMapper modelMapper;
+    ModelMapper modelMapper = new ModelMapper();;
 
     public List<UserDTO> getAll() {
         return userRepository.findAll().stream()

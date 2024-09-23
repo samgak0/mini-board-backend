@@ -14,7 +14,7 @@ import shop.samgak.mini_board.repositories.CommentRepository;
 @RequiredArgsConstructor
 public class CommentService {
     final CommentRepository commentRepository;
-    ModelMapper modelMapper;
+    ModelMapper modelMapper = new ModelMapper();;
 
     public List<CommentDTO> getAll() {
         return commentRepository.findAll().stream()

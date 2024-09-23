@@ -15,7 +15,7 @@ import shop.samgak.mini_board.repositories.PostRepository;
 @RequiredArgsConstructor
 public class PostService {
     final PostRepository postRepository;
-    ModelMapper modelMapper;
+    ModelMapper modelMapper = new ModelMapper();
 
     public List<PostDTO> getAll() {
         return postRepository.findAll().stream()

@@ -14,7 +14,7 @@ import shop.samgak.mini_board.repositories.CommentFileRepository;
 @RequiredArgsConstructor
 public class CommentFileService {
     final CommentFileRepository commentFileRepository;
-    ModelMapper modelMapper;
+    ModelMapper modelMapper = new ModelMapper();;
 
     public List<CommentFileDTO> getAll() {
         return commentFileRepository.findAll().stream()
