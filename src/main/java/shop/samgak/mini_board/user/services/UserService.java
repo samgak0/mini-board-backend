@@ -35,4 +35,8 @@ public class UserService {
     public boolean existUsername(String username) {
         return userRepository.findByUsername(username).isPresent();
     }
+
+    public boolean existEmail(String email) {
+        return userRepository.findByEmail(email).isPresent();
+    }
 }

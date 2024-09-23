@@ -24,6 +24,7 @@ import shop.samgak.mini_board.utility.ApiResponse;
 public class UserController {
 
     private static final String SESSION_CHECKED_USER = "checked_user_name";
+    private static final String SESSION_CHECKED_EMAIL = "checked_email";
 
     final UserService userService;
 
@@ -48,6 +49,27 @@ public class UserController {
         }
     }
 
+    @PostMapping("check/email")
+    public ResponseEntity<ApiResponse> checkEmail(@RequestParam String email, HttpSession session) {
+        try {
+            if (email == null || email.isEmpty()) {
+                return ResponseEntity.badRequest().body(new ApiResponse("email is empty", ApiResponse.Code.FAILURE));
+            }
+
+            boolean isExistUserName = userService.existEmail(email);
+            if (!isExistUserName) {
+                session.setAttribute(SESSION_CHECKED_EMAIL, email);
+                return ResponseEntity.ok().body(new ApiResponse("email is available", true));
+            } else {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(new ApiResponse("username already used", ApiResponse.Code.USED));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(new ApiResponse(e.getMessage(), false));
+        }
+    }
+
     @PostMapping("register")
     public ResponseEntity<ApiResponse> register(@RequestParam String username, @RequestParam String email,
             @RequestParam String password, HttpSession session) {
@@ -55,6 +77,11 @@ public class UserController {
         if (checkedUsername == null || !(checkedUsername instanceof String)) {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse("username check not performed", false));
+        }
+        Object checkedEmail = session.getAttribute(SESSION_CHECKED_EMAIL);
+        if (checkedEmail == null || !(checkedEmail instanceof String)) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse("email check not performed", false));
         }
 
         try {
