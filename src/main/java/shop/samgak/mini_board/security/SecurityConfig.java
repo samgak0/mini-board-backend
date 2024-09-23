@@ -13,6 +13,9 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import shop.samgak.mini_board.security.component.CustomAuthenticationEntryPoint;
+import shop.samgak.mini_board.security.component.CustomAuthenticationFailureHandler;
+import shop.samgak.mini_board.security.component.CustomAuthenticationSuccessHandler;
 
 @Slf4j
 @Configuration
@@ -20,49 +23,50 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
-    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
-    private final CustomUserDetailsService userDetailsService;
-    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+        private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
+        private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+        private final CustomUserDetailsService userDetailsService;
+        private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/users/login", "/api/users/register").permitAll()
-                        .anyRequest().authenticated())
-                .formLogin(form -> form
-                        .loginProcessingUrl("/api/users/login")
-                        .successHandler(customAuthenticationSuccessHandler)
-                        .failureHandler(customAuthenticationFailureHandler)
-                        .permitAll())
-                .logout(logout -> logout
-                        .logoutUrl("/api/users/logout"))
-                .exceptionHandling(exceptionHandling -> exceptionHandling
-                        .authenticationEntryPoint(customAuthenticationEntryPoint))
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-                .headers(headers -> headers
-                        .frameOptions(frameOptions -> frameOptions.disable())
-                        .xssProtection(xssOptions -> xssOptions.disable())
-                        .cacheControl(cacheOptions -> cacheOptions.disable())
-                        .contentTypeOptions(contentTypeOptions -> contentTypeOptions.disable()));
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                http.csrf(csrf -> csrf.disable())
+                                .authorizeHttpRequests(authorize -> authorize
+                                                .requestMatchers("/api/users/login", "/api/users/register").permitAll()
+                                                .anyRequest().authenticated())
+                                .formLogin(form -> form
+                                                .loginProcessingUrl("/api/users/login")
+                                                .successHandler(customAuthenticationSuccessHandler)
+                                                .failureHandler(customAuthenticationFailureHandler)
+                                                .permitAll())
+                                .logout(logout -> logout
+                                                .logoutUrl("/api/users/logout"))
+                                .exceptionHandling(exceptionHandling -> exceptionHandling
+                                                .authenticationEntryPoint(customAuthenticationEntryPoint))
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                                .headers(headers -> headers
+                                                .frameOptions(frameOptions -> frameOptions.disable())
+                                                .xssProtection(xssOptions -> xssOptions.disable())
+                                                .cacheControl(cacheOptions -> cacheOptions.disable())
+                                                .contentTypeOptions(
+                                                                contentTypeOptions -> contentTypeOptions.disable()));
 
-        return http.build();
-    }
+                return http.build();
+        }
 
-    @Bean
-    public AuthenticationManager authManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder authenticationManagerBuilder = http
-                .getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder
-                .userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoder());
-        return authenticationManagerBuilder.build();
-    }
+        @Bean
+        public AuthenticationManager authManager(HttpSecurity http) throws Exception {
+                AuthenticationManagerBuilder authenticationManagerBuilder = http
+                                .getSharedObject(AuthenticationManagerBuilder.class);
+                authenticationManagerBuilder
+                                .userDetailsService(userDetailsService)
+                                .passwordEncoder(passwordEncoder());
+                return authenticationManagerBuilder.build();
+        }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // 비밀번호 암호화 인코더 등록
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder(); // 비밀번호 암호화 인코더 등록
+        }
 }
