@@ -7,10 +7,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import shop.samgak.mini_board.user.services.UserService;
 import shop.samgak.mini_board.utility.ApiResponse;
 
 @RestController
@@ -19,12 +21,20 @@ import shop.samgak.mini_board.utility.ApiResponse;
 @RequestMapping("/api/users/")
 public class UserController {
 
-    // final UserService userService;
+    final UserService userService;
 
     @PostMapping("register")
-    public ResponseEntity<ApiResponse> register() {
-        URI location = URI.create("/api/users/" + 1L + "/info");
-        return ResponseEntity.created(location).body(new ApiResponse("Register successful", true));
+    public ResponseEntity<ApiResponse> register(@RequestParam String username, @RequestParam String email,
+            @RequestParam String password) {
+        try {
+            Long id = userService.save(username, email, password);
+            URI location = URI.create("/api/users/" + id + "/info");
+            return ResponseEntity.created(location)
+                    .body(new ApiResponse("Register successful", true));
+        } catch (Exception e) {
+            log.error(e.toString());
+            return ResponseEntity.badRequest().body(new ApiResponse(e.getMessage(), false));
+        }
     }
 
     @PutMapping("{id}/password")
