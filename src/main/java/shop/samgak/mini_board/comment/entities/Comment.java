@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:src/main/java/shop/samgak/mini_board/comment/entities/Comment.java
 package shop.samgak.mini_board.comment.entities;
-========
-package shop.samgak.mini_board.comment;
->>>>>>>> ee801979c17f5c757c9d7a9c391714db90986425:src/main/java/shop/samgak/mini_board/comment/Comment.java
 
 import java.time.LocalDateTime;
 
@@ -17,13 +13,8 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
-<<<<<<<< HEAD:src/main/java/shop/samgak/mini_board/comment/entities/Comment.java
 import shop.samgak.mini_board.post.entities.Post;
 import shop.samgak.mini_board.user.entities.User;
-========
-import shop.samgak.mini_board.post.Post;
-import shop.samgak.mini_board.user.User;
->>>>>>>> ee801979c17f5c757c9d7a9c391714db90986425:src/main/java/shop/samgak/mini_board/comment/Comment.java
 
 @Entity
 @Table(name = "comments")

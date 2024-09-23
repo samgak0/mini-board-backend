@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:src/main/java/shop/samgak/mini_board/user/entities/User.java
 package shop.samgak.mini_board.user.entities;
-========
-package shop.samgak.mini_board.user;
->>>>>>>> ee801979c17f5c757c9d7a9c391714db90986425:src/main/java/shop/samgak/mini_board/user/User.java
 
 import java.time.LocalDateTime;
 
