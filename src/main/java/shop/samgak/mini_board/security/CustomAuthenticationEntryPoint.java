@@ -1,4 +1,4 @@
-package shop.samgak.mini_board.config;
+package shop.samgak.mini_board.security;
 
 import java.io.IOException;
 
