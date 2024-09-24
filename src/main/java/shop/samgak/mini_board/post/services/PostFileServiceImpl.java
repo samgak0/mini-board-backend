@@ -3,23 +3,23 @@ package shop.samgak.mini_board.post.services;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import shop.samgak.mini_board.post.Repositories.PostFileRepository;
 import shop.samgak.mini_board.post.dto.PostFileDTO;
+import shop.samgak.mini_board.post.mapper.PostFileMapper; // MapStruct Mapper 추가
 
 @Service
 @RequiredArgsConstructor
 public class PostFileServiceImpl implements PostFileService {
     final PostFileRepository postFileRepository;
-    final ModelMapper modelMapper;
+    final PostFileMapper postFileMapper;
 
     @Override
     public List<PostFileDTO> getAll() {
         return postFileRepository.findAll().stream()
-                .map(postFile -> modelMapper.map(postFile, PostFileDTO.class))
+                .map(postFileMapper::postFileToPostFileDTO)
                 .collect(Collectors.toList());
     }
 }
