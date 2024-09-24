@@ -2,6 +2,8 @@ package shop.samgak.mini_board.user.entities;
 
 import java.time.LocalDateTime;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -9,7 +11,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Setter;
 
 @Entity
 @Table(name = "users")
@@ -24,8 +28,14 @@ public class User {
     private String username;
     @Column(name = "email")
     private String email;
+
+    @Setter(AccessLevel.NONE)
     @Column(name = "password")
     private String password;
+
+    public void setHashedPassword(PasswordEncoder passwordEncoder, String password) {
+        this.password = passwordEncoder.encode(password);
+    }
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
