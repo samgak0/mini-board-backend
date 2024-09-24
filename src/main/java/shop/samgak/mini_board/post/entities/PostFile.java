@@ -25,8 +25,8 @@ public class PostFile {
     @JoinColumn(name = "post_id")
     private Post post;
 
-    @JoinColumn(name = "originalName")
-    private String original_name;
+    @JoinColumn(name = "original_name")
+    private String originalName;
 
     @JoinColumn(name = "file_path")
     private String filePath;

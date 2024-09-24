@@ -33,8 +33,8 @@ public class Post {
     @Lob
     @Column(name = "content")
     private String content;
-    @Column(name = "createdAt")
-    private LocalDateTime created_at;
-    @Column(name = "updatedAt")
-    private LocalDateTime updated_at;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }
