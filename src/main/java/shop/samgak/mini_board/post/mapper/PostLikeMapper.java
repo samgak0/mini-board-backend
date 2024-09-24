@@ -8,7 +8,7 @@ import shop.samgak.mini_board.user.mapper.UserMapper;
 
 @Mapper(componentModel = "spring", uses = { UserMapper.class, PostMapper.class })
 public interface PostLikeMapper {
-    PostLikeDTO postLikeToPostLikeDTO(PostLike postLike);
+    PostLikeDTO toDTO(PostLike postLike);
 
-    PostLike postLikeDTOToPostLike(PostLikeDTO postLikeDTO);
+    PostLike fromDTO(PostLikeDTO postLikeDTO);
 }

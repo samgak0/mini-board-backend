@@ -25,8 +25,8 @@ public class CommentFile {
     @JoinColumn(name = "comment_id")
     private Comment comment;
 
-    @JoinColumn(name = "originalName")
-    private String original_name;
+    @JoinColumn(name = "original_name")
+    private String originalName;
 
     @JoinColumn(name = "file_path")
     private String filePath;

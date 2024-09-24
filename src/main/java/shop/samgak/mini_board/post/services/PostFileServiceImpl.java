@@ -19,7 +19,7 @@ public class PostFileServiceImpl implements PostFileService {
     @Override
     public List<PostFileDTO> getAll() {
         return postFileRepository.findAll().stream()
-                .map(postFileMapper::postFileToPostFileDTO)
+                .map(postFileMapper::toDTO)
                 .collect(Collectors.toList());
     }
 }

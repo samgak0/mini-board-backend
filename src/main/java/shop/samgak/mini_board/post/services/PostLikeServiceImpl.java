@@ -19,7 +19,7 @@ public class PostLikeServiceImpl implements PostLikeService {
     @Override
     public List<PostLikeDTO> getAll() {
         return postLikeRepository.findAll().stream()
-                .map(postLikeMapper::postLikeToPostLikeDTO)
+                .map(postLikeMapper::toDTO)
                 .collect(Collectors.toList());
     }
 }

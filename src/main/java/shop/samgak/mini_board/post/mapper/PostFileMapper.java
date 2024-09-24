@@ -7,7 +7,7 @@ import shop.samgak.mini_board.post.entities.PostFile;
 
 @Mapper(componentModel = "spring", uses = PostMapper.class)
 public interface PostFileMapper {
-    PostFileDTO postFileToPostFileDTO(PostFile postFile);
+    PostFileDTO toDTO(PostFile postFile);
 
-    PostFile postFileDTOToPostFile(PostFileDTO postFileDTO);
+    PostFile fromDTO(PostFileDTO postFileDTO);
 }
