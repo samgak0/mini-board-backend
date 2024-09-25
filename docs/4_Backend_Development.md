@@ -540,3 +540,140 @@ React에서 로그인 요청을 `POST` 방식으로 보내는 경우, RESTful한
 ### 4. **결론**
 
 세션 기반 인증을 RESTful하게 구현하는 것은 가능합니다. 로그인 요청을 처리하고 세션을 관리하며, 클라이언트에서 세션 기반 인증을 확인하여 사용자가 로그인된 상태에서만 특정 기능에 접근할 수 있도록 설정할 수 있습니다. 이 방식은 RESTful API와 세션 관리를 통합하여 보안성을 유지하면서도 사용자 인증 상태를 관리할 수 있습니다.
+다음은 API 호출 명령어와 각 API의 형식 및 설명을 포함한 문서입니다.
+
+---
+
+# MiniBoard API Documentation
+
+## Table of Contents
+1. [API Authentication](#api-authentication)
+2. [User Registration](#user-registration)
+3. [Check Username Availability](#check-username-availability)
+4. [Check Email Availability](#check-email-availability)
+5. [Login](#login)
+6. [Get Posts](#get-posts)
+
+---
+
+### API Authentication
+
+모든 인증된 요청은 `Session Cookie`를 통해 이루어집니다. 
+
+성공적인 로그인 후, `-c cookies.txt` 옵션을 사용하여 세션 쿠키를 저장하고, 이후 요청에 `-b cookies.txt`로 쿠키를 전달하여 인증을 유지합니다.
+
+---
+
+### User Registration
+
+#### API Endpoint
+- **URL**: `/api/users/register`
+- **Method**: POST
+
+#### Request Parameters
+- **username** (string, required)
+- **email** (string, required)
+- **password** (string, required)
+
+#### cURL Command
+
+- **Success Example**
+  ```bash
+  curl -X POST http://localhost:8080/api/users/register -d "username=newUser&email=newuser@example.com&password=password123" -b "cookie.txt"
+  ```
+
+- **Failure (Email Already Used) Example**
+  ```bash
+  curl -X POST http://localhost:8080/api/users/register -d "username=newUser&email=existing@example.com&password=password123"
+  ```
+
+---
+
+### Check Username Availability
+
+#### API Endpoint
+- **URL**: `/api/users/check/username`
+- **Method**: POST
+
+#### Request Parameters
+- **username** (string, required)
+
+#### cURL Command
+
+- **Success Example**
+  ```bash
+  curl -X POST http://localhost:8080/api/users/check/username -d "username=newUser" -c "cookie.txt"
+  ```
+
+- **Failure (Username Missing) Example**
+  ```bash
+  curl -X POST http://localhost:8080/api/users/check/username
+  ```
+
+---
+
+### Check Email Availability
+
+#### API Endpoint
+- **URL**: `/api/users/check/email`
+- **Method**: POST
+
+#### Request Parameters
+- **email** (string, required)
+
+#### cURL Command
+
+- **Success Example**
+  ```bash
+  curl -X POST http://localhost:8080/api/users/check/email -d "email=newuser@example.com" -b "cookie.txt"
+  ```
+
+- **Failure (Invalid Email Format) Example**
+  ```bash
+  curl -X POST http://localhost:8080/api/users/check/email -d "email=invalid-email"  -b "cookie.txt"
+  ```
+
+---
+
+### Login
+
+#### API Endpoint
+- **URL**: `/api/users/login`
+- **Method**: POST
+
+#### Request Parameters
+- **username** (string, required)
+- **password** (string, required)
+
+#### cURL Command
+
+- **Success Example**
+  ```bash
+  curl -X POST http://localhost:8080/api/users/login -d "username=user&password=password" -c cookies.txt
+  ```
+
+- **Failure (Wrong Password) Example**
+  ```bash
+  curl -X POST http://localhost:8080/api/users/login  -d "username=user&password=wrongpassword" -b "cookie.txt"
+  ```
+
+---
+
+### Get Posts
+
+#### API Endpoint
+- **URL**: `/api/posts`
+- **Method**: GET
+- **Authentication**: Required
+
+#### cURL Command
+
+- **Success Example (Authenticated)**
+  ```bash
+  curl -X GET http://localhost:8080/api/posts -b cookies.txt
+  ```
+
+- **Failure (Unauthenticated)**
+  ```bash
+  curl -X GET http://localhost:8080/api/posts
+  ```
