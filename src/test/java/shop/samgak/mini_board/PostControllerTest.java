@@ -24,6 +24,11 @@ import shop.samgak.mini_board.post.controllers.PostController;
 import shop.samgak.mini_board.post.dto.PostDTO;
 import shop.samgak.mini_board.post.services.PostService;
 
+/**
+ * Unit tests for the PostController class.
+ * This class tests the API endpoints related to posts, including retrieval of
+ * all posts and individual posts by ID.
+ */
 @Tag("unit")
 public class PostControllerTest {
 
@@ -35,6 +40,9 @@ public class PostControllerTest {
     @InjectMocks
     private PostController postController;
 
+    /**
+     * Sets up the MockMvc instance and initializes mocks before each test.
+     */
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -43,6 +51,12 @@ public class PostControllerTest {
                 .build();
     }
 
+    /**
+     * Tests the retrieval of all posts.
+     * This method simulates a request to get all posts and verifies the response.
+     *
+     * @throws Exception if any error occurs during the request
+     */
     @Test
     public void testGetAllPosts() throws Exception {
         List<PostDTO> mockPosts = new ArrayList<>();
@@ -59,6 +73,13 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$[1].title").value("Second Post"));
     }
 
+    /**
+     * Tests the retrieval of a single post by ID.
+     * This method simulates a request to get a post by its ID and verifies the
+     * response.
+     *
+     * @throws Exception if any error occurs during the request
+     */
     @Test
     public void testGetPostById() throws Exception {
         Long postId = 1L;
@@ -74,6 +95,13 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.content").value("Content of the first post"));
     }
 
+    /**
+     * Tests the retrieval of a post by ID when the post is not found.
+     * This method simulates a request for a non-existent post and verifies the
+     * appropriate error response.
+     *
+     * @throws Exception if any error occurs during the request
+     */
     @Test
     public void testGetPostByIdNotFound() throws Exception {
         Long postId = 1L;
@@ -87,5 +115,4 @@ public class PostControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Post not found with id: " + postId));
     }
-
 }

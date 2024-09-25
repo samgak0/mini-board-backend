@@ -31,6 +31,12 @@ import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.user.services.UserService;
 import shop.samgak.mini_board.utility.ApiResponse;
 
+/**
+ * Unit tests for the UserController class.
+ * This class tests the API endpoints related to user operations,
+ * including username checks, email checks, registration,
+ * and password management.
+ */
 @Tag("unit")
 public class UserControllerTest {
 
@@ -48,6 +54,9 @@ public class UserControllerTest {
         @InjectMocks
         private UserController userController;
 
+        /**
+         * Sets up the MockMvc instance and initializes mocks before each test.
+         */
         @BeforeEach
         public void setUp() {
                 MockitoAnnotations.openMocks(this);
@@ -57,6 +66,13 @@ public class UserControllerTest {
                                 .build();
         }
 
+        /**
+         * Tests successful username availability check.
+         * This method simulates a request to check if a username is available
+         * and verifies the response.
+         *
+         * @throws Exception if any error occurs during the request
+         */
         @Test
         public void testCheckUsernameSuccess() throws Exception {
                 String username = "testUser";
@@ -75,6 +91,12 @@ public class UserControllerTest {
                 verify(session).setAttribute("checked_user_name", username);
         }
 
+        /**
+         * Tests retrieval of all posts for an authenticated user.
+         * This method simulates a request to get posts and verifies the response.
+         *
+         * @throws Exception if any error occurs during the request
+         */
         @Test
         public void testGetPostsAuthenticated() throws Exception {
                 UserDetails mockUser = mock(UserDetails.class);
@@ -104,6 +126,13 @@ public class UserControllerTest {
                                 .andExpect(jsonPath("$[1].title").value("Second Post"));
         }
 
+        /**
+         * Tests username availability check when the username is already used.
+         * This method simulates a request to check a username that is in use
+         * and verifies the response.
+         *
+         * @throws Exception if any error occurs during the request
+         */
         @Test
         public void testCheckUsernameAlreadyUsed() throws Exception {
                 String username = "existingUser";
@@ -121,6 +150,13 @@ public class UserControllerTest {
                 verify(session, never()).setAttribute("checked_user_name", username);
         }
 
+        /**
+         * Tests successful email availability check.
+         * This method simulates a request to check if an email is available
+         * and verifies the response.
+         *
+         * @throws Exception if any error occurs during the request
+         */
         @Test
         public void testCheckEmailSuccess() throws Exception {
                 String email = "test@example.com";
@@ -138,6 +174,13 @@ public class UserControllerTest {
                 verify(session).setAttribute("checked_email", email);
         }
 
+        /**
+         * Tests successful user registration.
+         * This method simulates a request to register a new user
+         * and verifies the response.
+         *
+         * @throws Exception if any error occurs during the request
+         */
         @Test
         public void testRegisterSuccess() throws Exception {
                 String username = "newUser";
@@ -145,7 +188,6 @@ public class UserControllerTest {
                 String password = "password123";
                 Long userId = 1L;
 
-                // Mocking the service behavior
                 when(userService.save(username, email, password)).thenReturn(userId);
 
                 mockMvc.perform(post("/api/users/register")
@@ -161,6 +203,13 @@ public class UserControllerTest {
                                 .andExpect(jsonPath("$.code").value(ApiResponse.Code.SUCCESS.toString()));
         }
 
+        /**
+         * Tests unauthorized password change attempt.
+         * This method simulates a request to change the password
+         * when the user is not authenticated.
+         *
+         * @throws Exception if any error occurs during the request
+         */
         @Test
         public void testChangePasswordUnauthorized() throws Exception {
                 when(userService.getCurrentUser()).thenReturn(Optional.empty());
@@ -172,6 +221,13 @@ public class UserControllerTest {
                                 .andExpect(jsonPath("$.message").value("Authentication required"));
         }
 
+        /**
+         * Tests successful password change.
+         * This method simulates a request to change the password
+         * for an authenticated user and verifies the response.
+         *
+         * @throws Exception if any error occurs during the request
+         */
         @Test
         public void testChangePasswordSuccess() throws Exception {
                 String username = "testUser";
@@ -191,6 +247,13 @@ public class UserControllerTest {
                 verify(userService).changePassword(username, newPassword);
         }
 
+        /**
+         * Tests password change failure.
+         * This method simulates a request to change the password
+         * and verifies the appropriate error response when it fails.
+         *
+         * @throws Exception if any error occurs during the request
+         */
         @Test
         public void testChangePasswordFailure() throws Exception {
                 String username = "testUser";
@@ -207,6 +270,6 @@ public class UserControllerTest {
                                 .param("password", newPassword)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isBadRequest())
-                                .andExpect(jsonPath("$.message").value("Password change failed")); // 예외 메시지 확인
+                                .andExpect(jsonPath("$.message").value("Password change failed"));
         }
 }
