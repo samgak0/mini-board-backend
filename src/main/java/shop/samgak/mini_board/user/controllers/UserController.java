@@ -27,25 +27,28 @@ import shop.samgak.mini_board.utility.ApiResponse;
 @RequestMapping("/api/users/")
 public class UserController {
 
-    private static final String SESSION_CHECKED_USER = "checked_user_name";
-    private static final String SESSION_CHECKED_EMAIL = "checked_email";
+    public static final String SESSION_CHECKED_USER = "checked_user_name";
+    public static final String SESSION_CHECKED_EMAIL = "checked_email";
 
-    private static final String ERROR = "Error occurred";
+    public static final String ERROR = "Error occurred";
+    public static final String ERROR_USERNAME_REQUIRED = "Username is required";
+    public static final String ERROR_EMAIL_REQUIRED = "Email is required";
+    public static final String ERROR_PASSWORD_REQUIRED = "Password is required";
 
-    private static final String ERROR_USERNAME_EMPTY = "Username is empty";
-    private static final String ERROR_EMAIL_EMPTY = "Email is empty";
-    private static final String ERROR_INVALID_EMAIL_FORMAT = "Invalid email format";
-    private static final String ERROR_USERNAME_CHECK_NOT_PERFORMED = "Username check not performed";
-    private static final String ERROR_EMAIL_CHECK_NOT_PERFORMED = "Email check not performed";
-    private static final String ERROR_USERNAME_ALREADY_USED = "Username already used";
-    private static final String ERROR_EMAIL_ALREADY_USED = "Email already used";
+    public static final String ERROR_INVALID_EMAIL_FORMAT = "Invalid email format";
+    public static final String ERROR_USERNAME_CHECK_NOT_PERFORMED = "Username availability check not performed";
+    public static final String ERROR_EMAIL_CHECK_NOT_PERFORMED = "Email availability check not performed";
+    public static final String ERROR_USERNAME_ALREADY_USED = "Username is already in use";
+    public static final String ERROR_EMAIL_ALREADY_USED = "Email is already in use";
+    public static final String ERROR_USERNAME_MISMATCH = "Username does not match the checked username";
+    public static final String ERROR_EMAIL_MISMATCH = "Email does not match the checked email";
+    public static final String ERROR_AUTHENTICATION_REQUIRED = "Authentication is required";
 
-    private static final String MESSAGE_PASSWORD_CHANGE_SUCCESSFUL = "Password Change successful";
-    private static final String MESSAGE_REGISTER_SUCCESSFUL = "Register successful";
-    private static final String MESSAGE_EMAIL_AVAILABLE = "Email is available";
-    private static final String MESSAGE_USERNAME_AVAILABLE = "Username is available";
-    private static final String MESSAGE_LOGIN_STATUS = "Login status";
-    private static final String MESSAGE_AUTHENTICATION_REQUIRED = "Authentication required";
+    public static final String MESSAGE_PASSWORD_CHANGE_SUCCESSFUL = "Password change successful";
+    public static final String MESSAGE_REGISTER_SUCCESSFUL = "Registration successful";
+    public static final String MESSAGE_EMAIL_AVAILABLE = "Email is available";
+    public static final String MESSAGE_USERNAME_AVAILABLE = "Username is available";
+    public static final String MESSAGE_LOGIN_STATUS = "Login status";
 
     final UserService userService;
 
@@ -54,7 +57,7 @@ public class UserController {
         try {
             if (username == null || username.isEmpty()) {
                 return ResponseEntity.badRequest()
-                        .body(new ApiResponse(ERROR_USERNAME_EMPTY, false));
+                        .body(new ApiResponse(ERROR_USERNAME_REQUIRED, false));
             }
 
             boolean isExistUserName = userService.existUsername(username);
@@ -72,10 +75,10 @@ public class UserController {
     }
 
     @PostMapping("check/email")
-    public ResponseEntity<ApiResponse> checkEmail(@RequestParam String email, HttpSession session) {
+    public ResponseEntity<ApiResponse> checkEmail(@RequestParam(required = false) String email, HttpSession session) {
         try {
             if (email == null || email.isEmpty()) {
-                return ResponseEntity.badRequest().body(new ApiResponse(ERROR_EMAIL_EMPTY, false));
+                return ResponseEntity.badRequest().body(new ApiResponse(ERROR_EMAIL_REQUIRED, false));
             }
 
             EmailValidator validator = EmailValidator.getInstance();
@@ -99,22 +102,50 @@ public class UserController {
     }
 
     @PostMapping("register")
-    public ResponseEntity<ApiResponse> register(@RequestParam String username, @RequestParam String email,
-            @RequestParam String password, HttpSession session) {
-        Object checkedUsername = session.getAttribute(SESSION_CHECKED_USER);
-        if (checkedUsername == null || !(checkedUsername instanceof String)) {
+    public ResponseEntity<ApiResponse> register(@RequestParam(required = false) String username,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String password, HttpSession session) {
+
+        if (username == null || username.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(ERROR_USERNAME_REQUIRED, false));
+        }
+
+        if (email == null || email.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(ERROR_EMAIL_REQUIRED, false));
+        }
+
+        if (password == null || password.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(ERROR_PASSWORD_REQUIRED, false));
+        }
+
+        String checkedUsername = (String) session.getAttribute(SESSION_CHECKED_USER);
+        if (checkedUsername == null) {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse(ERROR_USERNAME_CHECK_NOT_PERFORMED, false));
         }
-        Object checkedEmail = session.getAttribute(SESSION_CHECKED_EMAIL);
-        if (checkedEmail == null || !(checkedEmail instanceof String)) {
+
+        String checkedEmail = (String) session.getAttribute(SESSION_CHECKED_EMAIL);
+        if (checkedEmail == null) {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse(ERROR_EMAIL_CHECK_NOT_PERFORMED, false));
         }
 
+        if ((!checkedUsername.equals(username))) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(ERROR_USERNAME_MISMATCH, false));
+        }
+
+        if (!checkedEmail.equals(email)) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(ERROR_EMAIL_MISMATCH, false));
+        }
+
         try {
             Long id = userService.save(username, email, password);
-            URI location = URI.create("/api/users/" + id + "/info");
+            URI location = URI.create(String.format("/api/users/%d/info", id));
             return ResponseEntity.created(location)
                     .body(new ApiResponse(MESSAGE_REGISTER_SUCCESSFUL, true));
         } catch (Exception e) {
@@ -143,7 +174,7 @@ public class UserController {
             }
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse(MESSAGE_AUTHENTICATION_REQUIRED, false));
+                    .body(new ApiResponse(ERROR_AUTHENTICATION_REQUIRED, false));
         }
     }
 }
