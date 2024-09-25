@@ -7,9 +7,12 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +20,7 @@ import shop.samgak.mini_board.security.CustomUserDetailsService;
 import shop.samgak.mini_board.security.component.CustomAuthenticationEntryPoint;
 import shop.samgak.mini_board.security.component.CustomAuthenticationFailureHandler;
 import shop.samgak.mini_board.security.component.CustomAuthenticationSuccessHandler;
+import shop.samgak.mini_board.security.component.CustomLogoutSuccessHandler;
 
 @Slf4j
 @Configuration
@@ -26,6 +30,7 @@ public class SecurityConfig {
 
         private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
         private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+        private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
         private final CustomUserDetailsService userDetailsService;
         private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
@@ -47,11 +52,15 @@ public class SecurityConfig {
                                                 .failureHandler(customAuthenticationFailureHandler)
                                                 .permitAll())
                                 .logout(logout -> logout
-                                                .logoutUrl("/api/users/logout"))
+                                                .logoutUrl("/api/users/logout")
+                                                .logoutSuccessHandler(customLogoutSuccessHandler))
                                 .exceptionHandling(exceptionHandling -> exceptionHandling
                                                 .authenticationEntryPoint(customAuthenticationEntryPoint))
-                                .sessionManagement(session -> session
-                                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                                .sessionManagement(session -> {
+                                        session.maximumSessions(1)
+                                                        .sessionRegistry(sessionRegistry());
+                                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
+                                })
                                 .headers(headers -> headers
                                                 .frameOptions(frameOptions -> frameOptions.disable())
                                                 .xssProtection(xssOptions -> xssOptions.disable())
@@ -74,6 +83,16 @@ public class SecurityConfig {
 
         @Bean
         public PasswordEncoder passwordEncoder() {
-                return new BCryptPasswordEncoder(); // 비밀번호 암호화 인코더 등록
+                return new BCryptPasswordEncoder();
+        }
+
+        @Bean
+        public SessionRegistry sessionRegistry() {
+                return new SessionRegistryImpl();
+        }
+
+        @Bean
+        public HttpSessionEventPublisher httpSessionEventPublisher() {
+                return new HttpSessionEventPublisher();
         }
 }
