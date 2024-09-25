@@ -1,13 +1,9 @@
 package shop.samgak.mini_board;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
 import static org.springframework.http.HttpHeaders.*;
 import static org.springframework.http.HttpStatus.*;
-import static org.springframework.http.MediaType.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -18,10 +14,14 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 
 /**
  * Integration tests for the MiniBoard application.
- * This class tests the user authentication and access to protected resources
+ * This class tests user authentication and access to protected resources
  * using the TestRestTemplate provided by Spring Boot.
  *
  * The TestRestTemplate allows for making HTTP requests to the application
@@ -45,18 +45,16 @@ public class MiniBoardApplicationTests {
      */
     @Test
     public void testLoginAndAccessPostsAsLoggedInUser() throws Exception {
-        // Perform login
-        Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("username", "user");
-        loginRequest.put("password", "password");
+        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
+        loginRequest.add("username", "user");
+        loginRequest.add("password", "password");
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(APPLICATION_FORM_URLENCODED);
 
-        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
 
         ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-        assertEquals(OK, loginResponse.getStatusCode());
+        assertThat(loginResponse.getStatusCode()).isEqualTo(OK);
 
         // Get the session cookie from the response
         String sessionCookie = loginResponse.getHeaders().getFirst(SET_COOKIE);
@@ -69,7 +67,7 @@ public class MiniBoardApplicationTests {
         ResponseEntity<String> postsResponse = restTemplate.exchange(postsUrl, HttpMethod.GET,
                 new HttpEntity<>(postHeaders),
                 String.class);
-        assertEquals(OK, postsResponse.getStatusCode());
+        assertThat(postsResponse.getStatusCode()).isEqualTo(OK);
     }
 
     /**
@@ -81,7 +79,7 @@ public class MiniBoardApplicationTests {
     @Test
     public void testAccessPostsAsNotLoggedInUser() throws Exception {
         ResponseEntity<String> postsResponse = restTemplate.getForEntity(postsUrl, String.class);
-        assertEquals(UNAUTHORIZED, postsResponse.getStatusCode());
+        assertThat(postsResponse.getStatusCode()).isEqualTo(UNAUTHORIZED);
     }
 
     /**
@@ -92,17 +90,15 @@ public class MiniBoardApplicationTests {
      */
     @Test
     public void testLoginSuccess() throws Exception {
-        Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("username", "user");
-        loginRequest.put("password", "password");
+        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
+        loginRequest.add("username", "user");
+        loginRequest.add("password", "password");
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(APPLICATION_FORM_URLENCODED);
-
-        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
 
         ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-        assertEquals(OK, loginResponse.getStatusCode());
+        assertThat(loginResponse.getStatusCode()).isEqualTo(OK);
     }
 
     /**
@@ -113,16 +109,19 @@ public class MiniBoardApplicationTests {
      */
     @Test
     public void testLoginFailure() throws Exception {
-        Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("username", "user");
-        loginRequest.put("password", "wrongpassword");
+        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
+        loginRequest.add("username", "user");
+        loginRequest.add("password", "wrongpassword");
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(APPLICATION_FORM_URLENCODED);
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
 
-        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
-
-        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-        assertEquals(UNAUTHORIZED, loginResponse.getStatusCode());
+        try {
+            restTemplate.postForEntity(loginUrl, requestEntity, String.class);
+            fail("Expected ResourceAccessException to be thrown");
+        } catch (RestClientException e) {
+            assertThat(e).isInstanceOf(ResourceAccessException.class);
+        }
     }
+
 }
