@@ -2,8 +2,9 @@ package shop.samgak.mini_board;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -13,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -142,6 +144,58 @@ public class UserControllerTest {
                                 .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
         }
 
+        /**
+         * Tests the success scenario for checking password validity.
+         */
+        @Test
+        public void testCheckPasswordSuccess() throws Exception {
+                // Valid passwords for testing
+                String[] validPasswords = {
+                                "ValidPassword1!",
+                                "AnotherValid1$",
+                                "StrongPass2@",
+                                "ThisIsValid3#",
+                                "Password4!"
+                };
+
+                // Test for valid passwords
+                for (String validPassword : validPasswords) {
+                        mockMvc.perform(post("/api/users/check/password")
+                                        .param("password", validPassword)
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andExpect(status().isOk())
+                                        .andExpect(jsonPath(JSON_PATH_DATA).value(true))
+                                        .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
+                }
+        }
+
+        /**
+         * Tests the failure scenario for checking password validity.
+         */
+        @Test
+        public void testCheckPasswordFailure() throws Exception {
+                // Invalid passwords for testing
+                String[] invalidPasswords = {
+                                "short", // Too short
+                                "nouppercase123!", // No uppercase letters
+                                "NOLOWERCASE123!", // No lowercase letters
+                                "NoSpecialChars1", // No special characters
+                                "noNumbers!", // No numbers
+                                "ALLUPPERCASE!", // Only uppercase
+                                "alllowercase!" // Only lowercase
+                };
+
+                // Test for invalid passwords
+                for (String invalidPassword : invalidPasswords) {
+                        mockMvc.perform(post("/api/users/check/password")
+                                        .param("password", invalidPassword)
+                                        .contentType(MediaType.APPLICATION_JSON))
+                                        .andExpect(status().isOk())
+                                        .andExpect(jsonPath(JSON_PATH_DATA).value(false))
+                                        .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
+                }
+        }
+
         // Exception handling tests
 
         /**
@@ -213,6 +267,46 @@ public class UserControllerTest {
         }
 
         /**
+         * Tests changing the password with a valid password.
+         */
+        @Test
+        public void testChangePasswordSuccess() throws Exception {
+                String username = "newUser";
+                String email = "newuser@example.com";
+                String validPassword = "ValidPassword1!";
+
+                when(userService.getCurrentUser()).thenReturn(Optional.of(mock(UserDetails.class)));
+
+                mockMvc.perform(put(API_USERS_PASSWORD)
+                                .param(PARAM_PASSWORD, validPassword)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .sessionAttr(UserController.SESSION_CHECKED_USER, username)
+                                .sessionAttr(UserController.SESSION_CHECKED_EMAIL, email))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath(JSON_PATH_MESSAGE)
+                                                .value(UserController.MESSAGE_PASSWORD_CHANGE_SUCCESSFUL))
+                                .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
+        }
+
+        /**
+         * Tests changing the password with an invalid password.
+         */
+        @Test
+        public void testChangePasswordInvalidFailure() throws Exception {
+                String invalidPassword = "short";
+
+                when(userService.getCurrentUser()).thenReturn(Optional.of(mock(UserDetails.class)));
+
+                mockMvc.perform(put(API_USERS_PASSWORD)
+                                .param(PARAM_PASSWORD, invalidPassword)
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath(JSON_PATH_MESSAGE)
+                                                .value(UserController.ERROR_INVALID_PASSWORD_FORMAT))
+                                .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.FAILURE.toString()));
+        }
+
+        /**
          * Tests password change when the password is missing.
          */
         @Test
@@ -220,7 +314,6 @@ public class UserControllerTest {
                 mockMvc.perform(put(API_USERS_PASSWORD)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isBadRequest())
-                                .andDo(print())
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE)
                                                 .value(MessageProvider.getMissingParameterMessage(PARAM_PASSWORD)))
                                 .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.FAILURE.toString()));

@@ -27,6 +27,7 @@ import shop.samgak.mini_board.utility.ApiResponse;
 @Slf4j
 @RequestMapping("/api/users/")
 public class UserController {
+    private static final String PASSWORD_PATTERN = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$";
 
     public static final String SESSION_CHECKED_USER = "checked_user_name";
     public static final String SESSION_CHECKED_EMAIL = "checked_email";
@@ -41,6 +42,7 @@ public class UserController {
     public static final String ERROR_USERNAME_MISMATCH = "Username does not match the checked username";
     public static final String ERROR_EMAIL_MISMATCH = "Email does not match the checked email";
     public static final String ERROR_AUTHENTICATION_REQUIRED = "Authentication is required";
+    public static final String ERROR_INVALID_PASSWORD_FORMAT = "Password format is invalid.";
 
     public static final String MESSAGE_PASSWORD_CHANGE_SUCCESSFUL = "Password change successful";
     public static final String MESSAGE_REGISTER_SUCCESSFUL = "Registration successful";
@@ -95,6 +97,12 @@ public class UserController {
             log.error(ERROR, e.toString());
             return ResponseEntity.internalServerError().body(new ApiResponse(e.getMessage(), false));
         }
+    }
+
+    @PostMapping("check/password")
+    public ResponseEntity<ApiDataResponse> checkPassword(@RequestParam String password) {
+        return ResponseEntity
+                .ok(new ApiDataResponse("Password format check", password.matches(PASSWORD_PATTERN), true));
     }
 
     @PostMapping("register")
@@ -162,10 +170,12 @@ public class UserController {
 
     @PutMapping("password")
     public ResponseEntity<ApiResponse> changePassword(@RequestParam String password) {
-
         if (password == null || password.isEmpty())
             throw new MissingParameterException("password");
 
+        if (!password.matches(PASSWORD_PATTERN)) {
+            return ResponseEntity.badRequest().body(new ApiResponse(ERROR_INVALID_PASSWORD_FORMAT, false));
+        }
         Optional<UserDetails> user = userService.getCurrentUser();
 
         if (user.isPresent()) {
