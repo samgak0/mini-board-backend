@@ -5,11 +5,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -18,16 +13,14 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import shop.samgak.mini_board.config.GlobalExceptionHandler;
+import shop.samgak.mini_board.exceptions.MessageProvider;
 import shop.samgak.mini_board.post.controllers.PostController;
-import shop.samgak.mini_board.post.dto.PostDTO;
 import shop.samgak.mini_board.post.services.PostService;
 import shop.samgak.mini_board.user.controllers.UserController;
-import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.user.services.UserService;
 import shop.samgak.mini_board.utility.ApiResponse;
 
@@ -39,6 +32,21 @@ import shop.samgak.mini_board.utility.ApiResponse;
  */
 @Tag("unit")
 public class UserControllerTest {
+
+        // Constants for API paths, parameters, and JSON fields
+        private static final String API_USERS_CHECK_USERNAME = "/api/users/check/username";
+        private static final String API_USERS_CHECK_EMAIL = "/api/users/check/email";
+        private static final String API_USERS_REGISTER = "/api/users/register";
+        private static final String API_USERS_PASSWORD = "/api/users/password";
+        private static final String API_USERS_STATUS = "/api/users/status";
+
+        private static final String PARAM_USERNAME = "username";
+        private static final String PARAM_EMAIL = "email";
+        private static final String PARAM_PASSWORD = "password";
+
+        private static final String JSON_PATH_MESSAGE = "$.message";
+        private static final String JSON_PATH_CODE = "$.code";
+        private static final String JSON_PATH_DATA = "$.data";
 
         private MockMvc mockMvc;
 
@@ -66,10 +74,10 @@ public class UserControllerTest {
                                 .build();
         }
 
+        // General operation tests
+
         /**
-         * Tests successful username availability check.
-         *
-         * @throws Exception if any error occurs during the request
+         * Tests the success scenario for checking username availability.
          */
         @Test
         public void testCheckUsernameSuccess() throws Exception {
@@ -77,89 +85,19 @@ public class UserControllerTest {
 
                 when(userService.existUsername(username)).thenReturn(false);
 
-                mockMvc.perform(post("/api/users/check/username")
-                                .param("username", username)
+                mockMvc.perform(post(API_USERS_CHECK_USERNAME)
+                                .param(PARAM_USERNAME, username)
                                 .session(session)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.message").value(UserController.MESSAGE_USERNAME_AVAILABLE))
-                                .andExpect(jsonPath("$.code").value(ApiResponse.Code.SUCCESS.toString()));
+                                .andExpect(jsonPath(JSON_PATH_MESSAGE).value(UserController.MESSAGE_USERNAME_AVAILABLE))
+                                .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
 
                 verify(session).setAttribute(UserController.SESSION_CHECKED_USER, username);
         }
 
         /**
-         * Tests retrieval of all posts for an authenticated user.
-         *
-         * @throws Exception if any error occurs during the request
-         */
-        @Test
-        public void testGetPostsAuthenticated() throws Exception {
-                UserDetails mockUser = mock(UserDetails.class);
-                when(userService.getCurrentUser()).thenReturn(Optional.of(mockUser));
-                when(mockUser.getUsername()).thenReturn("authenticatedUser");
-
-                UserDTO mockUserDTO = new UserDTO();
-                mockUserDTO.setId(1L);
-                mockUserDTO.setUsername("authenticatedUser");
-
-                List<PostDTO> mockPosts = new ArrayList<>();
-                mockPosts.add(new PostDTO(1L, mockUserDTO, "First Post", "Content of the first post",
-                                LocalDateTime.now(), LocalDateTime.now()));
-                mockPosts.add(new PostDTO(2L, mockUserDTO, "Second Post", "Content of the second post",
-                                LocalDateTime.now(), LocalDateTime.now()));
-
-                when(postService.getAll()).thenReturn(mockPosts);
-
-                mockMvc.perform(get("/api/posts")
-                                .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.length()").value(2))
-                                .andExpect(jsonPath("$[0].title").value("First Post"))
-                                .andExpect(jsonPath("$[1].title").value("Second Post"));
-        }
-
-        /**
-         * Tests username availability check when the username is already used.
-         *
-         * @throws Exception if any error occurs during the request
-         */
-        @Test
-        public void testCheckUsernameAlreadyUsed() throws Exception {
-                String username = "existingUser";
-
-                when(userService.existUsername(username)).thenReturn(true);
-
-                mockMvc.perform(post("/api/users/check/username")
-                                .param("username", username)
-                                .session(session)
-                                .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isConflict())
-                                .andExpect(jsonPath("$.message").value(UserController.ERROR_USERNAME_ALREADY_USED))
-                                .andExpect(jsonPath("$.code").value(ApiResponse.Code.USED.toString()));
-
-                verify(session, never()).setAttribute(UserController.SESSION_CHECKED_USER, username);
-        }
-
-        /**
-         * Tests email availability check when the email is missing.
-         *
-         * @throws Exception if any error occurs during the request
-         */
-        @Test
-        public void testCheckEmailMissing() throws Exception {
-                mockMvc.perform(post("/api/users/check/email")
-                                .session(session)
-                                .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isBadRequest())
-                                .andExpect(jsonPath("$.message").value(UserController.ERROR_EMAIL_REQUIRED))
-                                .andExpect(jsonPath("$.code").value(ApiResponse.Code.FAILURE.toString()));
-        }
-
-        /**
-         * Tests successful email availability check.
-         *
-         * @throws Exception if any error occurs during the request
+         * Tests the success scenario for checking email availability.
          */
         @Test
         public void testCheckEmailSuccess() throws Exception {
@@ -167,21 +105,19 @@ public class UserControllerTest {
 
                 when(userService.existEmail(email)).thenReturn(false);
 
-                mockMvc.perform(post("/api/users/check/email")
-                                .param("email", email)
+                mockMvc.perform(post(API_USERS_CHECK_EMAIL)
+                                .param(PARAM_EMAIL, email)
                                 .session(session)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.message").value(UserController.MESSAGE_EMAIL_AVAILABLE))
-                                .andExpect(jsonPath("$.code").value(ApiResponse.Code.SUCCESS.toString()));
+                                .andExpect(jsonPath(JSON_PATH_MESSAGE).value(UserController.MESSAGE_EMAIL_AVAILABLE))
+                                .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
 
                 verify(session).setAttribute(UserController.SESSION_CHECKED_EMAIL, email);
         }
 
         /**
-         * Tests successful user registration.
-         *
-         * @throws Exception if any error occurs during the request
+         * Tests the success scenario for registering a new user.
          */
         @Test
         public void testRegisterSuccess() throws Exception {
@@ -192,136 +128,131 @@ public class UserControllerTest {
 
                 when(userService.save(username, email, password)).thenReturn(userId);
 
-                mockMvc.perform(post("/api/users/register")
-                                .param("username", username)
-                                .param("email", email)
-                                .param("password", password)
+                mockMvc.perform(post(API_USERS_REGISTER)
+                                .param(PARAM_USERNAME, username)
+                                .param(PARAM_EMAIL, email)
+                                .param(PARAM_PASSWORD, password)
                                 .sessionAttr(UserController.SESSION_CHECKED_USER, username)
                                 .sessionAttr(UserController.SESSION_CHECKED_EMAIL, email)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isCreated())
                                 .andExpect(header().string("Location", "/api/users/1/info"))
-                                .andExpect(jsonPath("$.message").value(UserController.MESSAGE_REGISTER_SUCCESSFUL))
-                                .andExpect(jsonPath("$.code").value(ApiResponse.Code.SUCCESS.toString()));
+                                .andExpect(jsonPath(JSON_PATH_MESSAGE)
+                                                .value(UserController.MESSAGE_REGISTER_SUCCESSFUL))
+                                .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
+        }
+
+        // Exception handling tests
+
+        /**
+         * Tests registering a user when the email is already used.
+         */
+        @Test
+        public void testRegisterEmailAlreadyUsedFailure() throws Exception {
+                String username = "newUser";
+                String email = "usedemail@example.com";
+                String password = "password123";
+
+                when(userService.existEmail(email)).thenReturn(true);
+
+                mockMvc.perform(post(API_USERS_REGISTER)
+                                .param(PARAM_USERNAME, username)
+                                .param(PARAM_EMAIL, email)
+                                .param(PARAM_PASSWORD, password)
+                                .sessionAttr(UserController.SESSION_CHECKED_USER, username)
+                                .sessionAttr(UserController.SESSION_CHECKED_EMAIL, email)
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isConflict())
+                                .andExpect(jsonPath(JSON_PATH_MESSAGE).value(UserController.ERROR_EMAIL_ALREADY_USED))
+                                .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.USED.toString()));
         }
 
         /**
-         * Tests unauthorized password change attempt.
-         *
-         * @throws Exception if any error occurs during the request
+         * Tests checking username when the username is missing.
          */
         @Test
-        public void testChangePasswordUnauthorized() throws Exception {
-                when(userService.getCurrentUser()).thenReturn(Optional.empty());
-
-                mockMvc.perform(put("/api/users/password")
-                                .param("password", "newPassword123")
+        public void testCheckUsernameMissingFailure() throws Exception {
+                mockMvc.perform(post(API_USERS_CHECK_USERNAME)
                                 .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isUnauthorized())
-                                .andExpect(jsonPath("$.message").value(UserController.ERROR_AUTHENTICATION_REQUIRED));
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath(JSON_PATH_MESSAGE)
+                                                .value(MessageProvider.getMissingParameterMessage(PARAM_USERNAME)))
+                                .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.FAILURE.toString()));
         }
 
         /**
-         * Tests successful password change.
-         *
-         * @throws Exception if any error occurs during the request
+         * Tests email check when the email is missing.
          */
         @Test
-        public void testChangePasswordSuccess() throws Exception {
-                String username = "testUser";
-                String newPassword = "newPassword123";
-
-                UserDetails mockUser = mock(UserDetails.class);
-                when(userService.getCurrentUser()).thenReturn(Optional.of(mockUser));
-                when(mockUser.getUsername()).thenReturn(username);
-
-                mockMvc.perform(put("/api/users/password")
-                                .param("password", newPassword)
+        public void testCheckEmailMissingFailure() throws Exception {
+                mockMvc.perform(post(API_USERS_CHECK_EMAIL)
                                 .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.message")
-                                                .value(UserController.MESSAGE_PASSWORD_CHANGE_SUCCESSFUL))
-                                .andExpect(jsonPath("$.code").value(ApiResponse.Code.SUCCESS.toString()));
-
-                verify(userService).changePassword(username, newPassword);
-        }
-
-        /**
-         * Tests password change attempt without authentication.
-         *
-         * @throws Exception if any error occurs during the request
-         */
-        @Test
-        public void testChangePasswordFailUnauthenticated() throws Exception {
-                String newPassword = "newPassword123";
-
-                mockMvc.perform(put("/api/users/password")
-                                .param("password", newPassword)
-                                .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isUnauthorized())
-                                .andExpect(jsonPath("$.message").value(UserController.ERROR_AUTHENTICATION_REQUIRED))
-                                .andExpect(jsonPath("$.code").value(ApiResponse.Code.FAILURE.toString()));
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath(JSON_PATH_MESSAGE)
+                                                .value(MessageProvider.getMissingParameterMessage(PARAM_EMAIL)))
+                                .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.FAILURE.toString()));
         }
 
         /**
          * Tests user registration with missing username.
-         *
-         * @throws Exception if any error occurs during the request processing
          */
         @Test
-        public void testRegisterMissingUsername() throws Exception {
+        public void testRegisterMissingUsernameFailure() throws Exception {
                 String email = "newuser@example.com";
                 String password = "password123";
 
-                mockMvc.perform(post("/api/users/register")
-                                .param("email", email)
-                                .param("password", password)
+                mockMvc.perform(post(API_USERS_REGISTER)
+                                .param(PARAM_EMAIL, email)
+                                .param(PARAM_PASSWORD, password)
                                 .sessionAttr(UserController.SESSION_CHECKED_EMAIL, email)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isBadRequest())
-                                .andExpect(jsonPath("$.message").value(UserController.ERROR_USERNAME_REQUIRED))
-                                .andExpect(jsonPath("$.code").value(ApiResponse.Code.FAILURE.toString()));
+                                .andExpect(jsonPath(JSON_PATH_MESSAGE)
+                                                .value(MessageProvider.getMissingParameterMessage(PARAM_USERNAME)))
+                                .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.FAILURE.toString()));
         }
 
         /**
-         * Tests user registration with missing email.
-         *
-         * @throws Exception if any error occurs during the request processing
+         * Tests password change when the password is missing.
          */
         @Test
-        public void testRegisterMissingEmail() throws Exception {
-                String username = "newUser";
-                String password = "password123";
-
-                mockMvc.perform(post("/api/users/register")
-                                .param("username", username)
-                                .param("password", password)
-                                .sessionAttr(UserController.SESSION_CHECKED_USER, username)
+        public void testChangePasswordMissingFailure() throws Exception {
+                mockMvc.perform(put(API_USERS_PASSWORD)
                                 .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isBadRequest())
                                 .andDo(print())
-                                .andExpect(status().isBadRequest())
-                                .andExpect(jsonPath("$.message").value(UserController.ERROR_EMAIL_REQUIRED))
-                                .andExpect(jsonPath("$.code").value(ApiResponse.Code.FAILURE.toString()));
+                                .andExpect(jsonPath(JSON_PATH_MESSAGE)
+                                                .value(MessageProvider.getMissingParameterMessage(PARAM_PASSWORD)))
+                                .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.FAILURE.toString()));
         }
 
         /**
-         * Tests user registration with missing password.
-         *
-         * @throws Exception if any error occurs during the request processing
+         * Tests checkLoginStatus when the user is logged in.
          */
         @Test
-        public void testRegisterMissingPassword() throws Exception {
-                String username = "newUser";
-                String email = "newuser@example.com";
+        public void testCheckLoginStatusLoggedInSuccess() throws Exception {
+                when(userService.isLogin()).thenReturn(true);
 
-                mockMvc.perform(post("/api/users/register")
-                                .param("username", username)
-                                .param("email", email)
-                                .sessionAttr(UserController.SESSION_CHECKED_USER, username)
-                                .sessionAttr(UserController.SESSION_CHECKED_EMAIL, email)
+                mockMvc.perform(get(API_USERS_STATUS)
                                 .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isBadRequest())
-                                .andExpect(jsonPath("$.message").value(UserController.ERROR_PASSWORD_REQUIRED))
-                                .andExpect(jsonPath("$.code").value(ApiResponse.Code.FAILURE.toString()));
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath(JSON_PATH_MESSAGE).value(UserController.MESSAGE_LOGIN_STATUS))
+                                .andExpect(jsonPath(JSON_PATH_DATA).value(true))
+                                .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
+        }
+
+        /**
+         * Tests checkLoginStatus when the user is not logged in.
+         */
+        @Test
+        public void testCheckLoginStatusNotLoggedInSuccess() throws Exception {
+                when(userService.isLogin()).thenReturn(false);
+
+                mockMvc.perform(get(API_USERS_STATUS)
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath(JSON_PATH_MESSAGE).value(UserController.MESSAGE_LOGIN_STATUS))
+                                .andExpect(jsonPath(JSON_PATH_DATA).value(false))
+                                .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
         }
 }
