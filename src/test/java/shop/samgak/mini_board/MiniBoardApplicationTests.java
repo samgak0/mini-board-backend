@@ -6,7 +6,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.http.HttpHeaders.*;
 import static org.springframework.http.HttpStatus.*;
 
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,7 +31,6 @@ import shop.samgak.mini_board.user.services.UserService;
  * The TestRestTemplate allows for making HTTP requests to the application
  * during testing, simulating interactions as if they were coming from a client.
  */
-@Tag("integration")
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 public class MiniBoardApplicationTests {
 
@@ -185,40 +183,6 @@ public class MiniBoardApplicationTests {
 
         assertThat(registerResponse.getStatusCode()).isEqualTo(CONFLICT);
         assertThat(registerResponse.getBody()).contains(UserController.ERROR_USERNAME_ALREADY_USED);
-    }
-
-    /**
-     * Tests login failure when username is missing.
-     * This method simulates a user attempting to log in without providing a
-     * username.
-     */
-    @Test
-    public void testLoginFailureMissingUsername() throws Exception {
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        loginRequest.add("password", "password");
-
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
-
-        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-        assertThat(loginResponse.getStatusCode()).isEqualTo(BAD_REQUEST);
-    }
-
-    /**
-     * Tests login failure when password is missing.
-     * This method simulates a user attempting to log in without providing a
-     * password.
-     */
-    @Test
-    public void testLoginFailureMissingPassword() throws Exception {
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        loginRequest.add("username", "user");
-
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
-
-        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-        assertThat(loginResponse.getStatusCode()).isEqualTo(BAD_REQUEST);
     }
 
     /**

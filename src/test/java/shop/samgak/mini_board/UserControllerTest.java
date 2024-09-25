@@ -7,7 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -32,7 +31,6 @@ import shop.samgak.mini_board.utility.ApiResponse;
  * including username checks, email checks, registration,
  * and password management.
  */
-@Tag("unit")
 public class UserControllerTest {
 
         // Constants for API paths, parameters, and JSON fields

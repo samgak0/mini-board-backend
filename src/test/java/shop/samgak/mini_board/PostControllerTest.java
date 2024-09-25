@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -29,7 +28,6 @@ import shop.samgak.mini_board.post.services.PostService;
  * This class tests the API endpoints related to posts, including retrieval of
  * all posts and individual posts by ID.
  */
-@Tag("unit")
 public class PostControllerTest {
 
     private MockMvc mockMvc;
