@@ -123,11 +123,19 @@ bash /path/to/deploy-frontend.sh
 REACT_APP_API_BASE_URL=http://localhost:8080/api
 ```
 
-## docker Commend
+## Docker Commend
 
 ```bash
 docker run --name redis -d -p 6379:6379 redis:7.4.0
 docker run --name oracle-xe -d -p 1521:1521 -p 5500:5500 container-registry.oracle.com/database/express:21.3.0-xe
+```
+### Docker Troubleshooting
+- On windows
+Ports are not available: listen tcp 0.0.0.0:1521: bind: An attempt was made to access a socket in a way forbidden by its access permissions.
+```powershell
+net start winnat
+netsh int ipv4 add excludedportrange protocol=tcp startport=1521 numberofports=1
+net stop winnat
 ```
 
 ## 기여 가이드
