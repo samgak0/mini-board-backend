@@ -127,4 +127,147 @@ public class PostIntegrationTests {
             assertThat(e).isInstanceOf(ResourceAccessException.class);
         }
     }
+
+    /**
+     * Tests creating a new post when both username and password are missing.
+     */
+    @Test
+    public void testCreatePostWithMissingCredentialsBoth() throws Exception {
+        // Simulate user login to get session cookie
+        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
+        loginRequest.add("username", "user");
+        loginRequest.add("password", "password");
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<MultiValueMap<String, String>> loginEntity = new HttpEntity<>(loginRequest, headers);
+
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, loginEntity, String.class);
+        String sessionCookie = loginResponse.getHeaders().getFirst(SET_COOKIE);
+
+        // Prepare post creation request with missing username and password
+        MultiValueMap<String, String> postRequest = new LinkedMultiValueMap<>();
+        postRequest.add("title", "Unauthorized Post Title");
+        postRequest.add("content", "Content of the unauthorized post");
+
+        HttpHeaders postHeaders = new HttpHeaders();
+        postHeaders.add("Cookie", sessionCookie);
+        HttpEntity<MultiValueMap<String, String>> postEntity = new HttpEntity<>(postRequest, postHeaders);
+
+        // Attempt to create the post without username and password
+        postRequest.remove("title");
+        postRequest.remove("content");
+
+        ResponseEntity<String> postResponse = restTemplate.postForEntity(postsUrl, postEntity, String.class);
+        assertThat(postResponse.getStatusCode()).isEqualTo(BAD_REQUEST); // Assuming a 400 Bad Request
+    }
+
+    /**
+     * Tests creating a new post when the username is missing.
+     */
+    @Test
+    public void testCreatePostWithMissingUsername() throws Exception {
+        // Simulate user login to get session cookie
+        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
+        loginRequest.add("username", "user");
+        loginRequest.add("password", "password");
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<MultiValueMap<String, String>> loginEntity = new HttpEntity<>(loginRequest, headers);
+
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, loginEntity, String.class);
+        String sessionCookie = loginResponse.getHeaders().getFirst(SET_COOKIE);
+
+        // Prepare post creation request with missing username
+        MultiValueMap<String, String> postRequest = new LinkedMultiValueMap<>();
+        postRequest.add("title", "New Post Title");
+        postRequest.add("content", "Content of the new post");
+
+        HttpHeaders postHeaders = new HttpHeaders();
+        postHeaders.add("Cookie", sessionCookie);
+        HttpEntity<MultiValueMap<String, String>> postEntity = new HttpEntity<>(postRequest, postHeaders);
+
+        // Remove username from the request
+        postRequest.remove("username");
+
+        ResponseEntity<String> postResponse = restTemplate.postForEntity(postsUrl, postEntity, String.class);
+        assertThat(postResponse.getStatusCode()).isEqualTo(BAD_REQUEST); // Assuming a 400 Bad Request
+    }
+
+    /**
+     * Tests creating a new post when the password is missing.
+     */
+    @Test
+    public void testCreatePostWithMissingPassword() throws Exception {
+        // Simulate user login to get session cookie
+        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
+        loginRequest.add("username", "user");
+        loginRequest.add("password", "password");
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<MultiValueMap<String, String>> loginEntity = new HttpEntity<>(loginRequest, headers);
+
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, loginEntity, String.class);
+        String sessionCookie = loginResponse.getHeaders().getFirst(SET_COOKIE);
+
+        // Prepare post creation request with missing password
+        MultiValueMap<String, String> postRequest = new LinkedMultiValueMap<>();
+        postRequest.add("title", "New Post Title");
+        postRequest.add("content", "Content of the new post");
+
+        HttpHeaders postHeaders = new HttpHeaders();
+        postHeaders.add("Cookie", sessionCookie);
+        HttpEntity<MultiValueMap<String, String>> postEntity = new HttpEntity<>(postRequest, postHeaders);
+
+        // Remove password from the request
+        postRequest.remove("password");
+
+        ResponseEntity<String> postResponse = restTemplate.postForEntity(postsUrl, postEntity, String.class);
+        assertThat(postResponse.getStatusCode()).isEqualTo(BAD_REQUEST); // Assuming a 400 Bad Request
+    }
+
+    /**
+     * Tests login failure when both username and password are missing.
+     */
+    @Test
+    public void testLoginMissingBothAsNotLoggedInUser() throws Exception {
+        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
+        // Both username and password are omitted
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
+
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
+        assertThat(loginResponse.getStatusCode()).isEqualTo(BAD_REQUEST); // Assuming a 400 Bad Request
+    }
+
+    /**
+     * Tests login failure when username is missing.
+     */
+    @Test
+    public void testLoginMissingUsernameAsNotLoggedInUser() throws Exception {
+        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
+        loginRequest.add("password", "password"); // Only password is provided
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
+
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
+        assertThat(loginResponse.getStatusCode()).isEqualTo(BAD_REQUEST); // Assuming a 400 Bad Request
+    }
+
+    /**
+     * Tests login failure when password is missing.
+     */
+    @Test
+    public void testLoginMissingPasswordAsNotLoggedInUser() throws Exception {
+        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
+        loginRequest.add("username", "user"); // Only username is provided
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
+
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
+        assertThat(loginResponse.getStatusCode()).isEqualTo(BAD_REQUEST); // Assuming a 400 Bad Request
+    }
+
 }

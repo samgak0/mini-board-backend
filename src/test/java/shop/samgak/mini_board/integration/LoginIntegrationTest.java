@@ -74,4 +74,49 @@ public class LoginIntegrationTest {
         }
     }
 
+    /**
+     * Tests login failure when both username and password are missing.
+     */
+    @Test
+    public void testLoginMissingBoth() throws Exception {
+        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
+        // Both username and password are omitted
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
+
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
+        assertThat(loginResponse.getStatusCode()).isEqualTo(BAD_REQUEST);
+    }
+
+    /**
+     * Tests login failure when username is missing.
+     */
+    @Test
+    public void testLoginMissingUsername() throws Exception {
+        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
+        loginRequest.add("password", "password"); // Only password is provided
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
+
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
+        assertThat(loginResponse.getStatusCode()).isEqualTo(BAD_REQUEST);
+    }
+
+    /**
+     * Tests login failure when password is missing.
+     */
+    @Test
+    public void testLoginMissingPassword() throws Exception {
+        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
+        loginRequest.add("username", "user");
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
+
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
+        assertThat(loginResponse.getStatusCode()).isEqualTo(BAD_REQUEST); // Assuming a 400 Bad Request
+    }
+
 }
