@@ -31,7 +31,7 @@ public class SecuritySessionController {
 
         if (keys != null && !keys.isEmpty()) {
             for (String key : keys) {
-                String type = redisTemplate.type(key).code(); // 키의 데이터 타입 확인
+                String type = redisTemplate.type(key).code();
                 switch (type) {
                     case "string" -> {
                         Object value = redisTemplate.opsForValue().get(key);
