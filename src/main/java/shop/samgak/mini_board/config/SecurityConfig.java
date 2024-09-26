@@ -16,11 +16,7 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import shop.samgak.mini_board.security.CustomUserDetailsService;
-import shop.samgak.mini_board.security.component.CustomAuthenticationEntryPoint;
-import shop.samgak.mini_board.security.component.CustomAuthenticationFailureHandler;
-import shop.samgak.mini_board.security.component.CustomAuthenticationSuccessHandler;
-import shop.samgak.mini_board.security.component.CustomLogoutSuccessHandler;
+import shop.samgak.mini_board.security.CustomSessionAuthentication;
 
 @Slf4j
 @Configuration
@@ -28,14 +24,11 @@ import shop.samgak.mini_board.security.component.CustomLogoutSuccessHandler;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-        private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
-        private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
-        private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
-        private final CustomUserDetailsService userDetailsService;
-        private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+        private final CustomSessionAuthentication customSessionAuthentication;
 
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
                 http.csrf(csrf -> csrf.disable())
                                 .authorizeHttpRequests(authorize -> authorize
                                                 .requestMatchers("/api/users/login",
@@ -50,14 +43,14 @@ public class SecurityConfig {
                                                 .anyRequest().authenticated())
                                 .formLogin(form -> form
                                                 .loginProcessingUrl("/api/users/login")
-                                                .successHandler(customAuthenticationSuccessHandler)
-                                                .failureHandler(customAuthenticationFailureHandler)
+                                                .successHandler(customSessionAuthentication)
+                                                .failureHandler(customSessionAuthentication)
                                                 .permitAll())
                                 .logout(logout -> logout
                                                 .logoutUrl("/api/users/logout")
-                                                .logoutSuccessHandler(customLogoutSuccessHandler))
+                                                .logoutSuccessHandler(customSessionAuthentication))
                                 .exceptionHandling(exceptionHandling -> exceptionHandling
-                                                .authenticationEntryPoint(customAuthenticationEntryPoint))
+                                                .authenticationEntryPoint(customSessionAuthentication))
                                 .sessionManagement(session -> {
                                         session.maximumSessions(1)
                                                         .sessionRegistry(sessionRegistry());
@@ -78,7 +71,7 @@ public class SecurityConfig {
                 AuthenticationManagerBuilder authenticationManagerBuilder = http
                                 .getSharedObject(AuthenticationManagerBuilder.class);
                 authenticationManagerBuilder
-                                .userDetailsService(userDetailsService)
+                                .userDetailsService(customSessionAuthentication)
                                 .passwordEncoder(passwordEncoder());
                 return authenticationManagerBuilder.build();
         }
