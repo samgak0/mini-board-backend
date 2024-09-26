@@ -10,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.Data;
 import shop.samgak.mini_board.user.entities.User;
@@ -19,7 +20,8 @@ import shop.samgak.mini_board.user.entities.User;
 @Data
 public class PostLike {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "post_likes_seq")
+    @SequenceGenerator(name = "post_likes_seq", sequenceName = "SAMGAK.POSTS_LIKES_SEQ", allocationSize = 1)
     @Column(name = "id")
     private Long id;
 
