@@ -37,5 +37,5 @@ public class PostFile {
     private Long fileSize;
 
     @JoinColumn(name = "created_at")
-    private Instant createdAt;
+    private Instant createdAt = Instant.now()
 }

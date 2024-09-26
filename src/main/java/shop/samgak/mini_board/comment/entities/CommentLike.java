@@ -32,6 +32,6 @@ public class CommentLike {
     private Comment comment;
 
     @Column(name = "created_at")
-    private Instant createdAt;
+    private Instant createdAt = Instant.now();
 
 }

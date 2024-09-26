@@ -36,7 +36,7 @@ public class Post {
     @Column(name = "content")
     private String content;
     @Column(name = "created_at")
-    private Instant createdAt;
+    private Instant createdAt = Instant.now();
     @Column(name = "updated_at")
-    private Instant updatedAt;
+    private Instant updatedAt = Instant.now();
 }
