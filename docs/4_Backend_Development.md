@@ -575,16 +575,27 @@ React에서 로그인 요청을 `POST` 방식으로 보내는 경우, RESTful한
 - **email** (string, required)
 - **password** (string, required)
 
+다음은 제공하신 cURL 커맨드를 적절히 포맷팅한 것입니다:
+
+### User Registration
+
+#### API Endpoint
+- **URL**: `/api/users/register`
+- **Method**: POST
+
 #### cURL Command
 
 - **Success Example**
   ```bash
-  curl -X POST http://localhost:8080/api/users/register -d "username=newUser&email=newuser@example.com&password=password123" -b "cookie.txt"
+  curl -X POST http://localhost:8080/api/users/register \
+       -d "username=newUser&email=newuser@example.com&password=password123" \
+       -b "cookie.txt"
   ```
 
 - **Failure (Email Already Used) Example**
   ```bash
-  curl -X POST http://localhost:8080/api/users/register -d "username=newUser&email=existing@example.com&password=password123"
+  curl -X POST http://localhost:8080/api/users/register \
+       -d "username=newUser&email=existing@example.com&password=password123"
   ```
 
 ---
@@ -595,14 +606,13 @@ React에서 로그인 요청을 `POST` 방식으로 보내는 경우, RESTful한
 - **URL**: `/api/users/check/username`
 - **Method**: POST
 
-#### Request Parameters
-- **username** (string, required)
-
 #### cURL Command
 
 - **Success Example**
   ```bash
-  curl -X POST http://localhost:8080/api/users/check/username -d "username=newUser" -c "cookie.txt"
+  curl -X POST http://localhost:8080/api/users/check/username \
+       -d "username=newUser" \
+       -c "cookie.txt"
   ```
 
 - **Failure (Username Missing) Example**
@@ -618,43 +628,44 @@ React에서 로그인 요청을 `POST` 방식으로 보내는 경우, RESTful한
 - **URL**: `/api/users/check/email`
 - **Method**: POST
 
-#### Request Parameters
-- **email** (string, required)
-
 #### cURL Command
 
 - **Success Example**
   ```bash
-  curl -X POST http://localhost:8080/api/users/check/email -d "email=newuser@example.com" -b "cookie.txt"
+  curl -X POST http://localhost:8080/api/users/check/email \
+       -d "email=newuser@example.com" \
+       -b "cookie.txt"
   ```
 
 - **Failure (Invalid Email Format) Example**
   ```bash
-  curl -X POST http://localhost:8080/api/users/check/email -d "email=invalid-email"  -b "cookie.txt"
+  curl -X POST http://localhost:8080/api/users/check/email \
+       -d "email=invalid-email" \
+       -b "cookie.txt"
   ```
 
 ---
 
-### Login
+### User Login
 
 #### API Endpoint
 - **URL**: `/api/users/login`
 - **Method**: POST
 
-#### Request Parameters
-- **username** (string, required)
-- **password** (string, required)
-
 #### cURL Command
 
 - **Success Example**
   ```bash
-  curl -X POST http://localhost:8080/api/users/login -d "username=user&password=password" -c cookies.txt
+  curl -X POST http://localhost:8080/api/users/login \
+       -d "username=user&password=password" \
+       -c "cookies.txt"
   ```
 
 - **Failure (Wrong Password) Example**
   ```bash
-  curl -X POST http://localhost:8080/api/users/login  -d "username=user&password=wrongpassword" -b "cookie.txt"
+  curl -X POST http://localhost:8080/api/users/login \
+       -d "username=user&password=wrongpassword" \
+       -b "cookie.txt"
   ```
 
 ---
@@ -670,26 +681,56 @@ React에서 로그인 요청을 `POST` 방식으로 보내는 경우, RESTful한
 
 - **Success Example (Authenticated)**
   ```bash
-  curl -X GET http://localhost:8080/api/posts -b cookies.txt
+  curl -X GET http://localhost:8080/api/posts \
+       -b "cookies.txt"
   ```
 
 - **Failure (Unauthenticated)**
   ```bash
   curl -X GET http://localhost:8080/api/posts
   ```
-### example curl
-  ```bash
-    curl -X POST http://localhost:8080/api/users/check/username -d "username=user" -c cookies.txt
-  curl -X POST http://localhost:8080/api/users/check/email -d "email=user@example.com" -b cookies.txt
-  curl -X POST http://localhost:8080/api/users/register -d "username=user&password=password&email=user@example.com" -b cookies.txt
-  curl -X POST http://localhost:8080/api/users/login -d "username=user&password=password" -c cookies.txt
-  curl -X GET http://localhost:8080/sessions
-  curl -X GET http://localhost:8080/api/posts -b "cookies.txt"
-  curl -X GET http://localhost:8080/sessions
-  curl -X GET http://localhost:8080/sessions-redis
-  curl -X POST http://localhost:8080/api/users/login -d "username=user&password=password" -c "cookies.txt"
-  curl -X GET http://localhost:8080/api/posts -b "cookies.txt"
-  curl -X GET http://localhost:8080/api/users/logout -b "cookies.txt"
-  curl -X POST http://localhost:8080/api/posts -d "title=title&content=content" -b "cookies.txt"
 
-  ```
+---
+
+### Additional Example cURL Commands
+
+```bash
+curl -X POST http://localhost:8080/api/users/check/username \
+     -d "username=user" \
+     -c "cookies.txt"
+
+curl -X POST http://localhost:8080/api/users/check/email \
+     -d "email=user@example.com" \
+     -b "cookies.txt"
+
+curl -X POST http://localhost:8080/api/users/register \
+     -d "username=user&password=password&email=user@example.com" \
+     -b "cookies.txt"
+
+curl -X POST http://localhost:8080/api/users/login \
+     -d "username=user&password=password" \
+     -c "cookies.txt"
+
+curl -X GET http://localhost:8080/sessions
+
+curl -X GET http://localhost:8080/api/posts \
+     -b "cookies.txt"
+
+curl -X GET http://localhost:8080/sessions
+
+curl -X GET http://localhost:8080/sessions-redis
+
+curl -X POST http://localhost:8080/api/users/login \
+     -d "username=user&password=password" \
+     -c "cookies.txt"
+
+curl -X GET http://localhost:8080/api/posts \
+     -b "cookies.txt"
+
+curl -X GET http://localhost:8080/api/users/logout \
+     -b "cookies.txt"
+
+curl -X POST http://localhost:8080/api/posts \
+     -d "title=title&content=content" \
+     -b "cookies.txt"
+```
