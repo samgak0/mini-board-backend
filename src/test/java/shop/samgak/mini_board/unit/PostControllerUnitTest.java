@@ -1,4 +1,4 @@
-package shop.samgak.mini_board;
+package shop.samgak.mini_board.unit;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -31,7 +31,7 @@ import shop.samgak.mini_board.utility.UserSessionHelper;
  * This class tests the API endpoints related to posts, including retrieval of
  * all posts and individual posts by ID.
  */
-public class PostControllerTest {
+public class PostControllerUnitTest {
 
         private MockMvc mockMvc;
 

@@ -1,4 +1,4 @@
-package shop.samgak.mini_board;
+package shop.samgak.mini_board.unit;
 
 import java.util.Optional;
 
@@ -37,7 +37,7 @@ import shop.samgak.mini_board.utility.UserSessionHelper;
  * including username checks, email checks, registration,
  * and password management.
  */
-public class UserControllerTest {
+public class UserControllerUnitTest {
 
         // Constants for API paths, parameters, and JSON fields
         private static final String API_USERS_CHECK_USERNAME = "/api/users/check/username";
