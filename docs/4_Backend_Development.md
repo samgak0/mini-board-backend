@@ -679,6 +679,9 @@ React에서 로그인 요청을 `POST` 방식으로 보내는 경우, RESTful한
   ```
 ### example curl
   ```bash
+    curl -X POST http://localhost:8080/api/users/check/username -d "username=user" -c cookies.txt
+  curl -X POST http://localhost:8080/api/users/check/email -d "email=user@example.com" -b cookies.txt
+  curl -X POST http://localhost:8080/api/users/register -d "username=user&password=password&email=user@example.com" -b cookies.txt
   curl -X POST http://localhost:8080/api/users/login -d "username=user&password=password" -c cookies.txt
   curl -X GET http://localhost:8080/sessions
   curl -X GET http://localhost:8080/api/posts -b "cookies.txt"
