@@ -44,7 +44,8 @@ public class SecurityConfig {
                                                                 "/swagger-ui/**",
                                                                 "/v3/api-docs/swagger-config",
                                                                 "/v3/api-docs",
-                                                                "/sessions")
+                                                                "/sessions",
+                                                                "/sessions-redis")
                                                 .permitAll()
                                                 .anyRequest().authenticated())
                                 .formLogin(form -> form

@@ -20,7 +20,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    // 필수 요청 파라미터가 없을 경우 예외 처리
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ApiResponse> handleMissingParams(MissingServletRequestParameterException ex) {
         String errorMessage = MessageProvider.getMissingParameterMessage(ex.getParameterName());
