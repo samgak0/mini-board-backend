@@ -685,8 +685,8 @@ React에서 로그인 요청을 `POST` 방식으로 보내는 경우, RESTful한
   curl -X GET http://localhost:8080/sessions
   curl -X GET http://localhost:8080/sessions-redis
   curl -X POST http://localhost:8080/api/users/login -d "username=user&password=password" -c cookie.txt
-  curl -X GET http://localhost:8080/api/posts -b "cookie.txt"
-  curl -X GET http://localhost:8080/api/users/logout -b "cookie.txt"
-  curl -X POST http://localhost:8080/api/posts \ -H "Content-Type: application/json"  -d '{\"title\": \"title\",\"content\": \"contents\"}' -b "cookie.txt" 
+  curl -X GET http://localhost:8080/api/posts -b "cookies.txt"
+  curl -X GET http://localhost:8080/api/users/logout -b "cookies.txt"
+  curl -X POST http://localhost:8080/api/posts \ -H "Content-Type: application/json"  -d '{\"title\": \"title\",\"content\": \"contents\"}' -b "cookies.txt" 
 
   ```
