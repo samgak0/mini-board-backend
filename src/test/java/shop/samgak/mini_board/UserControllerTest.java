@@ -1,20 +1,25 @@
 package shop.samgak.mini_board;
 
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import shop.samgak.mini_board.config.GlobalExceptionHandler;
@@ -24,6 +29,7 @@ import shop.samgak.mini_board.post.services.PostService;
 import shop.samgak.mini_board.user.controllers.UserController;
 import shop.samgak.mini_board.user.services.UserService;
 import shop.samgak.mini_board.utility.ApiResponse;
+import shop.samgak.mini_board.utility.UserSessionHelper;
 
 /**
  * Unit tests for the UserController class.
@@ -57,6 +63,9 @@ public class UserControllerTest {
         private PostService postService;
 
         @Mock
+        private UserSessionHelper userSessionHelper;
+
+        @Mock
         private MockHttpSession session;
 
         @InjectMocks
@@ -69,7 +78,7 @@ public class UserControllerTest {
         public void setUp() {
                 MockitoAnnotations.openMocks(this);
                 mockMvc = MockMvcBuilders
-                                .standaloneSetup(userController, new PostController(postService))
+                                .standaloneSetup(userController, new PostController(postService, userSessionHelper))
                                 .setControllerAdvice(new GlobalExceptionHandler())
                                 .build();
         }
