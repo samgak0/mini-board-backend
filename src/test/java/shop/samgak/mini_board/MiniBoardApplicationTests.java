@@ -1,22 +1,19 @@
 package shop.samgak.mini_board;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
+import static org.springframework.http.HttpHeaders.*;
+import static org.springframework.http.HttpStatus.*;
+
 import org.junit.jupiter.api.Test;
-import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import static org.springframework.http.HttpHeaders.SET_COOKIE;
 import org.springframework.http.HttpMethod;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.CONFLICT;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -228,5 +225,83 @@ public class MiniBoardApplicationTests {
                 String.class);
 
         assertThat(registerResponse.getStatusCode()).isEqualTo(BAD_REQUEST);
+    }
+
+    /**
+     * Tests creating a new post as a logged-in user.
+     */
+    @Test
+    public void testCreatePostAsLoggedInUser() throws Exception {
+        // Simulate user login to get session cookie
+        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
+        loginRequest.add("username", "user");
+        loginRequest.add("password", "password");
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<MultiValueMap<String, String>> loginEntity = new HttpEntity<>(loginRequest, headers);
+
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, loginEntity, String.class);
+        String sessionCookie = loginResponse.getHeaders().getFirst(SET_COOKIE);
+
+        // Prepare post creation request
+        MultiValueMap<String, String> postRequest = new LinkedMultiValueMap<>();
+        postRequest.add("title", "New Post Title");
+        postRequest.add("content", "Content of the new post");
+
+        HttpHeaders postHeaders = new HttpHeaders();
+        postHeaders.add("Cookie", sessionCookie);
+        HttpEntity<MultiValueMap<String, String>> postEntity = new HttpEntity<>(postRequest, postHeaders);
+
+        // Create the post
+        ResponseEntity<String> postResponse = restTemplate.postForEntity(postsUrl, postEntity, String.class);
+        assertThat(postResponse.getStatusCode()).isEqualTo(CREATED);
+    }
+
+    /**
+     * Tests accessing posts as a logged-in user.
+     */
+    @Test
+    public void testAccessPostsAsLoggedInUser() throws Exception {
+        // Simulate user login to get session cookie
+        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
+        loginRequest.add("username", "user");
+        loginRequest.add("password", "password");
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<MultiValueMap<String, String>> loginEntity = new HttpEntity<>(loginRequest, headers);
+
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, loginEntity, String.class);
+        String sessionCookie = loginResponse.getHeaders().getFirst(SET_COOKIE);
+
+        // Prepare to access posts
+        HttpHeaders postHeaders = new HttpHeaders();
+        postHeaders.add("Cookie", sessionCookie);
+
+        ResponseEntity<String> postsResponse = restTemplate.exchange(postsUrl, HttpMethod.GET,
+                new HttpEntity<>(postHeaders), String.class);
+        assertThat(postsResponse.getStatusCode()).isEqualTo(OK);
+    }
+
+    /**
+     * Tests creating a new post without being logged in.
+     */
+    @Test
+    public void testCreatePostAsNotLoggedInUser() throws Exception {
+        // Prepare post creation request
+        MultiValueMap<String, String> postRequest = new LinkedMultiValueMap<>();
+        postRequest.add("title", "Unauthorized Post Title");
+        postRequest.add("content", "Content of the unauthorized post");
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<MultiValueMap<String, String>> postEntity = new HttpEntity<>(postRequest, headers);
+
+        // Attempt to create the post without a session cookie
+
+        try {
+            restTemplate.postForEntity(postsUrl, postEntity, String.class);
+            fail("Expected ResourceAccessException to be thrown");
+        } catch (RestClientException e) {
+            assertThat(e).isInstanceOf(ResourceAccessException.class);
+        }
     }
 }
