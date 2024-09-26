@@ -1,6 +1,6 @@
 package shop.samgak.mini_board.comment.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,5 +15,5 @@ public class CommentFileDTO {
     private String originalName;
     private String filePath;
     private Long fileSize;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }

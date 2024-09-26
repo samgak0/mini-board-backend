@@ -58,9 +58,9 @@ public class User {
     
     private String password;
 
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     // 기타 필요한 필드와 메서드
 }
@@ -88,9 +88,9 @@ public class Post {
     @Lob
     private String content;
 
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     // 기타 필요한 필드와 메서드
 }
@@ -123,7 +123,7 @@ public class Comment {
 
     private String content;
 
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     // 기타 필요한 필드와 메서드
 }
@@ -137,7 +137,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "post_files")
@@ -157,11 +157,11 @@ public class PostFile {
     private String originalName;   // 원래 파일 이름
     private String filePath;       // 파일이 저장된 경로
     private Long fileSize;         // 파일 크기
-    private LocalDateTime createdAt; // 업로드 일자
+    private Instant createdAt; // 업로드 일자
 
     @PrePersist
     public void prePersist() {
-        this.createdAt = LocalDateTime.now();  // 생성 시 현재 시간 설정
+        this.createdAt = Instant.now();  // 생성 시 현재 시간 설정
     }
 }
 ```
@@ -175,7 +175,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "comment_files")
@@ -195,11 +195,11 @@ public class CommentFile {
     private String originalName;   // 원래 파일 이름
     private String filePath;       // 파일이 저장된 경로
     private Long fileSize;         // 파일 크기
-    private LocalDateTime createdAt; // 업로드 일자
+    private Instant createdAt; // 업로드 일자
 
     @PrePersist
     public void prePersist() {
-        this.createdAt = LocalDateTime.now();  // 생성 시 현재 시간 설정
+        this.createdAt = Instant.now();  // 생성 시 현재 시간 설정
     }
 }
 ```
@@ -212,7 +212,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "likes")
@@ -236,7 +236,7 @@ public class Like {
     @JoinColumn(name = "comment_id")
     private Comment comment;
 
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     // 추가적인 메서드나 필드를 필요에 따라 정의할 수 있습니다.
 }
@@ -302,7 +302,7 @@ public class PostService {
         post.setUser(user);
         post.setTitle(title);
         post.setContent(content);
-        post.setCreatedAt(LocalDateTime.now());
+        post.setCreatedAt(Instant.now());
         return postRepository.save(post);
     }
 
@@ -366,7 +366,7 @@ public class FileService {
                 fileEntity.setOriginalName(file.getOriginalFilename());
                 fileEntity.setFilePath(filePath);
                 fileEntity.setFileSize(file.getSize());
-                fileEntity.setUploadedAt(LocalDateTime.now());
+                fileEntity.setUploadedAt(Instant.now());
                 fileEntity.setEntityType(entityType);
                 fileEntity.setEntityId(entityId);
                 
@@ -676,4 +676,10 @@ React에서 로그인 요청을 `POST` 방식으로 보내는 경우, RESTful한
 - **Failure (Unauthenticated)**
   ```bash
   curl -X GET http://localhost:8080/api/posts
+  ```
+### example curl
+  ```bash
+  curl -X POST http://localhost:8080/api/users/login -d "username=user&password=password" -c cookies.txt
+  curl -X GET http://localhost:8080/sessions
+  curl -X GET http://localhost:8080/api/posts -b "cookies.txt"
   ```

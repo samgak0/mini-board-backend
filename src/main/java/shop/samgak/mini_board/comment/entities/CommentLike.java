@@ -1,6 +1,6 @@
 package shop.samgak.mini_board.comment.entities;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -32,6 +32,6 @@ public class CommentLike {
     private Comment comment;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
 }

@@ -1,6 +1,6 @@
 package shop.samgak.mini_board.post.entities;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -35,5 +35,5 @@ public class PostFile {
     private Long fileSize;
 
     @JoinColumn(name = "created_at")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }

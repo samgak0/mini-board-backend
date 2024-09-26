@@ -1,6 +1,6 @@
 package shop.samgak.mini_board.comment.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,6 +17,6 @@ public class CommentDTO {
     private PostDTO post;
     private CommentDTO parentComment;
     private String content;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 }

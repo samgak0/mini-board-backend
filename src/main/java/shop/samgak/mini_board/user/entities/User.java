@@ -1,6 +1,6 @@
 package shop.samgak.mini_board.user.entities;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -38,8 +38,8 @@ public class User {
     }
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 }
