@@ -2,6 +2,7 @@ package shop.samgak.mini_board.post.entities;
 
 import java.time.Instant;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -24,18 +25,18 @@ public class PostFile {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
+    @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-    @JoinColumn(name = "original_name")
+    @Column(name = "original_name", nullable = false)
     private String originalName;
 
-    @JoinColumn(name = "file_path")
+    @Column(name = "file_path", nullable = false)
     private String filePath;
 
-    @JoinColumn(name = "file_size")
+    @Column(name = "file_size", nullable = false)
     private Long fileSize;
 
-    @JoinColumn(name = "created_at")
-    private Instant createdAt = Instant.now()
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt = Instant.now();
 }

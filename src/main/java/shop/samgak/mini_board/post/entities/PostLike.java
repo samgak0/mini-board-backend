@@ -22,17 +22,17 @@ public class PostLike {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "post_likes_seq")
     @SequenceGenerator(name = "post_likes_seq", sequenceName = "SAMGAK.POSTS_LIKES_SEQ", allocationSize = 1)
-    @Column(name = "id")
+    @Column(name = "id", nullable = false)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
+    @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 }
