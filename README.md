@@ -123,6 +123,13 @@ bash /path/to/deploy-frontend.sh
 REACT_APP_API_BASE_URL=http://localhost:8080/api
 ```
 
+## docker Commend
+
+```bash
+docker run --name redis -d -p 6379:6379 redis:7.4.0
+docker run --name oracle-xe -d -p 1521:1521 -p 5500:5500 container-registry.oracle.com/database/express:21.3.0-xe
+```
+
 ## 기여 가이드
 
 1. 이슈를 등록하고 논의해주세요.
