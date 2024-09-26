@@ -12,7 +12,7 @@ CREATE TABLE users (
 );
 
 CREATE SEQUENCE users_seq
-    START WITH 1
+    START WITH 11
     INCREMENT BY 1
     NOCACHE;
 
@@ -37,7 +37,7 @@ CREATE TABLE posts (
 );
 
 CREATE SEQUENCE posts_seq
-    START WITH 1
+    START WITH 20
     INCREMENT BY 1
     NOCACHE;
 
@@ -63,7 +63,7 @@ CREATE TABLE comments (
 
 
 CREATE SEQUENCE comments_seq
-    START WITH 1
+    START WITH 31
     INCREMENT BY 1
     NOCACHE;
 
@@ -86,7 +86,7 @@ CREATE TABLE post_likes (
 
 
 CREATE SEQUENCE post_likes_seq
-    START WITH 1
+    START WITH 31
     INCREMENT BY 1
     NOCACHE;
 
@@ -108,9 +108,9 @@ CREATE TABLE comment_likes (
 
 
 CREATE SEQUENCE comment_likes_seq
-    START WITH 1
+    START WITH 31
     INCREMENT BY 1
-    NOCACHE;	
+    NOCACHE;
 
 COMMENT ON TABLE comment_likes IS 'Table for storing comment like information';
 COMMENT ON COLUMN comment_likes.id IS 'Unique identifier for each like action';
@@ -133,7 +133,7 @@ CREATE TABLE post_files (
 
 
 CREATE SEQUENCE post_files_seq
-    START WITH 1
+    START WITH 31
     INCREMENT BY 1
     NOCACHE;
 
@@ -160,7 +160,7 @@ CREATE TABLE comment_files (
 
 
 CREATE SEQUENCE comment_files_seq
-    START WITH 1
+    START WITH 31
     INCREMENT BY 1
     NOCACHE;
 
