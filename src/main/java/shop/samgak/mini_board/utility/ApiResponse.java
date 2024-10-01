@@ -1,11 +1,14 @@
 package shop.samgak.mini_board.utility;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
 public class ApiResponse {
+
+    public ApiResponse(String message, Code code) {
+        this.message = message;
+        this.code = code;
+    }
 
     public ApiResponse(String message, boolean success) {
         this(message, success ? Code.SUCCESS : Code.FAILURE);
