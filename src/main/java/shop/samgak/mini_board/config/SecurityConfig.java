@@ -17,6 +17,7 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import shop.samgak.mini_board.security.CustomSessionAuthentication;
+import shop.samgak.mini_board.security.MyUserDetailsService;
 
 @Slf4j
 @Configuration
@@ -24,20 +25,21 @@ import shop.samgak.mini_board.security.CustomSessionAuthentication;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+        private final MyUserDetailsService myUserDetailsService;
         private final CustomSessionAuthentication customSessionAuthentication;
 
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                 http.csrf(csrf -> csrf.disable())
-                                .authorizeHttpRequests(authorize -> authorize
-                                                .requestMatchers("/api/auth/login",
-                                                                "/api/users/check/**",
-                                                                "/api/users/register",
-                                                                "/swagger-ui/**",
-                                                                "/v3/api-docs/swagger-config",
-                                                                "/v3/api-docs",
-                                                                "/sessions",
-                                                                "/sessions-redis")
+                .authorizeHttpRequests(authorize -> authorize
+                                .requestMatchers("/api/auth/login",
+                                                "/api/users/check/**",
+                                                "/api/users/register",
+                                                "/swagger-ui/**",
+                                                "/v3/api-docs/swagger-config",
+                                                "/v3/api-docs",
+                                                "/sessions",
+                                                "/sessions-redis")
                                                 .permitAll()
                                                 .anyRequest().authenticated())
                                 .exceptionHandling(exceptionHandling -> exceptionHandling
@@ -58,7 +60,7 @@ public class SecurityConfig {
                 AuthenticationManagerBuilder authenticationManagerBuilder = http
                                 .getSharedObject(AuthenticationManagerBuilder.class);
                 authenticationManagerBuilder
-                                .userDetailsService(customSessionAuthentication)
+                                .userDetailsService(myUserDetailsService)
                                 .passwordEncoder(passwordEncoder());
                 return authenticationManagerBuilder.build();
         }

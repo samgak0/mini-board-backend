@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -27,6 +26,7 @@ import shop.samgak.mini_board.exceptions.MessageProvider;
 import shop.samgak.mini_board.post.controllers.PostController;
 import shop.samgak.mini_board.post.services.PostService;
 import shop.samgak.mini_board.user.controllers.UserController;
+import shop.samgak.mini_board.user.entities.User;
 import shop.samgak.mini_board.user.services.UserService;
 import shop.samgak.mini_board.utility.ApiResponse;
 import shop.samgak.mini_board.utility.UserSessionHelper;
@@ -44,7 +44,8 @@ public class UserControllerUnitTest {
         private static final String API_USERS_CHECK_EMAIL = "/api/users/check/email";
         private static final String API_USERS_REGISTER = "/api/users/register";
         private static final String API_USERS_PASSWORD = "/api/users/password";
-        private static final String API_USERS_STATUS = "/api/users/status";
+        private static final String API_USERS_STATUS = "/api/users/check/status";
+        private static final String API_AUTH_LOGIN = "/api/auth/login";
 
         private static final String PARAM_USERNAME = "username";
         private static final String PARAM_EMAIL = "email";
@@ -148,6 +149,22 @@ public class UserControllerUnitTest {
                                 .andExpect(header().string("Location", "/api/users/1/info"))
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE)
                                                 .value(UserController.MESSAGE_REGISTER_SUCCESSFUL))
+                                .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
+        }
+
+        /**
+         * Tests the login scenario.
+         */
+        @Test
+        public void testLoginSuccess() throws Exception {
+                String username = "user";
+                String password = "password";
+
+                mockMvc.perform(post(API_AUTH_LOGIN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}")
+                                .session(session))
+                                .andExpect(status().isOk())
                                 .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
         }
 
@@ -282,7 +299,7 @@ public class UserControllerUnitTest {
                 String email = "newuser@example.com";
                 String validPassword = "ValidPassword1!";
 
-                when(userService.getCurrentUser()).thenReturn(Optional.of(mock(UserDetails.class)));
+                when(userService.getCurrentUser()).thenReturn(Optional.of(mock(User.class)));
 
                 mockMvc.perform(put(API_USERS_PASSWORD)
                                 .param(PARAM_PASSWORD, validPassword)
@@ -302,7 +319,7 @@ public class UserControllerUnitTest {
         public void testChangePasswordInvalidFailure() throws Exception {
                 String invalidPassword = "short";
 
-                when(userService.getCurrentUser()).thenReturn(Optional.of(mock(UserDetails.class)));
+                when(userService.getCurrentUser()).thenReturn(Optional.of(mock(User.class)));
 
                 mockMvc.perform(put(API_USERS_PASSWORD)
                                 .param(PARAM_PASSWORD, invalidPassword)

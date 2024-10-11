@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -18,9 +18,11 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import shop.samgak.mini_board.exceptions.MissingParameterException;
+import shop.samgak.mini_board.user.entities.User;
 import shop.samgak.mini_board.user.services.UserService;
 import shop.samgak.mini_board.utility.ApiDataResponse;
 import shop.samgak.mini_board.utility.ApiResponse;
+import shop.samgak.mini_board.utility.AuthUtils;
 
 @RestController
 @RequiredArgsConstructor
@@ -163,9 +165,14 @@ public class UserController {
         }
     }
 
-    @GetMapping("status")
+    @GetMapping("check/status")
     public ResponseEntity<ApiResponse> checkLoginStatus() {
         return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, userService.isLogin(), true));
+    }
+
+    @GetMapping("my")
+    public ResponseEntity<ApiResponse> my(Authentication authentication) {
+        return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, AuthUtils.getCurrentUser(authentication), true));
     }
 
     @PutMapping("password")
@@ -176,7 +183,7 @@ public class UserController {
         if (!password.matches(PASSWORD_PATTERN)) {
             return ResponseEntity.badRequest().body(new ApiResponse(ERROR_INVALID_PASSWORD_FORMAT, false));
         }
-        Optional<UserDetails> user = userService.getCurrentUser();
+        Optional<User> user = userService.getCurrentUser();
 
         if (user.isPresent()) {
             try {

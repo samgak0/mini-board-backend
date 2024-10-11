@@ -3,9 +3,8 @@ package shop.samgak.mini_board.user.services;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.security.core.userdetails.UserDetails;
-
 import shop.samgak.mini_board.user.dto.UserDTO;
+import shop.samgak.mini_board.user.entities.User;
 
 public interface UserService {
     List<UserDTO> getAll();
@@ -18,7 +17,7 @@ public interface UserService {
 
     boolean isLogin();
 
-    Optional<UserDetails> getCurrentUser();
+    Optional<User> getCurrentUser();
 
     void changePassword(String username, String newPassword);
 
