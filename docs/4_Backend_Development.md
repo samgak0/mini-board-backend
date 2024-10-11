@@ -707,8 +707,9 @@ curl -X POST http://localhost:8080/api/users/register \
      -d "username=user&password=password&email=user@example.com" \
      -b "cookies.txt"
 
-curl -X POST http://localhost:8080/api/users/login \
-     -d "username=user&password=password" \
+curl -X POST http://localhost:8080/api/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"username": "user", "password": "password"}' \
      -c "cookies.txt"
 
 curl -X GET http://localhost:8080/sessions
@@ -720,9 +721,6 @@ curl -X GET http://localhost:8080/sessions
 
 curl -X GET http://localhost:8080/sessions-redis
 
-curl -X POST http://localhost:8080/api/users/login \
-     -d "username=user&password=password" \
-     -c "cookies.txt"
 
 curl -X GET http://localhost:8080/api/posts \
      -b "cookies.txt"
