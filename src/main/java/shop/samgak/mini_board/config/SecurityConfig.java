@@ -9,7 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -28,10 +28,9 @@ public class SecurityConfig {
 
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
                 http.csrf(csrf -> csrf.disable())
                                 .authorizeHttpRequests(authorize -> authorize
-                                                .requestMatchers("/api/users/login",
+                                                .requestMatchers("/api/auth/login",
                                                                 "/api/users/check/**",
                                                                 "/api/users/register",
                                                                 "/swagger-ui/**",
@@ -41,27 +40,15 @@ public class SecurityConfig {
                                                                 "/sessions-redis")
                                                 .permitAll()
                                                 .anyRequest().authenticated())
-                                .formLogin(form -> form
-                                                .loginProcessingUrl("/api/users/login")
-                                                .successHandler(customSessionAuthentication)
-                                                .failureHandler(customSessionAuthentication)
-                                                .permitAll())
-                                .logout(logout -> logout
-                                                .logoutUrl("/api/users/logout")
-                                                .logoutSuccessHandler(customSessionAuthentication))
                                 .exceptionHandling(exceptionHandling -> exceptionHandling
                                                 .authenticationEntryPoint(customSessionAuthentication))
+                                .formLogin(form -> form.disable())
+                                .logout(logout -> logout.disable())
                                 .sessionManagement(session -> {
                                         session.maximumSessions(1)
                                                         .sessionRegistry(sessionRegistry());
                                         session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
-                                })
-                                .headers(headers -> headers
-                                                .frameOptions(frameOptions -> frameOptions.disable())
-                                                .xssProtection(xssOptions -> xssOptions.disable())
-                                                .cacheControl(cacheOptions -> cacheOptions.disable())
-                                                .contentTypeOptions(
-                                                                contentTypeOptions -> contentTypeOptions.disable()));
+                                });
 
                 return http.build();
         }
@@ -78,7 +65,7 @@ public class SecurityConfig {
 
         @Bean
         public PasswordEncoder passwordEncoder() {
-                return new BCryptPasswordEncoder();
+                return PasswordEncoderFactories.createDelegatingPasswordEncoder();
         }
 
         @Bean

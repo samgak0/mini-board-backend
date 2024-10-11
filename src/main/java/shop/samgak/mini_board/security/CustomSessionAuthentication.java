@@ -50,17 +50,14 @@ public class CustomSessionAuthentication
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         this.lastFoundUser = userRepository.findByUsername(username);
+
         User currentUser = lastFoundUser
                 .orElseThrow(() -> new UsernameNotFoundException(String.format(ERROR_MSG_CANNOT_FIND_USER, username)));
 
         return org.springframework.security.core.userdetails.User
-                .withUsername(username)
+                .withUsername(currentUser.getUsername())
                 .password(currentUser.getPassword())
                 .authorities(AUTHORITY_USER)
-                .accountExpired(false)
-                .accountLocked(false)
-                .credentialsExpired(false)
-                .disabled(false)
                 .build();
     }
 
@@ -79,6 +76,7 @@ public class CustomSessionAuthentication
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException exception) throws IOException, ServletException {
+        lastFoundUser = null;
         ApiResponse apiResponse;
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         if (exception instanceof BadCredentialsException) {
