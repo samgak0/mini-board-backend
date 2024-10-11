@@ -2,19 +2,22 @@ package shop.samgak.mini_board.security;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import shop.samgak.mini_board.user.entities.User;
 
 import java.util.Collection;
 import java.util.List;
 
-public class MyUserDetails implements UserDetails {
-    private final User user;
+import shop.samgak.mini_board.user.dto.UserDTO;
 
-    public MyUserDetails(User user) {
+public class MyUserDetails implements UserDetails {
+    private final UserDTO user;
+    private final String password;
+
+    public MyUserDetails(UserDTO user,String password) {
         this.user = user;
+        this.password = password;
     }
 
-    public User getUser() {
+    public UserDTO getUserDTO() {
         return user;
     }
 
@@ -25,7 +28,7 @@ public class MyUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return password;
     }
 
     @Override

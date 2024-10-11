@@ -18,7 +18,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import shop.samgak.mini_board.exceptions.MissingParameterException;
-import shop.samgak.mini_board.user.entities.User;
+import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.user.services.UserService;
 import shop.samgak.mini_board.utility.ApiDataResponse;
 import shop.samgak.mini_board.utility.ApiResponse;
@@ -183,7 +183,7 @@ public class UserController {
         if (!password.matches(PASSWORD_PATTERN)) {
             return ResponseEntity.badRequest().body(new ApiResponse(ERROR_INVALID_PASSWORD_FORMAT, false));
         }
-        Optional<User> user = userService.getCurrentUser();
+        Optional<UserDTO> user = userService.getCurrentUser();
 
         if (user.isPresent()) {
             try {

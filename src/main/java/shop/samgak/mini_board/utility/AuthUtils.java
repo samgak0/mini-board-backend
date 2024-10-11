@@ -5,18 +5,20 @@ import java.util.Optional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import shop.samgak.mini_board.user.entities.User;
+import lombok.extern.slf4j.Slf4j;
+import shop.samgak.mini_board.security.MyUserDetails;
+import shop.samgak.mini_board.user.dto.UserDTO;
 
+@Slf4j
 public class AuthUtils {
-    public static Optional<User> getCurrentUser(Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated()) {
-            Object principal = authentication.getPrincipal();
-        return (principal instanceof User userDetails) ? Optional.of(userDetails) : null;
+    public static Optional<UserDTO> getCurrentUser(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof MyUserDetails myUserDetails)) {
+            return Optional.empty();
         }
-        return Optional.empty();
+        return Optional.of(myUserDetails.getUserDTO());
     }
 
-    public static Optional<User> getCurrentUser() {
-        return AuthUtils.getCurrentUser(SecurityContextHolder.getContext().getAuthentication());
+    public static Optional<UserDTO> getCurrentUser() {
+        return getCurrentUser(SecurityContextHolder.getContext().getAuthentication());
     }
 }
