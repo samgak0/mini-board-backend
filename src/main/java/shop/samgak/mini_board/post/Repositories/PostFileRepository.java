@@ -1,4 +1,4 @@
-package shop.samgak.mini_board.post.Repositories;
+package shop.samgak.mini_board.post.repositories;
 
 import java.util.List;
 
