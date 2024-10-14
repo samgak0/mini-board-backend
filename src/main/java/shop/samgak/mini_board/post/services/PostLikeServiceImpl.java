@@ -6,9 +6,9 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import shop.samgak.mini_board.post.Repositories.PostLikeRepository;
 import shop.samgak.mini_board.post.dto.PostLikeDTO;
 import shop.samgak.mini_board.post.mapper.PostLikeMapper;
+import shop.samgak.mini_board.post.repositories.PostLikeRepository;
 
 @Service
 @RequiredArgsConstructor

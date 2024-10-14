@@ -6,9 +6,9 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import shop.samgak.mini_board.post.Repositories.PostFileRepository;
 import shop.samgak.mini_board.post.dto.PostFileDTO;
 import shop.samgak.mini_board.post.mapper.PostFileMapper; // MapStruct Mapper 추가
+import shop.samgak.mini_board.post.repositories.PostFileRepository;
 
 @Service
 @RequiredArgsConstructor

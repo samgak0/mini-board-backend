@@ -7,10 +7,10 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import shop.samgak.mini_board.exceptions.ResourceNotFoundException;
-import shop.samgak.mini_board.post.Repositories.PostRepository;
 import shop.samgak.mini_board.post.dto.PostDTO;
 import shop.samgak.mini_board.post.entities.Post;
 import shop.samgak.mini_board.post.mapper.PostMapper;
+import shop.samgak.mini_board.post.repositories.PostRepository;
 import shop.samgak.mini_board.user.entities.User;
 
 @Service
