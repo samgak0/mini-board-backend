@@ -7,6 +7,7 @@ import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -14,15 +15,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import shop.samgak.mini_board.exceptions.MissingParameterException;
+import shop.samgak.mini_board.security.MyUserDetails;
 import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.user.services.UserService;
 import shop.samgak.mini_board.utility.ApiDataResponse;
 import shop.samgak.mini_board.utility.ApiResponse;
-import shop.samgak.mini_board.utility.AuthUtils;
 
 @RestController
 @RequiredArgsConstructor
@@ -170,9 +172,23 @@ public class UserController {
         return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, userService.isLogin(), true));
     }
 
-    @GetMapping("my")
-    public ResponseEntity<ApiResponse> my(Authentication authentication) {
-        return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, AuthUtils.getCurrentUser(authentication), true));
+    @GetMapping("me")
+    public ResponseEntity<ApiResponse> me(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+
+            SecurityContext securityContext = (SecurityContext) session.getAttribute("SPRING_SECURITY_CONTEXT");
+            if (securityContext != null && securityContext.getAuthentication() != null) {
+                Authentication authentication = securityContext.getAuthentication();
+
+                MyUserDetails myUserDetails = (MyUserDetails)authentication.getPrincipal();
+                return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, myUserDetails.getUserDTO(), true));
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new ApiResponse(ERROR_AUTHENTICATION_REQUIRED, false));
+            }
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiDataResponse(MESSAGE_LOGIN_STATUS, null, false));
     }
 
     @PutMapping("password")
