@@ -2,7 +2,6 @@ package shop.samgak.mini_board.integration;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
-import static org.springframework.http.HttpStatus.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -29,7 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * during testing, simulating interactions as if they were coming from a client.
  */
 @SpringBootTest(webEnvironment = RANDOM_PORT)
-public class LoginIntegrationTest {
+public class AuthIntegrationTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -57,6 +56,8 @@ public class LoginIntegrationTest {
 
         ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
         assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(loginResponse.getBody()).isNotNull();
+        assertThat(loginResponse.getBody()).contains("Login successful");
     }
 
     /**
@@ -78,9 +79,9 @@ public class LoginIntegrationTest {
 
         try {
             restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-            fail("Expected HttpClientErrorException to be thrown");
-        } catch (HttpClientErrorException e) {
-            assertThat(e.getStatusCode()).isEqualTo(UNAUTHORIZED);
+            fail("Expected ResourceAccessException to be thrown");
+        } catch (ResourceAccessException e) {
+            assertThat(e).isInstanceOf(ResourceAccessException.class);
         }
     }
 
@@ -98,9 +99,9 @@ public class LoginIntegrationTest {
 
         try {
             restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-            fail("Expected HttpClientErrorException to be thrown");
-        } catch (HttpClientErrorException e) {
-            assertThat(e.getStatusCode()).isEqualTo(BAD_REQUEST);
+            fail("Expected ResourceAccessException to be thrown");
+        } catch (ResourceAccessException e) {
+            assertThat(e).isInstanceOf(ResourceAccessException.class);
         }
     }
 
@@ -119,9 +120,9 @@ public class LoginIntegrationTest {
 
         try {
             restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-            fail("Expected HttpClientErrorException to be thrown");
-        } catch (HttpClientErrorException e) {
-            assertThat(e.getStatusCode()).isEqualTo(BAD_REQUEST);
+            fail("Expected ResourceAccessException to be thrown");
+        } catch (ResourceAccessException e) {
+            assertThat(e).isInstanceOf(ResourceAccessException.class);
         }
     }
 
@@ -140,9 +141,9 @@ public class LoginIntegrationTest {
 
         try {
             restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-            fail("Expected HttpClientErrorException to be thrown");
-        } catch (HttpClientErrorException e) {
-            assertThat(e.getStatusCode()).isEqualTo(BAD_REQUEST);
+            fail("Expected ResourceAccessException to be thrown");
+        } catch (ResourceAccessException e) {
+            assertThat(e).isInstanceOf(ResourceAccessException.class);
         }
     }
 

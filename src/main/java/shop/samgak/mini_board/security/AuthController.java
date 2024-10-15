@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import shop.samgak.mini_board.utility.ApiResponse;
 
 @Slf4j
 @RestController
@@ -27,7 +28,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         try {
             UsernamePasswordAuthenticationToken authenticationToken =
                     new UsernamePasswordAuthenticationToken(loginRequest.username, loginRequest.password);
@@ -35,9 +36,9 @@ public class AuthController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             HttpSession session = request.getSession(true);
             session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
-            return ResponseEntity.ok().body("Login successful");
+            return ResponseEntity.ok().body(new ApiResponse("Login successful", true));
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials : " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse("Invalid credentials : " + e.getMessage(), false));
         }
     }
 
@@ -48,7 +49,7 @@ public class AuthController {
             session.invalidate();
         }
         SecurityContextHolder.clearContext();
-        return ResponseEntity.ok().body("Logout successful");
+        return ResponseEntity.ok().body(new ApiResponse("Logout successful", true));
     }
 
     public record LoginRequest(String username, String password) {

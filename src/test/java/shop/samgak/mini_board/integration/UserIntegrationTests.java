@@ -15,8 +15,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestClientException;
 
 import shop.samgak.mini_board.user.controllers.UserController;
 import shop.samgak.mini_board.user.services.UserService;
@@ -37,50 +35,6 @@ public class UserIntegrationTests {
 
     @MockBean
     private UserService userService;
-
-    private final String loginUrl = "/api/users/login";
-
-    /**
-     * Tests successful login with valid credentials.
-     * This method simulates a user logging in with correct username and password.
-     *
-     * @throws Exception if any error occurs during the request
-     */
-    @Test
-    public void testLoginSuccess() throws Exception {
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        loginRequest.add("username", "user");
-        loginRequest.add("password", "password");
-
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
-
-        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-        assertThat(loginResponse.getStatusCode()).isEqualTo(OK);
-    }
-
-    /**
-     * Tests login failure with invalid credentials.
-     * This method simulates a user attempting to log in with an incorrect password.
-     *
-     * @throws Exception if any error occurs during the request
-     */
-    @Test
-    public void testLoginFailure() throws Exception {
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        loginRequest.add("username", "user");
-        loginRequest.add("password", "wrongpassword");
-
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
-
-        try {
-            restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-            fail("Expected ResourceAccessException to be thrown");
-        } catch (RestClientException e) {
-            assertThat(e).isInstanceOf(ResourceAccessException.class);
-        }
-    }
 
     /**
      * Tests user registration when the email is already in use.
