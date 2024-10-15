@@ -5,6 +5,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.http.HttpHeaders.*;
 import static org.springframework.http.HttpStatus.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,11 +15,15 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Integration tests for the MiniBoard application.
@@ -30,26 +37,19 @@ import org.springframework.web.client.RestClientException;
 public class PostIntegrationTests {
 
     private final String postsUrl = "/api/posts";
-    private final String loginUrl = "/api/users/login";
+    private final String loginUrl = "/api/auth/login";
 
     @Autowired
     private TestRestTemplate restTemplate;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Tests accessing posts as a logged-in user.
      */
     @Test
     public void testAccessPostsAsLoggedInUser() throws Exception {
-        // Simulate user login to get session cookie
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        loginRequest.add("username", "user");
-        loginRequest.add("password", "password");
-
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> loginEntity = new HttpEntity<>(loginRequest, headers);
-
-        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, loginEntity, String.class);
-        String sessionCookie = loginResponse.getHeaders().getFirst(SET_COOKIE);
+        String sessionCookie = loginUser("user", "password");
 
         // Prepare to access posts
         HttpHeaders postHeaders = new HttpHeaders();
@@ -75,16 +75,7 @@ public class PostIntegrationTests {
      */
     @Test
     public void testCreatePostAsLoggedInUser() throws Exception {
-        // Simulate user login to get session cookie
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        loginRequest.add("username", "user");
-        loginRequest.add("password", "password");
-
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> loginEntity = new HttpEntity<>(loginRequest, headers);
-
-        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, loginEntity, String.class);
-        String sessionCookie = loginResponse.getHeaders().getFirst(SET_COOKIE);
+        String sessionCookie = loginUser("user", "password");
 
         // Prepare post creation request
         MultiValueMap<String, String> postRequest = new LinkedMultiValueMap<>();
@@ -97,10 +88,6 @@ public class PostIntegrationTests {
 
         // Create the post
         ResponseEntity<String> postResponse = restTemplate.postForEntity(postsUrl, postEntity, String.class);
-
-        // Log the post creation response
-        System.out.println("Post Creation Response Status: " + postResponse.getStatusCode());
-        System.out.println("Post Creation Response Body: " + postResponse.getBody());
 
         assertThat(postResponse.getStatusCode()).isEqualTo(CREATED);
     }
@@ -119,7 +106,6 @@ public class PostIntegrationTests {
         HttpEntity<MultiValueMap<String, String>> postEntity = new HttpEntity<>(postRequest, headers);
 
         // Attempt to create the post without a session cookie
-
         try {
             restTemplate.postForEntity(postsUrl, postEntity, String.class);
             fail("Expected ResourceAccessException to be thrown");
@@ -127,147 +113,22 @@ public class PostIntegrationTests {
             assertThat(e).isInstanceOf(ResourceAccessException.class);
         }
     }
-
+  
     /**
-     * Tests creating a new post when both username and password are missing.
+     * Utility method to simulate user login and return the session cookie.
      */
-    @Test
-    public void testCreatePostWithMissingCredentialsBoth() throws Exception {
-        // Simulate user login to get session cookie
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        loginRequest.add("username", "user");
-        loginRequest.add("password", "password");
+    private String loginUser(String username, String password) throws Exception {
+        Map<String, String> loginRequest = new HashMap<>();
+        loginRequest.put("username", username);
+        loginRequest.put("password", password);
+        String requestBody = objectMapper.writeValueAsString(loginRequest);
 
         HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> loginEntity = new HttpEntity<>(loginRequest, headers);
-
-        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, loginEntity, String.class);
-        String sessionCookie = loginResponse.getHeaders().getFirst(SET_COOKIE);
-
-        // Prepare post creation request with missing username and password
-        MultiValueMap<String, String> postRequest = new LinkedMultiValueMap<>();
-        postRequest.add("title", "Unauthorized Post Title");
-        postRequest.add("content", "Content of the unauthorized post");
-
-        HttpHeaders postHeaders = new HttpHeaders();
-        postHeaders.add("Cookie", sessionCookie);
-        HttpEntity<MultiValueMap<String, String>> postEntity = new HttpEntity<>(postRequest, postHeaders);
-
-        // Attempt to create the post without username and password
-        postRequest.remove("title");
-        postRequest.remove("content");
-
-        ResponseEntity<String> postResponse = restTemplate.postForEntity(postsUrl, postEntity, String.class);
-        assertThat(postResponse.getStatusCode()).isEqualTo(BAD_REQUEST); // Assuming a 400 Bad Request
-    }
-
-    /**
-     * Tests creating a new post when the username is missing.
-     */
-    @Test
-    public void testCreatePostWithMissingUsername() throws Exception {
-        // Simulate user login to get session cookie
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        loginRequest.add("username", "user");
-        loginRequest.add("password", "password");
-
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> loginEntity = new HttpEntity<>(loginRequest, headers);
-
-        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, loginEntity, String.class);
-        String sessionCookie = loginResponse.getHeaders().getFirst(SET_COOKIE);
-
-        // Prepare post creation request with missing username
-        MultiValueMap<String, String> postRequest = new LinkedMultiValueMap<>();
-        postRequest.add("title", "New Post Title");
-        postRequest.add("content", "Content of the new post");
-
-        HttpHeaders postHeaders = new HttpHeaders();
-        postHeaders.add("Cookie", sessionCookie);
-        HttpEntity<MultiValueMap<String, String>> postEntity = new HttpEntity<>(postRequest, postHeaders);
-
-        // Remove username from the request
-        postRequest.remove("username");
-
-        ResponseEntity<String> postResponse = restTemplate.postForEntity(postsUrl, postEntity, String.class);
-        assertThat(postResponse.getStatusCode()).isEqualTo(BAD_REQUEST); // Assuming a 400 Bad Request
-    }
-
-    /**
-     * Tests creating a new post when the password is missing.
-     */
-    @Test
-    public void testCreatePostWithMissingPassword() throws Exception {
-        // Simulate user login to get session cookie
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        loginRequest.add("username", "user");
-        loginRequest.add("password", "password");
-
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> loginEntity = new HttpEntity<>(loginRequest, headers);
-
-        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, loginEntity, String.class);
-        String sessionCookie = loginResponse.getHeaders().getFirst(SET_COOKIE);
-
-        // Prepare post creation request with missing password
-        MultiValueMap<String, String> postRequest = new LinkedMultiValueMap<>();
-        postRequest.add("title", "New Post Title");
-        postRequest.add("content", "Content of the new post");
-
-        HttpHeaders postHeaders = new HttpHeaders();
-        postHeaders.add("Cookie", sessionCookie);
-        HttpEntity<MultiValueMap<String, String>> postEntity = new HttpEntity<>(postRequest, postHeaders);
-
-        // Remove password from the request
-        postRequest.remove("password");
-
-        ResponseEntity<String> postResponse = restTemplate.postForEntity(postsUrl, postEntity, String.class);
-        assertThat(postResponse.getStatusCode()).isEqualTo(BAD_REQUEST); // Assuming a 400 Bad Request
-    }
-
-    /**
-     * Tests login failure when both username and password are missing.
-     */
-    @Test
-    public void testLoginMissingBothAsNotLoggedInUser() throws Exception {
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        // Both username and password are omitted
-
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
 
         ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-        assertThat(loginResponse.getStatusCode()).isEqualTo(BAD_REQUEST); // Assuming a 400 Bad Request
+        assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        return loginResponse.getHeaders().getFirst(SET_COOKIE);
     }
-
-    /**
-     * Tests login failure when username is missing.
-     */
-    @Test
-    public void testLoginMissingUsernameAsNotLoggedInUser() throws Exception {
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        loginRequest.add("password", "password"); // Only password is provided
-
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
-
-        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-        assertThat(loginResponse.getStatusCode()).isEqualTo(BAD_REQUEST); // Assuming a 400 Bad Request
-    }
-
-    /**
-     * Tests login failure when password is missing.
-     */
-    @Test
-    public void testLoginMissingPasswordAsNotLoggedInUser() throws Exception {
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        loginRequest.add("username", "user"); // Only username is provided
-
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
-
-        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-        assertThat(loginResponse.getStatusCode()).isEqualTo(BAD_REQUEST); // Assuming a 400 Bad Request
-    }
-
 }

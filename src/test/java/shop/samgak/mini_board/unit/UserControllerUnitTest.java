@@ -50,7 +50,7 @@ public class UserControllerUnitTest {
         private static final String API_USERS_PASSWORD = "/api/users/password";
         private static final String API_USERS_STATUS = "/api/users/check/status";
         private static final String API_AUTH_LOGIN = "/api/auth/login";
-        private static final String API_USERS_MY = "/api/users/my";
+        private static final String API_USERS_ME = "/api/users/me";
 
         private static final String PARAM_USERNAME = "username";
         private static final String PARAM_EMAIL = "email";
@@ -383,13 +383,13 @@ public class UserControllerUnitTest {
          * Tests the success scenario for retrieving user information.
          */
         @Test
-        public void testMySuccess() throws Exception {
+        public void testMeSuccess() throws Exception {
                 Authentication authentication = mock(Authentication.class);
                 SecurityContext securityContext = mock(SecurityContext.class);
                 SecurityContextHolder.setContext(securityContext);
                 when(securityContext.getAuthentication()).thenReturn(authentication);
 
-                mockMvc.perform(get(API_USERS_MY)
+                mockMvc.perform(get(API_USERS_ME)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE).value("User info retrieved successfully"))
