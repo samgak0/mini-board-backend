@@ -4,17 +4,21 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
 import static org.springframework.http.HttpStatus.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.HttpClientErrorException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Integration tests for the MiniBoard application.
@@ -30,7 +34,9 @@ public class LoginIntegrationTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    private final String loginUrl = "/api/users/login";
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private final String loginUrl = "/api/auth/login";
 
     /**
      * Tests successful login with valid credentials.
@@ -40,15 +46,17 @@ public class LoginIntegrationTest {
      */
     @Test
     public void testLoginSuccess() throws Exception {
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        loginRequest.add("username", "user");
-        loginRequest.add("password", "password");
+        Map<String, String> loginRequest = new HashMap<>();
+        loginRequest.put("username", "user");
+        loginRequest.put("password", "password");
+        String requestBody = objectMapper.writeValueAsString(loginRequest);
 
         HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
 
         ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-        assertThat(loginResponse.getStatusCode()).isEqualTo(OK);
+        assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     /**
@@ -59,18 +67,20 @@ public class LoginIntegrationTest {
      */
     @Test
     public void testLoginFailure() throws Exception {
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        loginRequest.add("username", "user");
-        loginRequest.add("password", "wrongpassword");
+        Map<String, String> loginRequest = new HashMap<>();
+        loginRequest.put("username", "user");
+        loginRequest.put("password", "wrongpassword");
+        String requestBody = objectMapper.writeValueAsString(loginRequest);
 
         HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
 
         try {
             restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-            fail("Expected ResourceAccessException to be thrown");
-        } catch (RestClientException e) {
-            assertThat(e).isInstanceOf(ResourceAccessException.class);
+            fail("Expected HttpClientErrorException to be thrown");
+        } catch (HttpClientErrorException e) {
+            assertThat(e.getStatusCode()).isEqualTo(UNAUTHORIZED);
         }
     }
 
@@ -79,14 +89,19 @@ public class LoginIntegrationTest {
      */
     @Test
     public void testLoginMissingBoth() throws Exception {
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        // Both username and password are omitted
+        Map<String, String> loginRequest = new HashMap<>();
+        String requestBody = objectMapper.writeValueAsString(loginRequest);
 
         HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
 
-        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-        assertThat(loginResponse.getStatusCode()).isEqualTo(BAD_REQUEST);
+        try {
+            restTemplate.postForEntity(loginUrl, requestEntity, String.class);
+            fail("Expected HttpClientErrorException to be thrown");
+        } catch (HttpClientErrorException e) {
+            assertThat(e.getStatusCode()).isEqualTo(BAD_REQUEST);
+        }
     }
 
     /**
@@ -94,14 +109,20 @@ public class LoginIntegrationTest {
      */
     @Test
     public void testLoginMissingUsername() throws Exception {
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        loginRequest.add("password", "password"); // Only password is provided
+        Map<String, String> loginRequest = new HashMap<>();
+        loginRequest.put("password", "password");
+        String requestBody = objectMapper.writeValueAsString(loginRequest);
 
         HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
 
-        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-        assertThat(loginResponse.getStatusCode()).isEqualTo(BAD_REQUEST);
+        try {
+            restTemplate.postForEntity(loginUrl, requestEntity, String.class);
+            fail("Expected HttpClientErrorException to be thrown");
+        } catch (HttpClientErrorException e) {
+            assertThat(e.getStatusCode()).isEqualTo(BAD_REQUEST);
+        }
     }
 
     /**
@@ -109,14 +130,20 @@ public class LoginIntegrationTest {
      */
     @Test
     public void testLoginMissingPassword() throws Exception {
-        MultiValueMap<String, String> loginRequest = new LinkedMultiValueMap<>();
-        loginRequest.add("username", "user");
+        Map<String, String> loginRequest = new HashMap<>();
+        loginRequest.put("username", "user");
+        String requestBody = objectMapper.writeValueAsString(loginRequest);
 
         HttpHeaders headers = new HttpHeaders();
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
 
-        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-        assertThat(loginResponse.getStatusCode()).isEqualTo(BAD_REQUEST); // Assuming a 400 Bad Request
+        try {
+            restTemplate.postForEntity(loginUrl, requestEntity, String.class);
+            fail("Expected HttpClientErrorException to be thrown");
+        } catch (HttpClientErrorException e) {
+            assertThat(e.getStatusCode()).isEqualTo(BAD_REQUEST);
+        }
     }
 
 }
