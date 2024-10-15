@@ -44,12 +44,16 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
+        if (SecurityContextHolder.getContext() != null) {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate();
+            }
+            SecurityContextHolder.clearContext();
+            return ResponseEntity.ok().body(new ApiResponse("Logout successful", true));
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse("User not logged in", false));
         }
-        SecurityContextHolder.clearContext();
-        return ResponseEntity.ok().body(new ApiResponse("Logout successful", true));
     }
 
     public record LoginRequest(String username, String password) {
