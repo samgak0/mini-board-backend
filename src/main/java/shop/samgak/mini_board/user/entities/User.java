@@ -11,9 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Setter;
 
 @Entity
 @Table(name = "users")
@@ -29,7 +27,6 @@ public class User {
     @Column(name = "email", nullable = false)
     private String email;
 
-    @Setter(AccessLevel.NONE)
     @Column(name = "password", nullable = false)
     private String password;
 

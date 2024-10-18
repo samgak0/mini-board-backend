@@ -10,17 +10,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import shop.samgak.mini_board.exceptions.MissingParameterException;
 import shop.samgak.mini_board.post.services.PostService;
-import shop.samgak.mini_board.user.entities.User;
+import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.utility.ApiDataResponse;
 import shop.samgak.mini_board.utility.ApiResponse;
-import shop.samgak.mini_board.utility.UserSessionHelper;
+import shop.samgak.mini_board.utility.AuthUtils;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,7 +26,6 @@ import shop.samgak.mini_board.utility.UserSessionHelper;
 @RequestMapping("/api/posts")
 public class PostController {
     private final PostService postService;
-    private final UserSessionHelper userSessionHelper;
 
     @GetMapping
     public ResponseEntity<ApiResponse> getAllPost() {
@@ -36,7 +33,7 @@ public class PostController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse> getPost(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse> getPost(@PathVariable("id") Long id) {
         return ResponseEntity.ok(new ApiDataResponse("success", postService.getPostById(id), true));
     }
 
@@ -48,11 +45,11 @@ public class PostController {
         if (content == null || content.isEmpty())
             throw new MissingParameterException("content");
         try {
-            User user = userSessionHelper.getCurrentUserFromSession(session).orElseThrow();
-            Long createdId = postService.create(title, content, user);
+            UserDTO userDTO = AuthUtils.getCurrentUserFromSession(session).orElseThrow();
+            Long createdId = postService.create(title, content, userDTO);
             URI location = URI.create(String.format("/api/post/%d", createdId));
             return ResponseEntity.created(location).body(new ApiResponse("success", true));
-        } catch (RuntimeException | JsonProcessingException e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.internalServerError().body(new ApiResponse(e.getMessage(), false));
         }
     }

@@ -11,13 +11,15 @@ import shop.samgak.mini_board.post.dto.PostDTO;
 import shop.samgak.mini_board.post.entities.Post;
 import shop.samgak.mini_board.post.mapper.PostMapper;
 import shop.samgak.mini_board.post.repositories.PostRepository;
-import shop.samgak.mini_board.user.entities.User;
+import shop.samgak.mini_board.user.dto.UserDTO;
+import shop.samgak.mini_board.user.mapper.UserMapper;
 
 @Service
 @RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
-    final PostRepository postRepository;
-    final PostMapper postMapper;
+    private final PostRepository postRepository;
+    private final PostMapper postMapper;
+    private final UserMapper userMapper;
 
     @Override
     public List<PostDTO> getAll() {
@@ -34,11 +36,11 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Long create(String title, String body, User user) {
+    public Long create(String title, String body, UserDTO userDTO) {
         Post post = new Post();
         post.setTitle(title);
         post.setContent(body);
-        post.setUser(user);
+        post.setUser(userMapper.userDTOToUser(userDTO));
         Post savedPost = postRepository.save(post);
         return savedPost.getId();
     }

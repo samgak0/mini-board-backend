@@ -37,7 +37,6 @@ dependencies {
 	implementation 'commons-validator:commons-validator:1.6'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.18.0'
 
- 
 	compileOnly 'org.projectlombok:lombok'
 
 	runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
@@ -50,8 +49,13 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	
+
 	test {
 		useJUnitPlatform()
+	}
+	configurations {
+		all {
+			exclude group: 'commons-logging', module: 'commons-logging'
+		}
 	}
 }

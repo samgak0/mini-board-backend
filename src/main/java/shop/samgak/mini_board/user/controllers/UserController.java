@@ -6,8 +6,7 @@ import java.util.Optional;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -173,22 +172,20 @@ public class UserController {
     }
 
     @GetMapping("me")
-    public ResponseEntity<ApiResponse> me(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-
-            SecurityContext securityContext = (SecurityContext) session.getAttribute("SPRING_SECURITY_CONTEXT");
-            if (securityContext != null && securityContext.getAuthentication() != null) {
-                Authentication authentication = securityContext.getAuthentication();
-
-                MyUserDetails myUserDetails = (MyUserDetails)authentication.getPrincipal();
-                return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, myUserDetails.getUserDTO(), true));
-            } else {
+    public ResponseEntity<ApiResponse> me(HttpServletRequest request,
+            @AuthenticationPrincipal MyUserDetails userDetails) {
+        try {
+            if (userDetails == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new ApiResponse(ERROR_AUTHENTICATION_REQUIRED, false));
+                        .body(new ApiDataResponse(ERROR_AUTHENTICATION_REQUIRED, null, false));
+            } else {
+                log.info(userDetails.toString());
+                return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, userDetails.getUserDTO(), true));
             }
+        } catch (RuntimeException e) {
+            log.error(ERROR, e.toString());
+            return ResponseEntity.internalServerError().body(new ApiResponse(e.getMessage(), false));
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiDataResponse(MESSAGE_LOGIN_STATUS, null, false));
     }
 
     @PutMapping("password")
