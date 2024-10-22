@@ -1,11 +1,8 @@
 package shop.samgak.mini_board.user.services;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -49,22 +46,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean existEmail(String email) {
         return userRepository.findByEmail(email).isPresent();
-    }
-
-    @Override
-    public Optional<UserDTO> getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            Object principal = authentication.getPrincipal();
-        return (principal instanceof UserDTO userDetails) ? Optional.of(userDetails) : null;
-        }    
-        return Optional.empty();
-    }
-
-    @Override
-    public boolean isLogin() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() != null;
     }
 
     @Override

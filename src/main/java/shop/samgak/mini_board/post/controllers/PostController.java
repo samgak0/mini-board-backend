@@ -1,7 +1,9 @@
 package shop.samgak.mini_board.post.controllers;
 
 import java.net.URI;
+import java.util.NoSuchElementException;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import shop.samgak.mini_board.exceptions.MissingParameterException;
@@ -26,6 +27,7 @@ import shop.samgak.mini_board.utility.AuthUtils;
 @RequestMapping("/api/posts")
 public class PostController {
     private final PostService postService;
+    public static final String ERROR_AUTHENTICATION_REQUIRED = "Authentication is required";
 
     @GetMapping
     public ResponseEntity<ApiResponse> getAllPost() {
@@ -38,17 +40,19 @@ public class PostController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse> createPost(@RequestParam String title, @RequestParam String content,
-            HttpSession session) {
+    public ResponseEntity<ApiResponse> createPost(@RequestParam String title, @RequestParam String content) {
         if (title == null || title.isEmpty())
             throw new MissingParameterException("username");
         if (content == null || content.isEmpty())
             throw new MissingParameterException("content");
         try {
-            UserDTO userDTO = AuthUtils.getCurrentUserFromSession(session).orElseThrow();
+            UserDTO userDTO = AuthUtils.getCurrentUser().orElseThrow();
             Long createdId = postService.create(title, content, userDTO);
             URI location = URI.create(String.format("/api/post/%d", createdId));
             return ResponseEntity.created(location).body(new ApiResponse("success", true));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiDataResponse(ERROR_AUTHENTICATION_REQUIRED, null, false));
         } catch (RuntimeException e) {
             return ResponseEntity.internalServerError().body(new ApiResponse(e.getMessage(), false));
         }

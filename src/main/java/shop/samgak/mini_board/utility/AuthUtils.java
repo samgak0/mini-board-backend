@@ -34,8 +34,18 @@ public class AuthUtils {
      * @param session the HTTP session to be checked
      * @return true if the session has a SecurityContext, false otherwise
      */
-    public static boolean checkSessionHasSecurityContext(HttpSession session) {
-        return session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY) != null;
+    public static boolean checkLogin() {
+        SecurityContext context = SecurityContextHolder.getContext();
+        if (context == null) {
+            return false;
+        }
+
+        Authentication authentication = context.getAuthentication();
+        if (authentication == null || authentication.getPrincipal() == null) {
+            return false;
+        }
+
+        return authentication.getPrincipal() instanceof MyUserDetails;
     }
 
     /**
@@ -46,34 +56,18 @@ public class AuthUtils {
      * @return an Optional containing the UserDTO if available, otherwise an empty
      *         Optional
      */
-    public static Optional<UserDTO> getCurrentUserFromSession(HttpSession session) {
-        if (session == null)
-            return Optional.empty();
-
-        restoreSecurityContext(session);
-
+    public static Optional<UserDTO> getCurrentUser() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
-        if (securityContext != null && securityContext.getAuthentication() != null) {
+        if (securityContext.getAuthentication() != null) {
             Authentication authentication = securityContext.getAuthentication();
-            MyUserDetails myUserDetails = (MyUserDetails) authentication.getPrincipal();
-            return Optional.of(myUserDetails.getUserDTO());
+            if (authentication.getPrincipal() != null) {
+                MyUserDetails myUserDetails = (MyUserDetails) authentication.getPrincipal();
+                return Optional.of(myUserDetails.getUserDTO());
+            } else {
+                return Optional.empty();
+            }
         } else {
             return Optional.empty();
         }
-    }
-
-    /**
-     * Restores the SecurityContext from the session.
-     * This method retrieves the SecurityContext from the user's HTTP session and
-     * sets it in the SecurityContextHolder.
-     * 
-     * @param session the HTTP session from which the SecurityContext is restored
-     * @return the restored SecurityContext
-     */
-    public static SecurityContext restoreSecurityContext(HttpSession session) {
-        SecurityContext securityContext = (SecurityContext) session
-                .getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
-        SecurityContextHolder.setContext(securityContext);
-        return securityContext;
     }
 }

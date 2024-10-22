@@ -1,12 +1,12 @@
 package shop.samgak.mini_board.user.controllers;
 
 import java.net.URI;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -19,11 +19,11 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import shop.samgak.mini_board.exceptions.MissingParameterException;
-import shop.samgak.mini_board.security.MyUserDetails;
 import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.user.services.UserService;
 import shop.samgak.mini_board.utility.ApiDataResponse;
 import shop.samgak.mini_board.utility.ApiResponse;
+import shop.samgak.mini_board.utility.AuthUtils;
 
 @RestController
 @RequiredArgsConstructor
@@ -168,20 +168,17 @@ public class UserController {
 
     @GetMapping("check/status")
     public ResponseEntity<ApiResponse> checkLoginStatus() {
-        return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, userService.isLogin(), true));
+        return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, AuthUtils.checkLogin(), true));
     }
 
     @GetMapping("me")
-    public ResponseEntity<ApiResponse> me(HttpServletRequest request,
-            @AuthenticationPrincipal MyUserDetails userDetails) {
+    public ResponseEntity<ApiResponse> me(HttpServletRequest request) {
         try {
-            if (userDetails == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new ApiDataResponse(ERROR_AUTHENTICATION_REQUIRED, null, false));
-            } else {
-                log.info(userDetails.toString());
-                return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, userDetails.getUserDTO(), true));
-            }
+            UserDTO userDTO = AuthUtils.getCurrentUser().orElseThrow();
+            return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, userDTO, true));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiDataResponse(ERROR_AUTHENTICATION_REQUIRED, null, false));
         } catch (RuntimeException e) {
             log.error(ERROR, e.toString());
             return ResponseEntity.internalServerError().body(new ApiResponse(e.getMessage(), false));
@@ -196,7 +193,7 @@ public class UserController {
         if (!password.matches(PASSWORD_PATTERN)) {
             return ResponseEntity.badRequest().body(new ApiResponse(ERROR_INVALID_PASSWORD_FORMAT, false));
         }
-        Optional<UserDTO> user = userService.getCurrentUser();
+        Optional<UserDTO> user = AuthUtils.getCurrentUser();
 
         if (user.isPresent()) {
             try {

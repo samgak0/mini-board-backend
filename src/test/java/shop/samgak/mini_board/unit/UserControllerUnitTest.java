@@ -1,7 +1,5 @@
 package shop.samgak.mini_board.unit;
 
-import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -12,7 +10,13 @@ import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -25,6 +29,7 @@ import shop.samgak.mini_board.config.GlobalExceptionHandler;
 import shop.samgak.mini_board.exceptions.MessageProvider;
 import shop.samgak.mini_board.post.controllers.PostController;
 import shop.samgak.mini_board.post.services.PostService;
+import shop.samgak.mini_board.security.MyUserDetails;
 import shop.samgak.mini_board.user.controllers.UserController;
 import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.user.services.UserService;
@@ -278,7 +283,7 @@ public class UserControllerUnitTest {
                 String email = "newuser@example.com";
                 String validPassword = "ValidPassword1!";
 
-                when(userService.getCurrentUser()).thenReturn(Optional.of(mock(UserDTO.class)));
+                setSecurityContext();
 
                 mockMvc.perform(put(API_USERS_PASSWORD)
                                 .param(PARAM_PASSWORD, validPassword)
@@ -298,7 +303,7 @@ public class UserControllerUnitTest {
         public void testChangePasswordInvalidFailure() throws Exception {
                 String invalidPassword = "short";
 
-                when(userService.getCurrentUser()).thenReturn(Optional.of(mock(UserDTO.class)));
+                setSecurityContext();
 
                 mockMvc.perform(put(API_USERS_PASSWORD)
                                 .param(PARAM_PASSWORD, invalidPassword)
@@ -327,7 +332,7 @@ public class UserControllerUnitTest {
          */
         @Test
         public void testCheckLoginStatusLoggedInSuccess() throws Exception {
-                when(userService.isLogin()).thenReturn(true);
+                setSecurityContext();
 
                 mockMvc.perform(get(API_USERS_STATUS)
                                 .contentType(MediaType.APPLICATION_JSON))
@@ -342,7 +347,6 @@ public class UserControllerUnitTest {
          */
         @Test
         public void testCheckLoginStatusNotLoggedInSuccess() throws Exception {
-                when(userService.isLogin()).thenReturn(false);
 
                 mockMvc.perform(get(API_USERS_STATUS)
                                 .contentType(MediaType.APPLICATION_JSON))
@@ -350,5 +354,57 @@ public class UserControllerUnitTest {
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE).value(UserController.MESSAGE_LOGIN_STATUS))
                                 .andExpect(jsonPath(JSON_PATH_DATA).value(false))
                                 .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
+        }
+
+        @Test
+        public void testMeSuccess() throws Exception {
+                setSecurityContext();
+
+                mockMvc.perform(MockMvcRequestBuilders.get("/api/users/me"))
+                                .andExpect(MockMvcResultMatchers.status().isOk())
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Login status"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(1L))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.username").value("user"));
+        }
+
+        private void setSecurityContext() {
+                UserDTO mockUserDTO = new UserDTO(1L, "user");
+                MyUserDetails myUserDetails = new MyUserDetails(mockUserDTO, null);
+
+                Authentication authentication = mock(Authentication.class);
+                SecurityContext securityContext = mock(SecurityContext.class);
+                when(securityContext.getAuthentication()).thenReturn(authentication);
+                when(authentication.getPrincipal()).thenReturn(myUserDetails);
+                SecurityContextHolder.setContext(securityContext);
+        }
+
+        @Test
+        public void testMeUnauthorized() throws Exception {
+                Authentication authentication = mock(Authentication.class);
+                SecurityContext securityContext = mock(SecurityContext.class);
+                when(securityContext.getAuthentication()).thenReturn(authentication);
+                when(authentication.getPrincipal()).thenReturn(null);
+                SecurityContextHolder.setContext(securityContext);
+
+                mockMvc.perform(MockMvcRequestBuilders.get("/api/users/me")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(MockMvcResultMatchers.status().isUnauthorized())
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                                                .value("Authentication is required"));
+        }
+
+        @Test
+        public void testMeUnexpectedDetailsType() throws Exception {
+                Authentication authentication = mock(Authentication.class);
+                when(authentication.getDetails()).thenReturn(new Object());
+                SecurityContext securityContext = mock(SecurityContext.class);
+                when(securityContext.getAuthentication()).thenReturn(authentication);
+                SecurityContextHolder.setContext(securityContext);
+
+                mockMvc.perform(MockMvcRequestBuilders.get("/api/users/me")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(MockMvcResultMatchers.status().isUnauthorized())
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                                                .value("Authentication is required"));
         }
 }
