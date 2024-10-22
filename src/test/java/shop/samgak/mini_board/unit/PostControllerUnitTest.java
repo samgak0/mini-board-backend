@@ -27,7 +27,6 @@ import shop.samgak.mini_board.exceptions.ResourceNotFoundException;
 import shop.samgak.mini_board.post.controllers.PostController;
 import shop.samgak.mini_board.post.dto.PostDTO;
 import shop.samgak.mini_board.post.services.PostService;
-import shop.samgak.mini_board.security.MyUserDetails;
 import shop.samgak.mini_board.user.dto.UserDTO;
 
 /**
@@ -127,14 +126,14 @@ public class PostControllerUnitTest {
         public void createPostUserNotFound() throws Exception {
                 String title = "Test Title";
                 String content = "Test Content";
+
                 MockHttpSession localSession = new MockHttpSession();
 
-                // Mock Security Context and Session for AuthUtils
                 SecurityContext securityContext = mock(SecurityContext.class);
                 Authentication authentication = mock(Authentication.class);
+
                 when(securityContext.getAuthentication()).thenReturn(authentication);
-                when(authentication.getPrincipal()).thenReturn(null); // No user found
-                localSession.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
+                when(authentication.getDetails()).thenReturn(null);
 
                 // Act & Assert
                 mockMvc.perform(post("/api/posts")
@@ -151,20 +150,7 @@ public class PostControllerUnitTest {
         public void createPostMissingTitle() throws Exception {
                 String content = "Test Content";
 
-                MockHttpSession localSession = new MockHttpSession();
-                UserDTO mockUserDTO = new UserDTO();
-                mockUserDTO.setId(1L);
-                mockUserDTO.setUsername("username");
-
-                // Mock Security Context and Session for AuthUtils
-                SecurityContext securityContext = mock(SecurityContext.class);
-                Authentication authentication = mock(Authentication.class);
-                MyUserDetails myUserDetails = mock(MyUserDetails.class);
-
-                when(securityContext.getAuthentication()).thenReturn(authentication);
-                when(authentication.getPrincipal()).thenReturn(myUserDetails);
-                when(myUserDetails.getUserDTO()).thenReturn(mockUserDTO);
-                localSession.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
+                MockHttpSession localSession = setMockAuthentication();
 
                 // Act & Assert
                 mockMvc.perform(post("/api/posts")
@@ -180,20 +166,7 @@ public class PostControllerUnitTest {
         public void createPostMissingContent() throws Exception {
                 String title = "Test Title";
 
-                MockHttpSession localSession = new MockHttpSession();
-                UserDTO mockUserDTO = new UserDTO();
-                mockUserDTO.setId(1L);
-                mockUserDTO.setUsername("username");
-
-                // Mock Security Context and Session for AuthUtils
-                SecurityContext securityContext = mock(SecurityContext.class);
-                Authentication authentication = mock(Authentication.class);
-                MyUserDetails myUserDetails = mock(MyUserDetails.class);
-
-                when(securityContext.getAuthentication()).thenReturn(authentication);
-                when(authentication.getPrincipal()).thenReturn(myUserDetails);
-                when(myUserDetails.getUserDTO()).thenReturn(mockUserDTO);
-                localSession.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
+                MockHttpSession localSession = setMockAuthentication();
 
                 // Act & Assert
                 mockMvc.perform(post("/api/posts")
@@ -207,24 +180,26 @@ public class PostControllerUnitTest {
          */
         @Test
         public void createPostMissingTitleAndContent() throws Exception {
-                MockHttpSession localSession = new MockHttpSession();
-                UserDTO mockUserDTO = new UserDTO();
-                mockUserDTO.setId(1L);
-                mockUserDTO.setUsername("username");
-
-                // Mock Security Context and Session for AuthUtils
-                SecurityContext securityContext = mock(SecurityContext.class);
-                Authentication authentication = mock(Authentication.class);
-                MyUserDetails myUserDetails = mock(MyUserDetails.class);
-
-                when(securityContext.getAuthentication()).thenReturn(authentication);
-                when(authentication.getPrincipal()).thenReturn(myUserDetails);
-                when(myUserDetails.getUserDTO()).thenReturn(mockUserDTO);
-                localSession.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
+                MockHttpSession localSession = setMockAuthentication();
 
                 // Act & Assert
                 mockMvc.perform(post("/api/posts")
                                 .session(localSession))
                                 .andExpect(status().isBadRequest());
+        }
+
+        private MockHttpSession setMockAuthentication() {
+                MockHttpSession localSession = new MockHttpSession();
+                UserDTO userDTO = new UserDTO(1L, "username");
+
+                SecurityContext securityContext = mock(SecurityContext.class);
+                Authentication authentication = mock(Authentication.class);
+
+                when(securityContext.getAuthentication()).thenReturn(authentication);
+                when(authentication.getDetails()).thenReturn(userDTO);
+
+                localSession.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                                securityContext);
+                return localSession;
         }
 }

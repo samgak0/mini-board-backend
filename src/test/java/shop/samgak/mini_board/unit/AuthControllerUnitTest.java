@@ -26,7 +26,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import shop.samgak.mini_board.config.GlobalExceptionHandler;
 import shop.samgak.mini_board.security.AuthController;
-import shop.samgak.mini_board.security.MyUserDetails;
 import shop.samgak.mini_board.user.dto.UserDTO;
 
 public class AuthControllerUnitTest {
@@ -90,17 +89,13 @@ public class AuthControllerUnitTest {
         @Test
         public void testLogoutSuccess() throws Exception {
                 MockHttpSession localSession = new MockHttpSession();
-                UserDTO mockUserDTO = new UserDTO();
-                mockUserDTO.setId(1L);
-                mockUserDTO.setUsername("username");
+                UserDTO userDTO = new UserDTO(1L, "username");
 
                 SecurityContext securityContext = mock(SecurityContext.class);
                 Authentication authentication = mock(Authentication.class);
-                MyUserDetails myUserDetails = mock(MyUserDetails.class);
 
                 when(securityContext.getAuthentication()).thenReturn(authentication);
-                when(authentication.getPrincipal()).thenReturn(myUserDetails);
-                when(myUserDetails.getUserDTO()).thenReturn(mockUserDTO);
+                when(authentication.getDetails()).thenReturn(userDTO);
 
                 localSession.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
                                 securityContext);

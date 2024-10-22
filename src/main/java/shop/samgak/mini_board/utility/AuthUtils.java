@@ -9,7 +9,6 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
-import shop.samgak.mini_board.security.MyUserDetails;
 import shop.samgak.mini_board.user.dto.UserDTO;
 
 @Slf4j
@@ -55,8 +54,7 @@ public class AuthUtils {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         if (securityContext != null && securityContext.getAuthentication() != null) {
             Authentication authentication = securityContext.getAuthentication();
-            MyUserDetails myUserDetails = (MyUserDetails) authentication.getPrincipal();
-            return Optional.of(myUserDetails.getUserDTO());
+            return Optional.of(((UserDTO) authentication.getDetails()));
         } else {
             return Optional.empty();
         }

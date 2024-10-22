@@ -1,9 +1,12 @@
 package shop.samgak.mini_board.security;
 
+import java.util.Collections;
+
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -37,14 +40,22 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         UserDTO userDTO = userMapper.userToUserDTO(user);
 
-        MyUserDetails myUserDetails = new MyUserDetails(userDTO, user.getPassword());
-        if (!passwordEncoder.matches(password, myUserDetails.getPassword())) {
+        org.springframework.security.core.userdetails.UserDetails userDetails = org.springframework.security.core.userdetails.User
+                .builder()
+                .username(user.getUsername())
+                .password(user.getPassword())
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
+                .build();
+
+        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             throw new AuthenticationException("Invalid credentials") {
             };
         }
-        myUserDetails.setPassword(null);
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+        usernamePasswordAuthenticationToken.setDetails(userDTO);
 
-        return new UsernamePasswordAuthenticationToken(myUserDetails, null, myUserDetails.getAuthorities());
+        return usernamePasswordAuthenticationToken;
     }
 
     @Override
