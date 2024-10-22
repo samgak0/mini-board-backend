@@ -9,4 +9,6 @@ import shop.samgak.mini_board.post.entities.Post;
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     List<Post> findByUserId(Long userId);
+
+    List<Post> findTop10ByOrderByCreatedAtDesc();
 }

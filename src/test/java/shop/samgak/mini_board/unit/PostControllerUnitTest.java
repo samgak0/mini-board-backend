@@ -16,8 +16,10 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -30,11 +32,6 @@ import shop.samgak.mini_board.post.services.PostService;
 import shop.samgak.mini_board.security.MyUserDetails;
 import shop.samgak.mini_board.user.dto.UserDTO;
 
-/**
- * Unit tests for the PostController class.
- * This class tests the API endpoints related to posts, including retrieval of
- * all posts and individual posts by ID.
- */
 public class PostControllerUnitTest {
 
         private MockMvc mockMvc;
@@ -45,9 +42,6 @@ public class PostControllerUnitTest {
         @InjectMocks
         private PostController postController;
 
-        /**
-         * Sets up the MockMvc instance and initializes mocks before each test.
-         */
         @BeforeEach
         public void setUp() {
                 MockitoAnnotations.openMocks(this);
@@ -57,19 +51,13 @@ public class PostControllerUnitTest {
                 SecurityContextHolder.clearContext();
         }
 
-        /**
-         * Tests the retrieval of all posts.
-         * This method simulates a request to get all posts and verifies the response.
-         *
-         * @throws Exception if any error occurs during the request
-         */
         @Test
         public void testGetAllPosts() throws Exception {
                 List<PostDTO> mockPosts = new ArrayList<>();
                 mockPosts.add(new PostDTO(1L, null, "First Post", "Content of the first post", null, null));
                 mockPosts.add(new PostDTO(2L, null, "Second Post", "Content of the second post", null, null));
 
-                when(postService.getAll()).thenReturn(mockPosts);
+                when(postService.getTop10()).thenReturn(mockPosts);
 
                 mockMvc.perform(get("/api/posts")
                                 .contentType(MediaType.APPLICATION_JSON))
@@ -80,13 +68,6 @@ public class PostControllerUnitTest {
                                 .andExpect(jsonPath("$.code").value("SUCCESS"));
         }
 
-        /**
-         * Tests the retrieval of a single post by ID.
-         * This method simulates a request to get a post by its ID and verifies the
-         * response.
-         *
-         * @throws Exception if any error occurs during the request
-         */
         @Test
         public void testGetPostById() throws Exception {
                 Long postId = 1L;
@@ -102,13 +83,6 @@ public class PostControllerUnitTest {
                                 .andExpect(jsonPath("$.code").value("SUCCESS"));
         }
 
-        /**
-         * Tests the retrieval of a post by ID when the post is not found.
-         * This method simulates a request for a non-existent post and verifies the
-         * appropriate error response.
-         *
-         * @throws Exception if any error occurs during the request
-         */
         @Test
         public void testGetPostByIdNotFound() throws Exception {
                 Long postId = 1L;
@@ -140,9 +114,6 @@ public class PostControllerUnitTest {
                                 .andExpect(status().isUnauthorized());
         }
 
-        /**
-         * Tests creating a post with missing title while logged in.
-         */
         @Test
         public void createPostMissingTitle() throws Exception {
                 String content = "Test Content";
@@ -154,47 +125,79 @@ public class PostControllerUnitTest {
                                 .andExpect(status().isBadRequest());
         }
 
-        /**
-         * Tests creating a post with missing content while logged in.
-         */
         @Test
         public void createPostMissingContent() throws Exception {
                 String title = "Test Title";
 
                 setSecurityContext();
 
-                // Act & Assert
                 mockMvc.perform(post("/api/posts")
                                 .param("title", title))
                                 .andExpect(status().isBadRequest());
         }
 
-        /**
-         * Tests creating a post with both title and content missing while logged in.
-         */
         @Test
         public void createPostMissingTitleAndContent() throws Exception {
                 setSecurityContext();
 
-                // Act & Assert
                 mockMvc.perform(post("/api/posts"))
                                 .andExpect(status().isBadRequest());
         }
 
-        /**
-         * Tests creating a post with both title and content missing while logged in.
-         */
         @Test
         public void createPostSuccess() throws Exception {
                 String title = "Test Title";
                 String content = "Test Content";
                 setSecurityContext();
 
-                // Act & Assert
                 mockMvc.perform(post("/api/posts")
                                 .param("title", title)
                                 .param("content", content))
                                 .andExpect(status().isCreated());
+        }
+
+        @Test
+        public void updatePostSuccess() throws Exception {
+                Long postId = 1L;
+                String title = "Updated Title";
+                String content = "Updated Content";
+                setSecurityContext();
+
+                mockMvc.perform(put("/api/posts/{id}", postId)
+                                .param("title", title)
+                                .param("content", content))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.code").value("SUCCESS"));
+        }
+
+        @Test
+        public void updatePostUnauthorized() throws Exception {
+                Long postId = 1L;
+                String title = "Updated Title";
+                String content = "Updated Content";
+
+                mockMvc.perform(put("/api/posts/{id}", postId)
+                                .param("title", title)
+                                .param("content", content))
+                                .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        public void deletePostSuccess() throws Exception {
+                Long postId = 1L;
+                setSecurityContext();
+
+                mockMvc.perform(delete("/api/posts/{id}", postId))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.code").value("SUCCESS"));
+        }
+
+        @Test
+        public void deletePostUnauthorized() throws Exception {
+                Long postId = 1L;
+
+                mockMvc.perform(delete("/api/posts/{id}", postId))
+                                .andExpect(status().isUnauthorized());
         }
 
         private void setSecurityContext() {

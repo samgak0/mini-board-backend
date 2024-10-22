@@ -26,7 +26,7 @@ public class Post {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false, insertable = true, updatable = false)
     private User user;
 
     @Column(name = "title", nullable = false)
@@ -35,8 +35,10 @@ public class Post {
     @Lob
     @Column(name = "content", nullable = false)
     private String content;
-    @Column(name = "created_at", nullable = false)
+
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
 }
