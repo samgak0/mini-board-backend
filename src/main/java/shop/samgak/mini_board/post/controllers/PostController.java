@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import shop.samgak.mini_board.exceptions.MissingParameterException;
@@ -38,14 +37,13 @@ public class PostController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse> createPost(@RequestParam String title, @RequestParam String content,
-            HttpSession session) {
+    public ResponseEntity<ApiResponse> createPost(@RequestParam String title, @RequestParam String content) {
         if (title == null || title.isEmpty())
             throw new MissingParameterException("username");
         if (content == null || content.isEmpty())
             throw new MissingParameterException("content");
         try {
-            UserDTO userDTO = AuthUtils.getCurrentUserFromSession(session).orElseThrow();
+            UserDTO userDTO = AuthUtils.getCurrentUser().orElseThrow();
             Long createdId = postService.create(title, content, userDTO);
             URI location = URI.create(String.format("/api/post/%d", createdId));
             return ResponseEntity.created(location).body(new ApiResponse("success", true));

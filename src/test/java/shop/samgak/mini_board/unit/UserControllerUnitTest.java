@@ -1,6 +1,7 @@
 package shop.samgak.mini_board.unit;
 
 import java.util.Optional;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,15 +13,21 @@ import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import shop.samgak.mini_board.config.GlobalExceptionHandler;
 import shop.samgak.mini_board.exceptions.MessageProvider;
 import shop.samgak.mini_board.post.controllers.PostController;
@@ -29,6 +36,7 @@ import shop.samgak.mini_board.user.controllers.UserController;
 import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.user.services.UserService;
 import shop.samgak.mini_board.utility.ApiResponse;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 
 /**
  * Unit tests for the UserController class.
@@ -350,5 +358,51 @@ public class UserControllerUnitTest {
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE).value(UserController.MESSAGE_LOGIN_STATUS))
                                 .andExpect(jsonPath(JSON_PATH_DATA).value(false))
                                 .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
+        }
+
+        @Test
+        public void testMeSuccess() throws Exception {
+                UserDTO mockUserDTO = new UserDTO(1L, "user");
+
+                Authentication authentication = mock(Authentication.class);
+                SecurityContext securityContext = mock(SecurityContext.class);
+                when(securityContext.getAuthentication()).thenReturn(authentication);
+                when(authentication.getDetails()).thenReturn(mockUserDTO);
+                SecurityContextHolder.setContext(securityContext);
+
+                mockMvc.perform(MockMvcRequestBuilders.get("/api/users/me"))
+                                .andDo(print())
+                                .andExpect(MockMvcResultMatchers.status().isOk())
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Login status"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(1L))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.username").value("user"));
+        }
+
+        @Test
+        public void testMeEndUnauthorized() throws Exception {
+                SecurityContext securityContext = mock(SecurityContext.class);
+                when(securityContext.getAuthentication()).thenReturn(null);
+                SecurityContextHolder.setContext(securityContext);
+
+                mockMvc.perform(MockMvcRequestBuilders.get("/api/users/me")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(MockMvcResultMatchers.status().isUnauthorized())
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                                                .value("Authentication is required"));
+        }
+
+        @Test
+        public void testMeUnexpectedDetailsType() throws Exception {
+                Authentication authentication = mock(Authentication.class);
+                when(authentication.getDetails()).thenReturn(new Object());
+                SecurityContext securityContext = mock(SecurityContext.class);
+                when(securityContext.getAuthentication()).thenReturn(authentication);
+                SecurityContextHolder.setContext(securityContext);
+
+                mockMvc.perform(MockMvcRequestBuilders.get("/api/users/me")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(MockMvcResultMatchers.status().isUnauthorized())
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                                                .value("Authentication is required"));
         }
 }

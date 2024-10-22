@@ -1,12 +1,12 @@
 package shop.samgak.mini_board.user.controllers;
 
 import java.net.URI;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -23,6 +23,7 @@ import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.user.services.UserService;
 import shop.samgak.mini_board.utility.ApiDataResponse;
 import shop.samgak.mini_board.utility.ApiResponse;
+import shop.samgak.mini_board.utility.AuthUtils;
 
 @RestController
 @RequiredArgsConstructor
@@ -171,20 +172,13 @@ public class UserController {
     }
 
     @GetMapping("me")
-    public ResponseEntity<ApiResponse> me(HttpServletRequest request, Authentication authentication) {
+    public ResponseEntity<ApiResponse> me(HttpServletRequest request) {
         try {
-            if (authentication == null || authentication.getDetails() == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new ApiDataResponse(ERROR_AUTHENTICATION_REQUIRED, null, false));
-            }
-
-            if (authentication.getDetails() instanceof UserDTO userDTO) {
-                return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, userDTO, true));
-            } else {
-                log.error("Details is not an instance of UserDTO. Details: {}", authentication.getDetails());
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new ApiResponse("Unexpected authentication details type", false));
-            }
+            UserDTO userDTO = AuthUtils.getCurrentUser().orElseThrow();
+            return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, userDTO, true));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiDataResponse(ERROR_AUTHENTICATION_REQUIRED, null, false));
         } catch (RuntimeException e) {
             log.error("Error processing authentication request", e);
             return ResponseEntity.internalServerError()
