@@ -420,14 +420,10 @@ React에서 로그인 요청을 `POST` 방식으로 보내는 경우, RESTful한
       private AuthenticationManager authenticationManager;
 
       @PostMapping("/login")
-      public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+      public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
           UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                   loginRequest.getEmail(), loginRequest.getPassword());
           Authentication authentication = authenticationManager.authenticate(authenticationToken);
-
-          // 세션 생성
-          HttpSession session = request.getSession(true);
-          session.setAttribute("user", authentication.getPrincipal());
 
           return ResponseEntity.ok().build();
       }
@@ -711,6 +707,9 @@ curl -X POST http://localhost:8080/api/auth/login \
      -H "Content-Type: application/json" \
      -d '{"username": "user", "password": "password"}' \
      -c "cookies.txt"
+
+curl -X GET http://localhost:8080/api/users/me \
+     -b "cookies.txt"
 
 curl -X GET http://localhost:8080/sessions
 

@@ -12,9 +12,6 @@ import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -22,7 +19,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import shop.samgak.mini_board.config.GlobalExceptionHandler;
@@ -33,7 +29,6 @@ import shop.samgak.mini_board.user.controllers.UserController;
 import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.user.services.UserService;
 import shop.samgak.mini_board.utility.ApiResponse;
-import shop.samgak.mini_board.utility.UserSessionHelper;
 
 /**
  * Unit tests for the UserController class.
@@ -49,8 +44,6 @@ public class UserControllerUnitTest {
         private static final String API_USERS_REGISTER = "/api/users/register";
         private static final String API_USERS_PASSWORD = "/api/users/password";
         private static final String API_USERS_STATUS = "/api/users/check/status";
-        private static final String API_AUTH_LOGIN = "/api/auth/login";
-        private static final String API_USERS_ME = "/api/users/me";
 
         private static final String PARAM_USERNAME = "username";
         private static final String PARAM_EMAIL = "email";
@@ -69,9 +62,6 @@ public class UserControllerUnitTest {
         private PostService postService;
 
         @Mock
-        private UserSessionHelper userSessionHelper;
-
-        @Mock
         private MockHttpSession session;
 
         @InjectMocks
@@ -84,7 +74,7 @@ public class UserControllerUnitTest {
         public void setUp() {
                 MockitoAnnotations.openMocks(this);
                 mockMvc = MockMvcBuilders
-                                .standaloneSetup(userController, new PostController(postService, userSessionHelper))
+                                .standaloneSetup(userController, new PostController(postService))
                                 .setControllerAdvice(new GlobalExceptionHandler())
                                 .build();
         }
@@ -154,23 +144,6 @@ public class UserControllerUnitTest {
                                 .andExpect(header().string("Location", "/api/users/1/info"))
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE)
                                                 .value(UserController.MESSAGE_REGISTER_SUCCESSFUL))
-                                .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
-        }
-
-        /**
-         * Tests the login scenario.
-         */
-        @Test
-        public void testLoginSuccess() throws Exception {
-                String username = "user";
-                String password = "password";
-
-                mockMvc.perform(post(API_AUTH_LOGIN)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}")
-                                .session(session))
-                                .andDo(print())
-                                .andExpect(status().isOk())
                                 .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
         }
 
@@ -376,23 +349,6 @@ public class UserControllerUnitTest {
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE).value(UserController.MESSAGE_LOGIN_STATUS))
                                 .andExpect(jsonPath(JSON_PATH_DATA).value(false))
-                                .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
-        }
-
-        /**
-         * Tests the success scenario for retrieving user information.
-         */
-        @Test
-        public void testMeSuccess() throws Exception {
-                Authentication authentication = mock(Authentication.class);
-                SecurityContext securityContext = mock(SecurityContext.class);
-                SecurityContextHolder.setContext(securityContext);
-                when(securityContext.getAuthentication()).thenReturn(authentication);
-
-                mockMvc.perform(get(API_USERS_ME)
-                                .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath(JSON_PATH_MESSAGE).value("User info retrieved successfully"))
                                 .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
         }
 }

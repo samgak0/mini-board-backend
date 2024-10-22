@@ -45,13 +45,12 @@ public class AuthController {
     }
 
     @GetMapping("logout")
-    public ResponseEntity<?> logoutGet(HttpServletRequest request, Authentication authentication, HttpSession session) {
-        return logoutPost(request, authentication, session);
+    public ResponseEntity<?> logoutGet(HttpServletRequest request, HttpSession session) {
+        return logoutPost(request, session);
     }
 
     @PostMapping("logout")
-    public ResponseEntity<?> logoutPost(HttpServletRequest request, Authentication authentication,
-            HttpSession session) {
+    public ResponseEntity<?> logoutPost(HttpServletRequest request, HttpSession session) {
         if (session != null) {
             if (session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY) != null) {
                 session.invalidate();

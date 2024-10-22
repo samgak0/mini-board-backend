@@ -1,17 +1,22 @@
 package shop.samgak.mini_board.integration;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
-import static org.springframework.http.HttpStatus.*;
+import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -134,5 +139,51 @@ public class UserIntegrationTests {
                 String.class);
 
         assertThat(registerResponse.getStatusCode()).isEqualTo(BAD_REQUEST);
+    }
+
+    @Test
+    public void testMeUnauthorized() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange("/api/users/me", HttpMethod.GET, request, String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getBody()).contains("\"message\":\"Authentication required\"");
+        assertThat(response.getBody()).contains("\"code\":\"FAILURE\"");
+    }
+
+    @Test
+    public void testMeAuthorizedAfterLogin() {
+
+        HttpHeaders loginHeaders = new HttpHeaders();
+        loginHeaders.setContentType(MediaType.APPLICATION_JSON);
+        String loginRequestBody = "{\"username\":\"user\", \"password\":\"password\"}";
+        HttpEntity<String> loginRequest = new HttpEntity<>(loginRequestBody, loginHeaders);
+
+        ResponseEntity<String> loginResponse = restTemplate.exchange("/api/auth/login", HttpMethod.POST, loginRequest,
+                String.class);
+        assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        System.out.println("loginResponse Body: " + loginResponse.getBody());
+        System.out.println("loginResponse Status Code: " + loginResponse.getStatusCode());
+
+        HttpHeaders loginResponseHeaders = loginResponse.getHeaders();
+        List<String> cookies = loginResponseHeaders.get(HttpHeaders.SET_COOKIE);
+        assertThat(cookies).isNotEmpty();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.put(HttpHeaders.COOKIE, cookies);
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange("/api/users/me", HttpMethod.GET, request, String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).contains("\"message\":\"Login status\"");
+        assertThat(response.getBody()).contains("\"code\":\"SUCCESS\"");
+        assertThat(response.getBody()).contains("\"data\":{\"id\":1,\"username\":\"user\"}}");
     }
 }
