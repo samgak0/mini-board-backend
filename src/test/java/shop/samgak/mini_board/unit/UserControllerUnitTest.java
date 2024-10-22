@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 import shop.samgak.mini_board.config.GlobalExceptionHandler;
 import shop.samgak.mini_board.exceptions.MessageProvider;
@@ -82,6 +83,7 @@ public class UserControllerUnitTest {
                                 .standaloneSetup(userController, new PostController(postService))
                                 .setControllerAdvice(new GlobalExceptionHandler())
                                 .build();
+                SecurityContextHolder.clearContext();
         }
 
         // General operation tests
@@ -351,6 +353,7 @@ public class UserControllerUnitTest {
                 mockMvc.perform(get(API_USERS_STATUS)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
+                                .andDo(MockMvcResultHandlers.print())
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE).value(UserController.MESSAGE_LOGIN_STATUS))
                                 .andExpect(jsonPath(JSON_PATH_DATA).value(false))
                                 .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));

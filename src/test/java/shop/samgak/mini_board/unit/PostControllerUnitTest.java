@@ -54,6 +54,7 @@ public class PostControllerUnitTest {
                 mockMvc = MockMvcBuilders.standaloneSetup(postController)
                                 .setControllerAdvice(new GlobalExceptionHandler())
                                 .build();
+                SecurityContextHolder.clearContext();
         }
 
         /**
