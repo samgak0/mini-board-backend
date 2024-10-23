@@ -166,8 +166,6 @@ public class UserIntegrationTests {
         ResponseEntity<String> loginResponse = restTemplate.exchange("/api/auth/login", HttpMethod.POST, loginRequest,
                 String.class);
         assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        System.out.println("loginResponse Body: " + loginResponse.getBody());
-        System.out.println("loginResponse Status Code: " + loginResponse.getStatusCode());
 
         HttpHeaders loginResponseHeaders = loginResponse.getHeaders();
         List<String> cookies = loginResponseHeaders.get(HttpHeaders.SET_COOKIE);

@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import shop.samgak.mini_board.config.GlobalExceptionHandler;
+import shop.samgak.mini_board.exceptions.GlobalExceptionHandler;
 import shop.samgak.mini_board.security.AuthController;
 import shop.samgak.mini_board.security.MyUserDetails;
 import shop.samgak.mini_board.user.dto.UserDTO;

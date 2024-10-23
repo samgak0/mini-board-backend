@@ -9,6 +9,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
+import shop.samgak.mini_board.exceptions.UserNotExistFoundException;
+import shop.samgak.mini_board.exceptions.WrongPasswordException;
 import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.user.entities.User;
 import shop.samgak.mini_board.user.mapper.UserMapper;
@@ -34,13 +36,12 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         String password = (String) authentication.getCredentials();
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+                .orElseThrow(() -> new UserNotExistFoundException(username));
         UserDTO userDTO = userMapper.userToUserDTO(user);
 
         MyUserDetails myUserDetails = new MyUserDetails(userDTO, user.getPassword());
         if (!passwordEncoder.matches(password, myUserDetails.getPassword())) {
-            throw new AuthenticationException("Invalid credentials") {
-            };
+            throw new WrongPasswordException(username);
         }
         myUserDetails.setPassword(null);
 

@@ -1,11 +1,8 @@
 package shop.samgak.mini_board.post.controllers;
 
 import java.net.URI;
-import java.util.NoSuchElementException;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,8 +15,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import shop.samgak.mini_board.exceptions.MissingParameterException;
-import shop.samgak.mini_board.exceptions.ResourceNotFoundException;
 import shop.samgak.mini_board.post.services.PostService;
 import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.utility.ApiDataResponse;
@@ -32,7 +27,6 @@ import shop.samgak.mini_board.utility.AuthUtils;
 @RequestMapping("/api/posts")
 public class PostController {
     private final PostService postService;
-    public static final String ERROR_AUTHENTICATION_REQUIRED = "Authentication is required";
 
     @GetMapping
     public ResponseEntity<ApiResponse> getTop10Post() {
@@ -47,60 +41,29 @@ public class PostController {
     @PostMapping
     public ResponseEntity<ApiResponse> createPost(@RequestParam("title") String title,
             @RequestParam("content") String content) {
-        if (title == null || title.isEmpty())
-            throw new MissingParameterException("title");
-        if (content == null || content.isEmpty())
-            throw new MissingParameterException("content");
-        try {
-            UserDTO userDTO = AuthUtils.getCurrentUser().orElseThrow();
-            Long createdId = postService.create(title, content, userDTO);
-            URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                    .path("/{id}")
-                    .buildAndExpand(createdId)
-                    .toUri();
-            return ResponseEntity.created(location).body(new ApiResponse("success", true));
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiDataResponse(ERROR_AUTHENTICATION_REQUIRED, null, false));
-        } catch (RuntimeException e) {
-            return ResponseEntity.internalServerError().body(new ApiResponse(e.getMessage(), false));
-        }
+        UserDTO userDTO = AuthUtils.getCurrentUser();
+        Long createdId = postService.create(title, content, userDTO);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(createdId)
+                .toUri();
+        return ResponseEntity.created(location).body(new ApiResponse("success", true));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse> updatePost(@PathVariable("id") Long id,
-            @RequestParam("title") String title, @RequestParam("content") String content) {
-        if (id == null)
-            throw new MissingParameterException("id");
-        if (title == null || title.isEmpty())
-            throw new MissingParameterException("title");
-        if (content == null || content.isEmpty())
-            throw new MissingParameterException("content");
-        try {
-            UserDTO userDTO = AuthUtils.getCurrentUser().orElseThrow();
-            postService.update(id, title, content, userDTO);
-            return ResponseEntity.ok(new ApiResponse("success", true));
-        } catch (NoSuchElementException | ResourceNotFoundException | AccessDeniedException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiDataResponse(ERROR_AUTHENTICATION_REQUIRED, e.getMessage(), false));
-        } catch (RuntimeException e) {
-            return ResponseEntity.internalServerError().body(new ApiResponse(e.getMessage(), false));
-        }
+            @RequestParam("title") String title,
+            @RequestParam("content") String content) {
+
+        UserDTO userDTO = AuthUtils.getCurrentUser();
+        postService.update(id, title, content, userDTO);
+        return ResponseEntity.ok(new ApiResponse("success", true));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse> deletePost(@PathVariable("id") Long id) {
-        if (id == null)
-            throw new MissingParameterException("id");
-        try {
-            UserDTO userDTO = AuthUtils.getCurrentUser().orElseThrow();
-            postService.delete(id, userDTO);
-            return ResponseEntity.ok(new ApiResponse("success", true));
-        } catch (NoSuchElementException | ResourceNotFoundException | AccessDeniedException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiDataResponse(ERROR_AUTHENTICATION_REQUIRED, e.getMessage(), false));
-        } catch (RuntimeException e) {
-            return ResponseEntity.internalServerError().body(new ApiResponse(e.getMessage(), false));
-        }
+        UserDTO userDTO = AuthUtils.getCurrentUser();
+        postService.delete(id, userDTO);
+        return ResponseEntity.ok(new ApiResponse("success", true));
     }
 }

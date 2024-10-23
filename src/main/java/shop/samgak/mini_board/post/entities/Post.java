@@ -26,7 +26,7 @@ public class Post {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false, insertable = true, updatable = false)
+    @JoinColumn(name = "user_id", nullable = false, updatable = false)
     private User user;
 
     @Column(name = "title", nullable = false)

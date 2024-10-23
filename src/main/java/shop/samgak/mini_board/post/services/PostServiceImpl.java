@@ -4,13 +4,13 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import shop.samgak.mini_board.exceptions.ResourceNotFoundException;
+import shop.samgak.mini_board.exceptions.UnauthorizedActionException;
 import shop.samgak.mini_board.post.dto.PostDTO;
 import shop.samgak.mini_board.post.entities.Post;
 import shop.samgak.mini_board.post.mapper.PostMapper;
@@ -35,7 +35,8 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostDTO getPostById(Long id) {
+    public PostDTO getPostById(Long id)
+            throws ResourceNotFoundException {
         return postRepository.findById(id)
                 .map(postMapper::toDTO)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + id));
@@ -55,11 +56,12 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void update(Long id, String title, String content, UserDTO userDTO) {
+    public void update(Long id, String title, String content, UserDTO userDTO)
+            throws ResourceNotFoundException, UnauthorizedActionException {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + id));
         if (!post.getUser().getId().equals(userDTO.getId())) {
-            throw new AccessDeniedException("User not authorized to update this post");
+            throw new UnauthorizedActionException("User not authorized to update this post");
         }
         boolean isUpdated = false;
         if (!post.getTitle().equals(title)) {
@@ -77,11 +79,12 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void delete(Long id, UserDTO userDTO) {
+    public void delete(Long id, UserDTO userDTO)
+            throws ResourceNotFoundException, UnauthorizedActionException {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + id));
         if (!post.getUser().getId().equals(userDTO.getId())) {
-            throw new AccessDeniedException("User not authorized to delete this post");
+            throw new UnauthorizedActionException("User not authorized to delete this post");
         }
         postRepository.delete(post);
     }

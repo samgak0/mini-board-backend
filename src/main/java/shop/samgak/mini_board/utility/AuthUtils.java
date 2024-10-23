@@ -1,7 +1,5 @@
 package shop.samgak.mini_board.utility;
 
-import java.util.Optional;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -9,6 +7,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
+import shop.samgak.mini_board.exceptions.UserNotLoginException;
 import shop.samgak.mini_board.security.MyUserDetails;
 import shop.samgak.mini_board.user.dto.UserDTO;
 
@@ -56,18 +55,18 @@ public class AuthUtils {
      * @return an Optional containing the UserDTO if available, otherwise an empty
      *         Optional
      */
-    public static Optional<UserDTO> getCurrentUser() {
+    public static UserDTO getCurrentUser() throws UserNotLoginException {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         if (securityContext.getAuthentication() != null) {
             Authentication authentication = securityContext.getAuthentication();
             if (authentication.getPrincipal() != null) {
                 MyUserDetails myUserDetails = (MyUserDetails) authentication.getPrincipal();
-                return Optional.of(myUserDetails.getUserDTO());
+                return myUserDetails.getUserDTO();
             } else {
-                return Optional.empty();
+                throw new UserNotLoginException();
             }
         } else {
-            return Optional.empty();
+            throw new UserNotLoginException();
         }
     }
 }

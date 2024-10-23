@@ -13,6 +13,6 @@ public interface UserService {
 
     boolean existEmail(String email);
 
-    void changePassword(String username, String newPassword);
+    void changePassword(String username, String newPassword) throws IllegalArgumentException;
 
 }

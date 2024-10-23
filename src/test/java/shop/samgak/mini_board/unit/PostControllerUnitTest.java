@@ -3,6 +3,7 @@ package shop.samgak.mini_board.unit;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -15,7 +16,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import shop.samgak.mini_board.config.GlobalExceptionHandler;
+import shop.samgak.mini_board.exceptions.GlobalExceptionHandler;
 import shop.samgak.mini_board.exceptions.ResourceNotFoundException;
 import shop.samgak.mini_board.post.controllers.PostController;
 import shop.samgak.mini_board.post.dto.PostDTO;
@@ -51,8 +51,13 @@ public class PostControllerUnitTest {
                 SecurityContextHolder.clearContext();
         }
 
+        @AfterEach
+        public void cleanUp() {
+                SecurityContextHolder.clearContext();
+        }
+
         @Test
-        public void testGetAllPosts() throws Exception {
+        public void testGetTop10Posts() throws Exception {
                 List<PostDTO> mockPosts = new ArrayList<>();
                 mockPosts.add(new PostDTO(1L, null, "First Post", "Content of the first post", null, null));
                 mockPosts.add(new PostDTO(2L, null, "Second Post", "Content of the second post", null, null));
@@ -116,23 +121,23 @@ public class PostControllerUnitTest {
 
         @Test
         public void createPostMissingTitle() throws Exception {
-                String content = "Test Content";
-
-                setSecurityContext();
-
-                mockMvc.perform(post("/api/posts")
-                                .param("content", content))
-                                .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        public void createPostMissingContent() throws Exception {
                 String title = "Test Title";
 
                 setSecurityContext();
 
                 mockMvc.perform(post("/api/posts")
                                 .param("title", title))
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        public void createPostMissingContent() throws Exception {
+                String content = "Test Content";
+
+                setSecurityContext();
+
+                mockMvc.perform(post("/api/posts")
+                                .param("content", content))
                                 .andExpect(status().isBadRequest());
         }
 

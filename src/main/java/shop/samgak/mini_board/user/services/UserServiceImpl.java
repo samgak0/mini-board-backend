@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changePassword(String username, String newPassword) {
+    public void changePassword(String username, String newPassword) throws IllegalArgumentException {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Username is not available"));
         user.setHashedPassword(passwordEncoder, newPassword);

@@ -1,8 +1,6 @@
 package shop.samgak.mini_board.user.controllers;
 
 import java.net.URI;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.http.HttpStatus;
@@ -22,6 +20,7 @@ import shop.samgak.mini_board.exceptions.MissingParameterException;
 import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.user.services.UserService;
 import shop.samgak.mini_board.utility.ApiDataResponse;
+import shop.samgak.mini_board.utility.ApiExceptionResponse;
 import shop.samgak.mini_board.utility.ApiResponse;
 import shop.samgak.mini_board.utility.AuthUtils;
 
@@ -44,7 +43,6 @@ public class UserController {
     public static final String ERROR_EMAIL_ALREADY_USED = "Email is already in use";
     public static final String ERROR_USERNAME_MISMATCH = "Username does not match the checked username";
     public static final String ERROR_EMAIL_MISMATCH = "Email does not match the checked email";
-    public static final String ERROR_AUTHENTICATION_REQUIRED = "Authentication is required";
     public static final String ERROR_INVALID_PASSWORD_FORMAT = "Password format is invalid.";
 
     public static final String MESSAGE_PASSWORD_CHANGE_SUCCESSFUL = "Password change successful";
@@ -56,71 +54,48 @@ public class UserController {
     final UserService userService;
 
     @PostMapping("check/username")
-    public ResponseEntity<ApiResponse> checkUsername(@RequestParam String username, HttpSession session) {
-        try {
-            if (username == null || username.isEmpty())
-                throw new MissingParameterException("username");
-
-            boolean isExistUserName = userService.existUsername(username);
-            if (!isExistUserName) {
-                session.setAttribute(SESSION_CHECKED_USER, username);
-                return ResponseEntity.ok().body(new ApiResponse(MESSAGE_USERNAME_AVAILABLE, true));
-            } else {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(new ApiResponse(ERROR_USERNAME_ALREADY_USED, ApiResponse.Code.USED));
-            }
-        } catch (RuntimeException e) {
-            log.error(ERROR, e.toString());
-            return ResponseEntity.internalServerError().body(new ApiResponse(e.getMessage(), false));
+    public ResponseEntity<ApiResponse> checkUsername(@RequestParam("username") String username,
+            HttpSession session) {
+        boolean isExistUserName = userService.existUsername(username);
+        if (!isExistUserName) {
+            session.setAttribute(SESSION_CHECKED_USER, username);
+            return ResponseEntity.ok().body(new ApiResponse(MESSAGE_USERNAME_AVAILABLE, true));
+        } else {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new ApiResponse(ERROR_USERNAME_ALREADY_USED, ApiResponse.Code.USED));
         }
     }
 
     @PostMapping("check/email")
-    public ResponseEntity<ApiResponse> checkEmail(@RequestParam String email, HttpSession session) {
-        try {
-            if (email == null || email.isEmpty()) {
-                throw new MissingParameterException("email");
-            }
+    public ResponseEntity<ApiResponse> checkEmail(@RequestParam("email") String email,
+            HttpSession session) {
+        EmailValidator validator = EmailValidator.getInstance();
+        if (!validator.isValid(email)) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(ERROR_INVALID_EMAIL_FORMAT, false));
+        }
 
-            EmailValidator validator = EmailValidator.getInstance();
-            if (!validator.isValid(email)) {
-                return ResponseEntity.badRequest()
-                        .body(new ApiResponse(ERROR_INVALID_EMAIL_FORMAT, false));
-            }
-
-            boolean isExistEmail = userService.existEmail(email);
-            if (!isExistEmail) {
-                session.setAttribute(SESSION_CHECKED_EMAIL, email);
-                return ResponseEntity.ok().body(new ApiResponse(MESSAGE_EMAIL_AVAILABLE, true));
-            } else {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(new ApiResponse(ERROR_EMAIL_ALREADY_USED, ApiResponse.Code.USED));
-            }
-        } catch (RuntimeException e) {
-            log.error(ERROR, e.toString());
-            return ResponseEntity.internalServerError().body(new ApiResponse(e.getMessage(), false));
+        boolean isExistEmail = userService.existEmail(email);
+        if (!isExistEmail) {
+            session.setAttribute(SESSION_CHECKED_EMAIL, email);
+            return ResponseEntity.ok().body(new ApiResponse(MESSAGE_EMAIL_AVAILABLE, true));
+        } else {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new ApiResponse(ERROR_EMAIL_ALREADY_USED, ApiResponse.Code.USED));
         }
     }
 
     @PostMapping("check/password")
-    public ResponseEntity<ApiDataResponse> checkPassword(@RequestParam String password) {
+    public ResponseEntity<ApiDataResponse> checkPassword(
+            @RequestParam("password") String password) {
         return ResponseEntity
                 .ok(new ApiDataResponse("Password format check", password.matches(PASSWORD_PATTERN), true));
     }
 
     @PostMapping("register")
-    public ResponseEntity<ApiResponse> register(@RequestParam String username,
-            @RequestParam String email,
-            @RequestParam String password, HttpSession session) {
-
-        if (username == null || username.isEmpty())
-            throw new MissingParameterException("username");
-
-        if (email == null || email.isEmpty())
-            throw new MissingParameterException("email");
-
-        if (password == null || password.isEmpty())
-            throw new MissingParameterException("password");
+    public ResponseEntity<ApiResponse> register(@RequestParam("username") String username,
+            @RequestParam("email") String email,
+            @RequestParam("password") String password, HttpSession session) {
 
         boolean isExistEmail = userService.existEmail(email);
         if (isExistEmail) {
@@ -157,6 +132,7 @@ public class UserController {
 
         try {
             Long id = userService.save(username, email, password);
+
             URI location = URI.create(String.format("/api/users/%d/info", id));
             return ResponseEntity.created(location)
                     .body(new ApiResponse(MESSAGE_REGISTER_SUCCESSFUL, true));
@@ -173,16 +149,8 @@ public class UserController {
 
     @GetMapping("me")
     public ResponseEntity<ApiResponse> me(HttpServletRequest request) {
-        try {
-            UserDTO userDTO = AuthUtils.getCurrentUser().orElseThrow();
-            return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, userDTO, true));
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiDataResponse(ERROR_AUTHENTICATION_REQUIRED, null, false));
-        } catch (RuntimeException e) {
-            log.error(ERROR, e.toString());
-            return ResponseEntity.internalServerError().body(new ApiResponse(e.getMessage(), false));
-        }
+        UserDTO userDTO = AuthUtils.getCurrentUser();
+        return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, userDTO, true));
     }
 
     @PutMapping("password")
@@ -193,19 +161,15 @@ public class UserController {
         if (!password.matches(PASSWORD_PATTERN)) {
             return ResponseEntity.badRequest().body(new ApiResponse(ERROR_INVALID_PASSWORD_FORMAT, false));
         }
-        Optional<UserDTO> user = AuthUtils.getCurrentUser();
+        UserDTO user = AuthUtils.getCurrentUser();
 
-        if (user.isPresent()) {
-            try {
-                userService.changePassword(user.get().getUsername(), password);
-                return ResponseEntity.ok(new ApiResponse(MESSAGE_PASSWORD_CHANGE_SUCCESSFUL, true));
-            } catch (Exception e) {
-                log.error(ERROR, e.toString());
-                return ResponseEntity.badRequest().body(new ApiResponse(e.getMessage(), false));
-            }
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse(ERROR_AUTHENTICATION_REQUIRED, false));
+        try {
+            userService.changePassword(user.getUsername(), password);
+            return ResponseEntity.ok(new ApiResponse(MESSAGE_PASSWORD_CHANGE_SUCCESSFUL, true));
+        } catch (RuntimeException e) {
+            log.error(ERROR, e.toString());
+            return ResponseEntity.badRequest().body(new ApiExceptionResponse(e));
         }
+
     }
 }
