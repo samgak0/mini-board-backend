@@ -34,9 +34,6 @@ public class AuthController {
     public ResponseEntity<ApiResponse> login(@Valid @RequestBody LoginRequest loginRequest,
             HttpSession session) {
 
-        log.info(loginRequest.username);
-        log.info(loginRequest.password);
-
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 loginRequest.username, loginRequest.password);
         Authentication authentication = authenticationManager.authenticate(authenticationToken);

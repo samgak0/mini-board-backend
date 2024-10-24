@@ -37,7 +37,8 @@ dependencies {
     implementation 'org.mapstruct:mapstruct:1.6.2'
 	implementation 'commons-validator:commons-validator:1.6'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.18.0'
-
+	implementation 'org.springframework.security:spring-security-test'
+	
 	compileOnly 'org.projectlombok:lombok'
 
 	runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
