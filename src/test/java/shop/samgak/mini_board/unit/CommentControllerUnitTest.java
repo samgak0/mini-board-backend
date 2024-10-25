@@ -1,21 +1,19 @@
 package shop.samgak.mini_board.unit;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -24,44 +22,36 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import shop.samgak.mini_board.comment.controllers.CommentController;
 import shop.samgak.mini_board.comment.dto.CommentDTO;
 import shop.samgak.mini_board.comment.services.CommentService;
-import shop.samgak.mini_board.exceptions.GlobalExceptionHandler;
 import shop.samgak.mini_board.exceptions.ResourceNotFoundException;
 import shop.samgak.mini_board.post.dto.PostDTO;
-import shop.samgak.mini_board.security.MyUserDetails;
+import shop.samgak.mini_board.security.WithMockMyUserDetails;
 import shop.samgak.mini_board.user.dto.UserDTO;
 
+@WebMvcTest(controllers = { CommentController.class })
+@AutoConfigureMockMvc(addFilters = false)
 public class CommentControllerUnitTest {
 
+        @Autowired
         private MockMvc mockMvc;
 
-        @Mock
+        @MockBean
         private CommentService commentService;
-
-        @InjectMocks
-        private CommentController commentController;
 
         @BeforeEach
         public void setUp() {
-                MockitoAnnotations.openMocks(this);
-                mockMvc = MockMvcBuilders.standaloneSetup(commentController)
-                                .setControllerAdvice(new GlobalExceptionHandler())
-                                .build();
         }
 
         @AfterEach
         public void cleanUp() {
-                SecurityContextHolder.clearContext();
         }
 
         @Test
+        @WithMockMyUserDetails
         public void testGetComments() throws Exception {
-
-                setSecurityContext();
 
                 List<CommentDTO> mockComments = new ArrayList<>();
                 Long commentId1 = 1L;
@@ -77,7 +67,7 @@ public class CommentControllerUnitTest {
                 mockComments.add(comment2);
                 when(commentService.get(1L)).thenReturn(mockComments);
 
-                mockMvc.perform(get("/api/comments/1")
+                mockMvc.perform(get("/api/posts/1/comments")
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.data.length()").value(2))
@@ -87,70 +77,75 @@ public class CommentControllerUnitTest {
         }
 
         @Test
+        @WithMockMyUserDetails
         public void testGetCommentByIdNotFound() throws Exception {
                 Long commentId = 1L;
-
-                setSecurityContext();
 
                 when(commentService.get(commentId))
                                 .thenThrow(new ResourceNotFoundException("Comment not found with id: " + commentId));
 
-                mockMvc.perform(get("/api/comments/{id}", commentId)
+                mockMvc.perform(get("/api/posts/{commentId}/comments", commentId)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andDo(MockMvcResultHandlers.print())
                                 .andExpect(status().isNotFound())
-                                .andExpect(jsonPath("$.message").value("Comment not found with id: " + commentId))
-                                .andExpect(jsonPath("$.code").value("FAILURE"));
+                                .andExpect(jsonPath("$.code").value("FAILURE"))
+                                .andExpect(jsonPath("$.message").value("Comment not found with id: " + commentId));
         }
 
         @Test
         public void createCommentUserNotFound() throws Exception {
                 String content = "Test Content";
+                Long commentId = 1L;
 
-                Authentication authentication = mock(Authentication.class);
-                SecurityContext securityContext = mock(SecurityContext.class);
-                when(securityContext.getAuthentication()).thenReturn(authentication);
-                when(authentication.getPrincipal()).thenReturn(null);
-                SecurityContextHolder.setContext(securityContext);
-
-                mockMvc.perform(post("/api/comments")
+                mockMvc.perform(post("/api/posts/{commentId}/comments", commentId)
                                 .param("content", content))
-                                .andExpect(status().isUnauthorized())
-                                .andDo(MockMvcResultHandlers.print());
+                                .andExpect(status().isUnauthorized());
         }
 
         @Test
+        @WithMockMyUserDetails
         public void createCommentMissingContent() throws Exception {
-                setSecurityContext();
+                Long commentId = 1L;
 
-                mockMvc.perform(post("/api/comments"))
-                                .andDo(MockMvcResultHandlers.print())
+                mockMvc.perform(post("/api/posts/{commentId}/comments", commentId))
                                 .andExpect(status().isBadRequest());
         }
 
         @Test
+        @WithMockMyUserDetails
         public void createCommentSuccess() throws Exception {
                 String content = "Test Content";
-                setSecurityContext();
+                Long commentId = 1L;
+                Long userId = 1L;
 
-                mockMvc.perform(post("/api/comments")
+                CommentDTO commentDTO = new CommentDTO();
+                commentDTO.setId(commentId);
+                commentDTO.setContent(content);
+                commentDTO.setUser(new UserDTO(userId, "username"));
+                commentDTO.setPost(new PostDTO(2L, new UserDTO(userId, "username"), "Sample Title", "Sample Content",
+                                Instant.now(), Instant.now()));
+                commentDTO.setCreatedAt(Instant.now());
+                commentDTO.setUpdatedAt(Instant.now());
+
+                when(commentService.create(content, commentId, userId)).thenReturn(commentDTO);
+
+                mockMvc.perform(post("/api/posts/{commentId}/comments", commentId)
                                 .param("content", content))
-                                .andDo(MockMvcResultHandlers.print())
                                 .andExpect(status().isCreated());
         }
 
         @Test
+        @WithMockMyUserDetails
         public void updateCommentSuccess() throws Exception {
-                Long commentId = 1L;
-                Long userId = 1L;
                 String content = "Updated Content";
-                setSecurityContext();
-                doNothing().when(commentService).delete(commentId, userId);
+                Long commentId = 1L;
+                doNothing().when(commentService).update(commentId, content, 1L);
 
-                mockMvc.perform(put("/api/comments/{id}", commentId)
+                mockMvc.perform(put("/api/posts/{commentId}/comments", commentId)
                                 .param("content", content))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.code").value("SUCCESS"));
+                                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                                .andExpect(jsonPath("$.message").value("Comment updated successfully"));
         }
 
         @Test
@@ -158,43 +153,28 @@ public class CommentControllerUnitTest {
                 Long commentId = 1L;
                 String content = "Updated Content";
 
-                mockMvc.perform(put("/api/comments/{id}", commentId)
+                mockMvc.perform(put("/api/posts/{commentId}/comments", commentId)
                                 .param("content", content))
-                                .andDo(MockMvcResultHandlers.print())
                                 .andExpect(status().isUnauthorized());
         }
 
         @Test
+        @WithMockMyUserDetails
         public void deleteCommentSuccess() throws Exception {
                 Long commentId = 1L;
-                Long userId = 1L;
-                setSecurityContext();
+                doNothing().when(commentService).delete(commentId, 1L);
 
-                doNothing().when(commentService).delete(commentId, userId);
-
-                mockMvc.perform(delete("/api/comments/{id}", commentId))
+                mockMvc.perform(delete("/api/posts/{commentId}/comments", commentId))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.code").value("SUCCESS"));
+                                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                                .andExpect(jsonPath("$.message").value("Comment deleted successfully"));
         }
 
         @Test
         public void deleteCommentUnauthorized() throws Exception {
                 Long commentId = 1L;
 
-                mockMvc.perform(delete("/api/comments/{id}", commentId))
-                                .andDo(MockMvcResultHandlers.print())
+                mockMvc.perform(delete("/api/posts/{commentId}/comments", commentId))
                                 .andExpect(status().isUnauthorized());
-
-        }
-
-        private void setSecurityContext() {
-                UserDTO mockUserDTO = new UserDTO(1L, "user");
-                MyUserDetails myUserDetails = new MyUserDetails(mockUserDTO, null);
-
-                Authentication authentication = mock(Authentication.class);
-                SecurityContext securityContext = mock(SecurityContext.class);
-                when(securityContext.getAuthentication()).thenReturn(authentication);
-                when(authentication.getPrincipal()).thenReturn(myUserDetails);
-                SecurityContextHolder.setContext(securityContext);
         }
 }

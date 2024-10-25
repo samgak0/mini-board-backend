@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.ResourceAccessException;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -96,13 +97,15 @@ public class AuthIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
+        ResponseEntity<String> response = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        Map<String, String> responseBody = objectMapper.readValue(response.getBody(),
+                new TypeReference<Map<String, String>>() {
+                });
 
-        try {
-            restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-            fail("Expected ResourceAccessException to be thrown");
-        } catch (ResourceAccessException e) {
-            assertThat(e).isInstanceOf(ResourceAccessException.class);
-        }
+        assertThat(responseBody.get("message")).isEqualTo(
+                "password: Missing required parameter; username: Missing required parameter;");
+        assertThat(responseBody.get("code")).isEqualTo("FAILURE");
     }
 
     /**
@@ -118,12 +121,15 @@ public class AuthIntegrationTest {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
 
-        try {
-            restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-            fail("Expected ResourceAccessException to be thrown");
-        } catch (ResourceAccessException e) {
-            assertThat(e).isInstanceOf(ResourceAccessException.class);
-        }
+        ResponseEntity<String> response = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        Map<String, String> responseBody = objectMapper.readValue(response.getBody(),
+                new TypeReference<Map<String, String>>() {
+                });
+
+        assertThat(responseBody.get("message")).isEqualTo(
+                "username: Missing required parameter;");
+        assertThat(responseBody.get("code")).isEqualTo("FAILURE");
     }
 
     /**
@@ -139,12 +145,14 @@ public class AuthIntegrationTest {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
 
-        try {
-            restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-            fail("Expected ResourceAccessException to be thrown");
-        } catch (ResourceAccessException e) {
-            assertThat(e).isInstanceOf(ResourceAccessException.class);
-        }
-    }
+        ResponseEntity<String> response = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        Map<String, String> responseBody = objectMapper.readValue(response.getBody(),
+                new TypeReference<Map<String, String>>() {
+                });
 
+        assertThat(responseBody.get("message")).isEqualTo(
+                "password: Missing required parameter;");
+        assertThat(responseBody.get("code")).isEqualTo("FAILURE");
+    }
 }

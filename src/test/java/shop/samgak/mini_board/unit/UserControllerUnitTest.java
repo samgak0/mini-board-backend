@@ -1,13 +1,15 @@
 package shop.samgak.mini_board.unit;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.core.Authentication;
@@ -18,20 +20,13 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import shop.samgak.mini_board.exceptions.GlobalExceptionHandler;
 import shop.samgak.mini_board.exceptions.MessageProvider;
-import shop.samgak.mini_board.post.controllers.PostController;
-import shop.samgak.mini_board.post.services.PostService;
-import shop.samgak.mini_board.security.MyUserDetails;
+import shop.samgak.mini_board.security.WithMockMyUserDetails;
 import shop.samgak.mini_board.user.controllers.UserController;
-import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.user.services.UserService;
 import shop.samgak.mini_board.utility.ApiResponse;
 
@@ -41,6 +36,8 @@ import shop.samgak.mini_board.utility.ApiResponse;
  * including username checks, email checks, registration,
  * and password management.
  */
+@WebMvcTest(controllers = { UserController.class })
+@AutoConfigureMockMvc(addFilters = false)
 public class UserControllerUnitTest {
 
         // Constants for API paths, parameters, and JSON fields
@@ -58,31 +55,24 @@ public class UserControllerUnitTest {
         private static final String JSON_PATH_CODE = "$.code";
         private static final String JSON_PATH_DATA = "$.data";
 
+        @Autowired
         private MockMvc mockMvc;
 
-        @Mock
+        @MockBean
         private UserService userService;
 
-        @Mock
-        private PostService postService;
-
-        @Mock
+        @MockBean
         private MockHttpSession session;
-
-        @InjectMocks
-        private UserController userController;
 
         /**
          * Sets up the MockMvc instance and initializes mocks before each test.
          */
         @BeforeEach
         public void setUp() {
-                MockitoAnnotations.openMocks(this);
-                mockMvc = MockMvcBuilders
-                                .standaloneSetup(userController, new PostController(postService))
-                                .setControllerAdvice(new GlobalExceptionHandler())
-                                .build();
-                SecurityContextHolder.clearContext();
+        }
+
+        @AfterEach
+        public void cleanUp() {
         }
 
         // General operation tests
@@ -279,12 +269,11 @@ public class UserControllerUnitTest {
          * Tests changing the password with a valid password.
          */
         @Test
+        @WithMockMyUserDetails
         public void testChangePasswordSuccess() throws Exception {
                 String username = "newUser";
                 String email = "newuser@example.com";
                 String validPassword = "ValidPassword1!";
-
-                setSecurityContext();
 
                 mockMvc.perform(put(API_USERS_PASSWORD)
                                 .param(PARAM_PASSWORD, validPassword)
@@ -301,10 +290,9 @@ public class UserControllerUnitTest {
          * Tests changing the password with an invalid password.
          */
         @Test
+        @WithMockMyUserDetails
         public void testChangePasswordInvalidFailure() throws Exception {
                 String invalidPassword = "short";
-
-                setSecurityContext();
 
                 mockMvc.perform(put(API_USERS_PASSWORD)
                                 .param(PARAM_PASSWORD, invalidPassword)
@@ -332,8 +320,8 @@ public class UserControllerUnitTest {
          * Tests checkLoginStatus when the user is logged in.
          */
         @Test
+        @WithMockMyUserDetails
         public void testCheckLoginStatusLoggedInSuccess() throws Exception {
-                setSecurityContext();
 
                 mockMvc.perform(get(API_USERS_STATUS)
                                 .contentType(MediaType.APPLICATION_JSON))
@@ -352,32 +340,20 @@ public class UserControllerUnitTest {
                 mockMvc.perform(get(API_USERS_STATUS)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
-                                .andDo(MockMvcResultHandlers.print())
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE).value(UserController.MESSAGE_LOGIN_STATUS))
                                 .andExpect(jsonPath(JSON_PATH_DATA).value(false))
                                 .andExpect(jsonPath(JSON_PATH_CODE).value(ApiResponse.Code.SUCCESS.toString()));
         }
 
         @Test
+        @WithMockMyUserDetails
         public void testMeSuccess() throws Exception {
-                setSecurityContext();
 
                 mockMvc.perform(MockMvcRequestBuilders.get("/api/users/me"))
-                                .andExpect(MockMvcResultMatchers.status().isOk())
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Login status"))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(1L))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.username").value("user"));
-        }
-
-        private void setSecurityContext() {
-                UserDTO mockUserDTO = new UserDTO(1L, "user");
-                MyUserDetails myUserDetails = new MyUserDetails(mockUserDTO, null);
-
-                Authentication authentication = mock(Authentication.class);
-                SecurityContext securityContext = mock(SecurityContext.class);
-                when(securityContext.getAuthentication()).thenReturn(authentication);
-                when(authentication.getPrincipal()).thenReturn(myUserDetails);
-                SecurityContextHolder.setContext(securityContext);
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.message").value("Login status"))
+                                .andExpect(jsonPath("$.data.id").value(1L))
+                                .andExpect(jsonPath("$.data.username").value("user"));
         }
 
         @Test
@@ -390,8 +366,8 @@ public class UserControllerUnitTest {
 
                 mockMvc.perform(MockMvcRequestBuilders.get("/api/users/me")
                                 .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(MockMvcResultMatchers.status().isUnauthorized())
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                                .andExpect(status().isUnauthorized())
+                                .andExpect(jsonPath("$.message")
                                                 .value("Authentication is required"));
         }
 
@@ -405,8 +381,8 @@ public class UserControllerUnitTest {
 
                 mockMvc.perform(MockMvcRequestBuilders.get("/api/users/me")
                                 .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(MockMvcResultMatchers.status().isUnauthorized())
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                                .andExpect(status().isUnauthorized())
+                                .andExpect(jsonPath("$.message")
                                                 .value("Authentication is required"));
         }
 }

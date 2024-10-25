@@ -6,15 +6,12 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -22,38 +19,29 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import shop.samgak.mini_board.exceptions.GlobalExceptionHandler;
 import shop.samgak.mini_board.exceptions.ResourceNotFoundException;
 import shop.samgak.mini_board.post.controllers.PostController;
 import shop.samgak.mini_board.post.dto.PostDTO;
 import shop.samgak.mini_board.post.services.PostService;
-import shop.samgak.mini_board.security.MyUserDetails;
-import shop.samgak.mini_board.user.dto.UserDTO;
+import shop.samgak.mini_board.security.WithMockMyUserDetails;
 
+@WebMvcTest(controllers = { PostController.class })
+@AutoConfigureMockMvc(addFilters = false)
 public class PostControllerUnitTest {
 
+        @Autowired
         private MockMvc mockMvc;
 
-        @Mock
+        @MockBean
         private PostService postService;
-
-        @InjectMocks
-        private PostController postController;
 
         @BeforeEach
         public void setUp() {
-                MockitoAnnotations.openMocks(this);
-                mockMvc = MockMvcBuilders.standaloneSetup(postController)
-                                .setControllerAdvice(new GlobalExceptionHandler())
-                                .build();
-                SecurityContextHolder.clearContext();
         }
 
         @AfterEach
         public void cleanUp() {
-                SecurityContextHolder.clearContext();
         }
 
         @Test
@@ -107,12 +95,6 @@ public class PostControllerUnitTest {
                 String title = "Test Title";
                 String content = "Test Content";
 
-                Authentication authentication = mock(Authentication.class);
-                SecurityContext securityContext = mock(SecurityContext.class);
-                when(securityContext.getAuthentication()).thenReturn(authentication);
-                when(authentication.getPrincipal()).thenReturn(null);
-                SecurityContextHolder.setContext(securityContext);
-
                 mockMvc.perform(post("/api/posts")
                                 .param("title", title)
                                 .param("content", content))
@@ -120,10 +102,9 @@ public class PostControllerUnitTest {
         }
 
         @Test
+        @WithMockMyUserDetails
         public void createPostMissingTitle() throws Exception {
                 String title = "Test Title";
-
-                setSecurityContext();
 
                 mockMvc.perform(post("/api/posts")
                                 .param("title", title))
@@ -131,10 +112,9 @@ public class PostControllerUnitTest {
         }
 
         @Test
+        @WithMockMyUserDetails
         public void createPostMissingContent() throws Exception {
                 String content = "Test Content";
-
-                setSecurityContext();
 
                 mockMvc.perform(post("/api/posts")
                                 .param("content", content))
@@ -142,18 +122,18 @@ public class PostControllerUnitTest {
         }
 
         @Test
+        @WithMockMyUserDetails
         public void createPostMissingTitleAndContent() throws Exception {
-                setSecurityContext();
 
                 mockMvc.perform(post("/api/posts"))
                                 .andExpect(status().isBadRequest());
         }
 
         @Test
+        @WithMockMyUserDetails
         public void createPostSuccess() throws Exception {
                 String title = "Test Title";
                 String content = "Test Content";
-                setSecurityContext();
 
                 mockMvc.perform(post("/api/posts")
                                 .param("title", title)
@@ -162,11 +142,11 @@ public class PostControllerUnitTest {
         }
 
         @Test
+        @WithMockMyUserDetails
         public void updatePostSuccess() throws Exception {
                 Long postId = 1L;
                 String title = "Updated Title";
                 String content = "Updated Content";
-                setSecurityContext();
 
                 mockMvc.perform(put("/api/posts/{id}", postId)
                                 .param("title", title)
@@ -188,9 +168,9 @@ public class PostControllerUnitTest {
         }
 
         @Test
+        @WithMockMyUserDetails
         public void deletePostSuccess() throws Exception {
                 Long postId = 1L;
-                setSecurityContext();
 
                 mockMvc.perform(delete("/api/posts/{id}", postId))
                                 .andExpect(status().isOk())
@@ -203,16 +183,5 @@ public class PostControllerUnitTest {
 
                 mockMvc.perform(delete("/api/posts/{id}", postId))
                                 .andExpect(status().isUnauthorized());
-        }
-
-        private void setSecurityContext() {
-                UserDTO mockUserDTO = new UserDTO(1L, "user");
-                MyUserDetails myUserDetails = new MyUserDetails(mockUserDTO, null);
-
-                Authentication authentication = mock(Authentication.class);
-                SecurityContext securityContext = mock(SecurityContext.class);
-                when(securityContext.getAuthentication()).thenReturn(authentication);
-                when(authentication.getPrincipal()).thenReturn(myUserDetails);
-                SecurityContextHolder.setContext(securityContext);
         }
 }

@@ -5,7 +5,7 @@ import java.lang.annotation.RetentionPolicy;
 
 import org.springframework.security.test.context.support.WithSecurityContext;
 
-@WithSecurityContext(factory = WithMockMyUserDetailsSecurityContextFactory.class) // 커스텀 SecurityContextFactory 설정
+@WithSecurityContext(factory = WithMockMyUserDetailsSecurityContextFactory.class)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface WithMockMyUserDetails {
     String username() default "user";
