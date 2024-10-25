@@ -64,7 +64,7 @@ public class AuthController {
     }
 
     public record LoginRequest(
-            @NotNull(message = "Missing required parameter: username") String username,
-            @NotNull(message = "Missing required parameter: password") String password) {
+            @NotNull(message = "Missing required parameter") String username,
+            @NotNull(message = "Missing required parameter") String password) {
     }
 }

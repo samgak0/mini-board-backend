@@ -2,6 +2,8 @@ package shop.samgak.mini_board.exceptions;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Comparator;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -35,9 +37,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         StringBuilder errorMessageBuilder = new StringBuilder();
 
-        for (FieldError fieldError : e.getBindingResult().getFieldErrors()) {
+        List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors().stream()
+                .sorted(Comparator.comparing(FieldError::getField)).toList();
+
+        for (FieldError fieldError : fieldErrors) {
             errorMessageBuilder.append(fieldError.getField())
-                    .append(" ")
+                    .append(": ")
                     .append(fieldError.getDefaultMessage())
                     .append("; ");
         }
@@ -81,13 +86,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserNotExistFoundException.class)
     public ResponseEntity<ApiResponse> handleUserNotExistFoundException(UserNotExistFoundException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(new ApiResponse("User not found: " + e.getMessage(), false));
+                .body(new ApiResponse(e.getMessage(), false));
     }
 
     @ExceptionHandler(WrongPasswordException.class)
     public ResponseEntity<ApiResponse> handleWrongPasswordException(WrongPasswordException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(new ApiResponse("Incorrect password User : " + e.getMessage(), false));
+                .body(new ApiResponse(e.getMessage(), false));
     }
 
     @ExceptionHandler(RuntimeException.class)
