@@ -17,7 +17,7 @@ import shop.samgak.mini_board.utility.ApiResponse;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CustomSessionAuthentication implements AuthenticationEntryPoint {
+public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final ObjectMapper objectMapper;
 

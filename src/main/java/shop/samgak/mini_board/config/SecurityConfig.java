@@ -12,14 +12,12 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import shop.samgak.mini_board.security.CustomAuthenticationEntryPoint;
 import shop.samgak.mini_board.security.CustomAuthenticationProvider;
-import shop.samgak.mini_board.security.CustomSecurityContextFilter;
-import shop.samgak.mini_board.security.CustomSessionAuthentication;
 
 @Slf4j
 @Configuration
@@ -27,8 +25,7 @@ import shop.samgak.mini_board.security.CustomSessionAuthentication;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-        private final CustomSessionAuthentication customSessionAuthentication;
-        private final CustomSecurityContextFilter customSecurityContextFilter;
+        private final CustomAuthenticationEntryPoint customSessionAuthentication;
         private final CustomAuthenticationProvider customAuthenticationProvider;
 
         @Bean
@@ -53,8 +50,7 @@ public class SecurityConfig {
                                         session.maximumSessions(1)
                                                         .sessionRegistry(sessionRegistry());
                                         session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
-                                }).addFilterBefore(customSecurityContextFilter,
-                                                UsernamePasswordAuthenticationFilter.class);
+                                });
 
                 return http.build();
         }
