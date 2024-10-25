@@ -25,17 +25,17 @@ import shop.samgak.mini_board.utility.AuthUtils;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/api/comments/")
+@RequestMapping("/api/posts")
 public class CommentController {
     private final CommentService commentService;
 
-    @GetMapping("{id}")
-    public ResponseEntity<ApiResponse> getComment(@PathVariable("id") Long postId) {
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<ApiResponse> getComment(@PathVariable("postId") Long postId) {
         return ResponseEntity.ok(new ApiDataResponse("success", commentService.get(postId), true));
     }
 
-    @PostMapping
-    public ResponseEntity<ApiResponse> createComment(@RequestParam("postId") Long postId,
+    @PostMapping("/{postId}/comments")
+    public ResponseEntity<ApiResponse> createComment(@PathVariable("postId") Long postId,
             @RequestParam("content") String content) {
 
         UserDTO userDTO = AuthUtils.getCurrentUser();
@@ -50,8 +50,8 @@ public class CommentController {
 
     }
 
-    @PutMapping("{id}")
-    public ResponseEntity<ApiResponse> updateComment(@PathVariable("id") Long commentId,
+    @PutMapping("/{postId}/comments")
+    public ResponseEntity<ApiResponse> updateComment(@PathVariable("postId") Long commentId,
             @RequestParam("content") String content) {
 
         UserDTO userDTO = AuthUtils.getCurrentUser();
@@ -59,8 +59,8 @@ public class CommentController {
         return ResponseEntity.ok(new ApiResponse("Comment updated successfully", true));
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<ApiResponse> deleteComment(@PathVariable("id") Long commentId) {
+    @DeleteMapping("/{postId}/comments")
+    public ResponseEntity<ApiResponse> deleteComment(@PathVariable("postId") Long commentId) {
 
         UserDTO userDTO = AuthUtils.getCurrentUser();
         commentService.delete(commentId, userDTO.getId());
