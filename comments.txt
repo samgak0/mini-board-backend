@@ -48,3 +48,10 @@ curl -X POST http://localhost:8080/api/posts \
 
 curl -X GET http://localhost:8080/api/posts/1/comments \
     -b "cookies.txt"
+
+curl -X POST -F "file=@./background_textedit.png" \
+    http://localhost:8080/api/posts/1/images \
+    -b "cookies.txt"
+
+curl -O http://localhost:8080/api/posts/1/images/1 \
+    -b "cookies.txt"

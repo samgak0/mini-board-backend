@@ -21,7 +21,7 @@ import shop.samgak.mini_board.user.entities.User;
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
-    @SequenceGenerator(name = "user_seq", sequenceName = "SAMGAK.USERS_SEQ", allocationSize = 1)
+    @SequenceGenerator(name = "post_seq", sequenceName = "SAMGAK.POSTS_SEQ", allocationSize = 1)
     @Column(name = "id", nullable = false)
     private Long id;
 

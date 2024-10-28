@@ -95,6 +95,11 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse(e.getMessage(), false));
     }
 
+    @ExceptionHandler(ServerIOException.class)
+    public ResponseEntity<ApiResponse> handleServerIOException(ServerIOException e) {
+        return ResponseEntity.internalServerError().body(new ApiResponse(e.getMessage(), false));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse> handleRuntimeExcetiopn(RuntimeException e) {
 

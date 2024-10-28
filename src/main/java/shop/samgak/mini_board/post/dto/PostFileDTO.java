@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PostFileDTO {
     private Long id;
-    private PostDTO post;
     private String originalName;
-    private String filePath;
+    private String fileName;
+    private String contentType;
     private Long fileSize;
     private Instant createdAt;
 }
