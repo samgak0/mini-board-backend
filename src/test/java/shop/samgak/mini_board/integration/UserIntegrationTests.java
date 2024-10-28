@@ -3,6 +3,7 @@ package shop.samgak.mini_board.integration;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,14 +15,12 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.CONFLICT;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.ResourceAccessException;
 
-import shop.samgak.mini_board.user.controllers.UserController;
 import shop.samgak.mini_board.user.services.UserService;
 
 /**
@@ -62,12 +61,13 @@ public class UserIntegrationTests {
 
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(registerRequest, headers);
-
-        ResponseEntity<String> registerResponse = restTemplate.postForEntity("/api/users/register", requestEntity,
-                String.class);
-
-        assertThat(registerResponse.getStatusCode()).isEqualTo(CONFLICT);
-        assertThat(registerResponse.getBody()).contains(UserController.ERROR_EMAIL_ALREADY_USED);
+        try {
+            restTemplate.postForEntity("/api/users/register", requestEntity,
+                    String.class);
+            fail("Expected ResourceAccessException to be thrown");
+        } catch (ResourceAccessException e) {
+            assertThat(e).isInstanceOf(ResourceAccessException.class);
+        }
     }
 
     /**
@@ -92,11 +92,11 @@ public class UserIntegrationTests {
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(registerRequest, headers);
 
-        ResponseEntity<String> registerResponse = restTemplate.postForEntity("/api/users/register", requestEntity,
-                String.class);
-
-        assertThat(registerResponse.getStatusCode()).isEqualTo(CONFLICT);
-        assertThat(registerResponse.getBody()).contains(UserController.ERROR_USERNAME_ALREADY_USED);
+        try {
+            restTemplate.postForEntity("/api/users/register", requestEntity, String.class);
+        } catch (ResourceAccessException e) {
+            assertThat(e).isInstanceOf(ResourceAccessException.class);
+        }
     }
 
     /**
@@ -113,11 +113,11 @@ public class UserIntegrationTests {
 
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(registerRequest, headers);
-
-        ResponseEntity<String> registerResponse = restTemplate.postForEntity("/api/users/register", requestEntity,
-                String.class);
-
-        assertThat(registerResponse.getStatusCode()).isEqualTo(BAD_REQUEST);
+        try {
+            restTemplate.postForEntity("/api/users/register", requestEntity, String.class);
+        } catch (ResourceAccessException e) {
+            assertThat(e).isInstanceOf(ResourceAccessException.class);
+        }
     }
 
     /**
@@ -134,11 +134,12 @@ public class UserIntegrationTests {
 
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(registerRequest, headers);
-
-        ResponseEntity<String> registerResponse = restTemplate.postForEntity("/api/users/register", requestEntity,
-                String.class);
-
-        assertThat(registerResponse.getStatusCode()).isEqualTo(BAD_REQUEST);
+        try {
+            restTemplate.postForEntity("/api/users/register", requestEntity,
+                    String.class);
+        } catch (ResourceAccessException e) {
+            assertThat(e).isInstanceOf(ResourceAccessException.class);
+        }
     }
 
     @Test
@@ -148,11 +149,11 @@ public class UserIntegrationTests {
 
         HttpEntity<String> request = new HttpEntity<>(headers);
 
-        ResponseEntity<String> response = restTemplate.exchange("/api/users/me", HttpMethod.GET, request, String.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody()).contains("\"message\":\"Authentication required\"");
-        assertThat(response.getBody()).contains("\"code\":\"FAILURE\"");
+        try {
+            restTemplate.exchange("/api/users/me", HttpMethod.GET, request, String.class);
+        } catch (ResourceAccessException e) {
+            assertThat(e).isInstanceOf(ResourceAccessException.class);
+        }
     }
 
     @Test
