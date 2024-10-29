@@ -16,7 +16,6 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import shop.samgak.mini_board.utility.ApiDataResponse;
 import shop.samgak.mini_board.utility.ApiExceptionResponse;
 import shop.samgak.mini_board.utility.ApiResponse;
 import shop.samgak.mini_board.utility.ApiUnauthrizationResponse;
@@ -65,7 +64,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse> handleResourceNotFoundException(ResourceNotFoundException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(e.getMessage(), false));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiExceptionResponse(e));
     }
 
     @ExceptionHandler(UnauthorizedActionException.class)
@@ -80,7 +79,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageConversionException.class)
     public ResponseEntity<ApiResponse> handleHttpMessageConversionException(HttpMessageConversionException e) {
-        return ResponseEntity.badRequest().body(new ApiDataResponse("", e.getMessage(), false));
+        return ResponseEntity.badRequest().body(new ApiExceptionResponse(e));
     }
 
     @ExceptionHandler(UserNotExistFoundException.class)
@@ -96,13 +95,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ServerIOException.class)
-    public ResponseEntity<ApiResponse> handleServerIOException(ServerIOException e) {
-        return ResponseEntity.internalServerError().body(new ApiResponse(e.getMessage(), false));
+    public ResponseEntity<ApiExceptionResponse> handleServerIOException(ServerIOException e) {
+        return ResponseEntity.internalServerError().body(new ApiExceptionResponse(e));
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse> handleRuntimeExcetiopn(RuntimeException e) {
-
         if (debugMode) {
             String eol = System.getProperty("line.separator");
             StringWriter sw = new StringWriter();

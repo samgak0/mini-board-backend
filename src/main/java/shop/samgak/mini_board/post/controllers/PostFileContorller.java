@@ -1,6 +1,7 @@
 package shop.samgak.mini_board.post.controllers;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ import shop.samgak.mini_board.exceptions.ResourceNotFoundException;
 import shop.samgak.mini_board.exceptions.ServerIOException;
 import shop.samgak.mini_board.post.dto.PostFileDTO;
 import shop.samgak.mini_board.post.services.PostFileService;
+import shop.samgak.mini_board.utility.ApiDataResponse;
 
 @RestController
 @RequiredArgsConstructor
@@ -70,7 +73,7 @@ public class PostFileContorller {
     }
 
     @PostMapping("{postId}/images")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file,
+    public ResponseEntity<ApiDataResponse> uploadFile(@RequestParam("file") MultipartFile file,
             @PathVariable("postId") Long postId) {
 
         if (file.isEmpty()) {
@@ -87,10 +90,19 @@ public class PostFileContorller {
             }
             Path randomPath = findUniqueFilePath(uploadPath);
             file.transferTo(randomPath.toFile());
-            Long id = postFileService.writePostFileInfo(postId, filename, randomPath.getFileName().toString(),
+            PostFileDTO postFileDTO = postFileService.writePostFileInfo(postId, filename,
+                    randomPath.getFileName().toString(),
                     contentType,
                     fileSize);
-            return ResponseEntity.ok("파일 업로드 성공: " + id + " " + file.getOriginalFilename());
+
+            URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/api/users/{id}")
+                    .buildAndExpand(postFileDTO.getId())
+                    .toUri();
+
+            return ResponseEntity.created(location)
+                    .body(new ApiDataResponse("File uploaded successfully", postFileDTO, true));
+
         } catch (IOException e) {
             throw new ServerIOException();
         }
