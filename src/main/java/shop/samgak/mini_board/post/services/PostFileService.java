@@ -10,6 +10,6 @@ public interface PostFileService {
 
     Optional<PostFileDTO> getItem(Long postFileId, Long postId);
 
-    Long writePostFileInfo(Long postId, String originalFileName, String filename, String contentType,
+    PostFileDTO writePostFileInfo(Long postId, String originalFileName, String filename, String contentType,
             long fileSize);
 }

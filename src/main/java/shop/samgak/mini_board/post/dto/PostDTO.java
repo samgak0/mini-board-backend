@@ -15,6 +15,7 @@ public class PostDTO {
     private UserDTO user;
     private String title;
     private String content;
+    private Long hitCount;
     private Instant createdAt;
     private Instant updatedAt;
 }

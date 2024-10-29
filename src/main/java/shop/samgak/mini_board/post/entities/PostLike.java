@@ -11,12 +11,16 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import shop.samgak.mini_board.user.entities.User;
 
 @Entity
 @Table(name = "post_likes")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class PostLike {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "post_likes_seq")
@@ -24,11 +28,11 @@ public class PostLike {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 

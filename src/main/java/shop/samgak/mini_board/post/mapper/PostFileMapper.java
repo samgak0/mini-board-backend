@@ -1,6 +1,7 @@
 package shop.samgak.mini_board.post.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import shop.samgak.mini_board.post.dto.PostFileDTO;
 import shop.samgak.mini_board.post.entities.PostFile;
@@ -9,5 +10,6 @@ import shop.samgak.mini_board.post.entities.PostFile;
 public interface PostFileMapper {
     PostFileDTO toDTO(PostFile postFile);
 
+    @Mapping(target = "post", ignore = true)
     PostFile fromDTO(PostFileDTO postFileDTO);
 }

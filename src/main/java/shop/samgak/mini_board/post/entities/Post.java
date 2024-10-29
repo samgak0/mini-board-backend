@@ -12,12 +12,16 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import shop.samgak.mini_board.user.entities.User;
 
 @Entity
 @Table(name = "posts")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
@@ -25,7 +29,7 @@ public class Post {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
     private User user;
 
@@ -35,6 +39,9 @@ public class Post {
     @Lob
     @Column(name = "content", nullable = false)
     private String content;
+
+    @Column(name = "hit_count", nullable = false)
+    private Long hitCount = 0L;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();

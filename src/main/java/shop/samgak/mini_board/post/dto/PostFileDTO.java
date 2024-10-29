@@ -14,6 +14,7 @@ public class PostFileDTO {
     private String originalName;
     private String fileName;
     private String contentType;
+    private Long hitCount;
     private Long fileSize;
     private Instant createdAt;
 }

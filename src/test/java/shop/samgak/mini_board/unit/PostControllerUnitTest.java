@@ -47,8 +47,8 @@ public class PostControllerUnitTest {
         @Test
         public void testGetTop10Posts() throws Exception {
                 List<PostDTO> mockPosts = new ArrayList<>();
-                mockPosts.add(new PostDTO(1L, null, "First Post", "Content of the first post", null, null));
-                mockPosts.add(new PostDTO(2L, null, "Second Post", "Content of the second post", null, null));
+                mockPosts.add(new PostDTO(1L, null, "First Post", "Content of the first post", 0L, null, null));
+                mockPosts.add(new PostDTO(2L, null, "Second Post", "Content of the second post", 0L, null, null));
 
                 when(postService.getTop10()).thenReturn(mockPosts);
 
@@ -64,7 +64,7 @@ public class PostControllerUnitTest {
         @Test
         public void testGetPostById() throws Exception {
                 Long postId = 1L;
-                PostDTO mockPost = new PostDTO(postId, null, "First Post", "Content of the first post", null, null);
+                PostDTO mockPost = new PostDTO(postId, null, "First Post", "Content of the first post", 0L, null, null);
 
                 when(postService.getPostById(postId)).thenReturn(mockPost);
 

@@ -36,7 +36,7 @@ public class PostFileServiceImpl implements PostFileService {
     }
 
     @Override
-    public Long writePostFileInfo(Long postId, String originalFileName, String filename, String contentType,
+    public PostFileDTO writePostFileInfo(Long postId, String originalFileName, String filename, String contentType,
             long fileSize) {
 
         Post post = entityManager.getReference(Post.class, postId);
@@ -46,10 +46,10 @@ public class PostFileServiceImpl implements PostFileService {
         postFile.setFileName(filename);
         postFile.setContentType(contentType);
         postFile.setFileSize(fileSize);
+        postFile.setHitCount(0L);
         postFile.setCreatedAt(Instant.now());
 
-        postFileRepository.save(postFile);
-        return postFile.getId();
+        return postFileMapper.toDTO(postFileRepository.save(postFile));
     }
 
 }

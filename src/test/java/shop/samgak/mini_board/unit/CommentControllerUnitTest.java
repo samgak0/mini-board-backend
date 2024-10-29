@@ -57,7 +57,7 @@ public class CommentControllerUnitTest {
                 Long commentId1 = 1L;
                 Long commentId2 = 2L;
                 UserDTO user = new UserDTO(1L, "user");
-                PostDTO post = new PostDTO(1L, user, "Post Title", "Post Content", null, null);
+                PostDTO post = new PostDTO(1L, user, "Post Title", "Post Content", 0L, null, null);
                 String content1 = "First Comment";
                 String content2 = "Second Comment";
                 CommentDTO comment1 = new CommentDTO(commentId1, user, post, null, content1, null, null);
@@ -122,8 +122,9 @@ public class CommentControllerUnitTest {
                 commentDTO.setId(commentId);
                 commentDTO.setContent(content);
                 commentDTO.setUser(new UserDTO(userId, "username"));
-                commentDTO.setPost(new PostDTO(2L, new UserDTO(userId, "username"), "Sample Title", "Sample Content",
-                                Instant.now(), Instant.now()));
+                commentDTO.setPost(
+                                new PostDTO(2L, new UserDTO(userId, "username"), "Sample Title", "Sample Content", 0L,
+                                                Instant.now(), Instant.now()));
                 commentDTO.setCreatedAt(Instant.now());
                 commentDTO.setUpdatedAt(Instant.now());
 
