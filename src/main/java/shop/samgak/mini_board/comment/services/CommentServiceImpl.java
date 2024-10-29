@@ -48,8 +48,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public void update(Long commentId, String content, Long userId)
-            throws ResourceNotFoundException, UnauthorizedActionException {
+    public void update(Long commentId, String content, Long userId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId));
         if (!comment.getUser().getId().equals(userId)) {
@@ -63,8 +62,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public void delete(Long commentId, Long userId)
-            throws ResourceNotFoundException, UnauthorizedActionException {
+    public void delete(Long commentId, Long userId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId));
         if (!comment.getUser().getId().equals(userId)) {

@@ -56,8 +56,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void update(Long id, String title, String content, UserDTO userDTO)
-            throws ResourceNotFoundException, UnauthorizedActionException {
+    public void update(Long id, String title, String content, UserDTO userDTO) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + id));
         if (!post.getUser().getId().equals(userDTO.getId())) {
@@ -79,8 +78,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void delete(Long id, UserDTO userDTO)
-            throws ResourceNotFoundException, UnauthorizedActionException {
+    public void delete(Long id, UserDTO userDTO) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + id));
         if (!post.getUser().getId().equals(userDTO.getId())) {

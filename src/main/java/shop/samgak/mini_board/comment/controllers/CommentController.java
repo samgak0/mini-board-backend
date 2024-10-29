@@ -47,13 +47,11 @@ public class CommentController {
                 .toUri();
         return ResponseEntity.created(location)
                 .body(new ApiDataResponse("Comment created successfully", savedComment, true));
-
     }
 
     @PutMapping("/{postId}/comments")
     public ResponseEntity<ApiResponse> updateComment(@PathVariable("postId") Long commentId,
             @RequestParam("content") String content) {
-
         UserDTO userDTO = AuthUtils.getCurrentUser();
         commentService.update(commentId, content, userDTO.getId());
         return ResponseEntity.ok(new ApiResponse("Comment updated successfully", true));
@@ -61,7 +59,6 @@ public class CommentController {
 
     @DeleteMapping("/{postId}/comments")
     public ResponseEntity<ApiResponse> deleteComment(@PathVariable("postId") Long commentId) {
-
         UserDTO userDTO = AuthUtils.getCurrentUser();
         commentService.delete(commentId, userDTO.getId());
         return ResponseEntity.ok(new ApiResponse("Comment deleted successfully", true));

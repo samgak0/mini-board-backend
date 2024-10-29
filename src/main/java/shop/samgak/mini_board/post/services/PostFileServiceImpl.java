@@ -40,14 +40,8 @@ public class PostFileServiceImpl implements PostFileService {
             long fileSize) {
 
         Post post = entityManager.getReference(Post.class, postId);
-        PostFile postFile = new PostFile();
-        postFile.setPost(post);
-        postFile.setOriginalName(originalFileName);
-        postFile.setFileName(filename);
-        postFile.setContentType(contentType);
-        postFile.setFileSize(fileSize);
-        postFile.setHitCount(0L);
-        postFile.setCreatedAt(Instant.now());
+        PostFile postFile = new PostFile(null, post, originalFileName, filename, contentType, fileSize, 0L,
+                Instant.now());
 
         return postFileMapper.toDTO(postFileRepository.save(postFile));
     }
