@@ -24,7 +24,7 @@ import shop.samgak.mini_board.user.entities.User;
 public class PostLike {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "post_likes_seq")
-    @SequenceGenerator(name = "post_likes_seq", sequenceName = "SAMGAK.POST_LIKES_SEQ", allocationSize = 1)
+    @SequenceGenerator(name = "post_likes_seq", sequenceName = "POST_LIKES_SEQ", allocationSize = 1)
     @Column(name = "id", nullable = false)
     private Long id;
 

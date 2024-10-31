@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import shop.samgak.mini_board.post.services.PostService;
@@ -21,6 +22,9 @@ import shop.samgak.mini_board.utility.ApiDataResponse;
 import shop.samgak.mini_board.utility.ApiResponse;
 import shop.samgak.mini_board.utility.AuthUtils;
 
+/**
+ * 게시물 관련 API 요청을 처리하는 컨트롤러 정의
+ */
 @RestController
 @RequiredArgsConstructor
 @Slf4j
@@ -28,21 +32,45 @@ import shop.samgak.mini_board.utility.AuthUtils;
 public class PostController {
     private final PostService postService;
 
+    /**
+     * 상위 10개의 게시물을 가져오는 엔드포인트
+     * 
+     * @return 상위 10개의 게시물 정보
+     */
     @GetMapping
     public ResponseEntity<ApiResponse> getTop10Post() {
         return ResponseEntity.ok(new ApiDataResponse("success", postService.getTop10(), true));
     }
 
+    /**
+     * 특정 게시물을 가져오는 엔드포인트
+     * 
+     * @param postId  게시물 ID
+     * @param session 현재 세션 객체 (조회수 증가용)
+     * @return 특정 게시물의 상세 정보
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse> getPost(@PathVariable("id") Long id) {
-        return ResponseEntity.ok(new ApiDataResponse("success", postService.getPostById(id), true));
+    public ResponseEntity<ApiResponse> getPost(@PathVariable("id") Long postId, HttpSession session) {
+        // 게시물 조회수를 증가시킴
+        postService.increaseViewCount(postId, session);
+        return ResponseEntity.ok(new ApiDataResponse("success", postService.getPostById(postId), true));
     }
 
+    /**
+     * 새로운 게시물을 생성하는 엔드포인트
+     * 
+     * @param title   게시물 제목
+     * @param content 게시물 내용
+     * @return 생성된 게시물의 위치 URI와 성공 응답
+     */
     @PostMapping
     public ResponseEntity<ApiResponse> createPost(@RequestParam("title") String title,
             @RequestParam("content") String content) {
+        // 현재 로그인된 사용자 정보 가져옴
         UserDTO userDTO = AuthUtils.getCurrentUser();
+        // 게시물을 생성하고 ID를 반환받음
         Long createdId = postService.create(title, content, userDTO);
+        // 생성된 게시물의 URI 반환
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(createdId)
@@ -50,19 +78,36 @@ public class PostController {
         return ResponseEntity.created(location).body(new ApiResponse("success", true));
     }
 
+    /**
+     * 특정 게시물을 업데이트하는 엔드포인트
+     * 
+     * @param id      게시물 ID
+     * @param title   업데이트할 게시물 제목
+     * @param content 업데이트할 게시물 내용
+     * @return 성공 여부 응답
+     */
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse> updatePost(@PathVariable("id") Long id,
             @RequestParam("title") String title,
             @RequestParam("content") String content) {
-
+        // 현재 로그인된 사용자 정보 가져옴
         UserDTO userDTO = AuthUtils.getCurrentUser();
+        // 게시물 업데이트 수행
         postService.update(id, title, content, userDTO);
         return ResponseEntity.ok(new ApiResponse("success", true));
     }
 
+    /**
+     * 특정 게시물을 삭제하는 엔드포인트
+     * 
+     * @param id 게시물 ID
+     * @return 성공 여부 응답
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse> deletePost(@PathVariable("id") Long id) {
+        // 현재 로그인된 사용자 정보 가져옴
         UserDTO userDTO = AuthUtils.getCurrentUser();
+        // 게시물 삭제 수행
         postService.delete(id, userDTO);
         return ResponseEntity.ok(new ApiResponse("success", true));
     }
