@@ -7,12 +7,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,11 +29,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import shop.samgak.mini_board.exceptions.MissingParameterException;
 import shop.samgak.mini_board.exceptions.ResourceNotFoundException;
-import shop.samgak.mini_board.exceptions.ServerIOException;
 import shop.samgak.mini_board.post.dto.PostFileDTO;
 import shop.samgak.mini_board.post.services.PostFileService;
 import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.utility.ApiDataResponse;
+import shop.samgak.mini_board.utility.ApiResponse;
 import shop.samgak.mini_board.utility.AuthUtils;
 
 /**
@@ -47,7 +48,7 @@ public class PostFileContorller {
     final PostFileService postFileService;
 
     @Value("${app.uploadDir}")
-    private String UPLOAD_DIR;
+    private String uploadDir;
 
     /**
      * 특정 게시물에 포함된 이미지 파일 목록을 가져오는 엔드포인트
@@ -55,6 +56,7 @@ public class PostFileContorller {
      * @param postFileId 게시물 ID
      * @return 게시물에 포함된 파일 목록
      */
+    // TODO : getPostFile 테스트 코드 추가
     @GetMapping("{postId}/images")
     public List<PostFileDTO> getPostFile(@PathVariable("postId") Long postFileId) {
         log.info("이미지 파일 목록 요청 - postId: [{}]", postFileId);
@@ -76,15 +78,23 @@ public class PostFileContorller {
      * @return 이미지 파일의 바이트 데이터와 메타데이터 응답
      * @throws IOException 파일을 읽을 수 없을 때 예외 발생
      */
-    @GetMapping("{postId}/images/{imageIndex}")
-    public ResponseEntity<byte[]> getPostFileAndImageIndex(@PathVariable("postId") Long postId,
+    // TODO : getPostFileAndPostFileId 테스트 코드 추가
+    @GetMapping("{postId}/images/{postFileId}")
+    public ResponseEntity<?> getPostFileAndPostFileId(@PathVariable("postId") Long postId,
             @PathVariable("postFileId") Long postFileId,
             HttpSession session) throws IOException {
         log.info("이미지 파일 요청 - postId: [{}], postFileId: [{}]", postId, postFileId);
         // 파일 정보를 가져옴
-        PostFileDTO postFileDTO = postFileService.getItem(postFileId, postFileId);
-        Path uploadPath = Paths.get(UPLOAD_DIR);
+        PostFileDTO postFileDTO = postFileService.getItem(postFileId, postId);
+        Path uploadPath = Paths.get(uploadDir);
         Path filePath = uploadPath.resolve(postFileDTO.getFileName());
+
+        if (!Files.isReadable(filePath)) {
+            log.warn("해당 파일을 읽어올 수 없습니다. - filePath: [{}]", filePath);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse("Can not read this element", ApiResponse.Code.FAILURE));
+        }
+
         byte[] fileData = Files.readAllBytes(filePath);
 
         // 파일명 인코딩 처리
@@ -95,7 +105,8 @@ public class PostFileContorller {
         postFileService.increaseViewCount(postFileId, session);
 
         // 파일 정보와 데이터 반환
-        log.info("이미지 파일 반환 - 파일명: [{}], 파일 크기: [{}] bytes", uploadFileName, fileData.length);
+        log.info("이미지 파일 출력 - 파일명: [{}], 파일 크기: [{}] bytes, ContentType = [{}]", uploadFileName, fileData.length,
+                postFileDTO.getContentType());
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(postFileDTO.getContentType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + uploadFileName + "\"")
@@ -113,67 +124,59 @@ public class PostFileContorller {
     @PostMapping("{postId}/images")
     public ResponseEntity<ApiDataResponse> uploadFile(@RequestParam("file") MultipartFile file,
             @PathVariable("postId") Long postId) {
-        log.info("파일 업로드 요청 - postId: [{}], 파일명: [{}]", postId, file.getOriginalFilename());
-        // 현재 로그인된 사용자 정보 가져옴
-        UserDTO userDTO = AuthUtils.getCurrentUser();
-
         if (file.isEmpty()) {
             log.warn("업로드된 파일이 비어 있음 - postId: [{}]", postId);
             throw new MissingParameterException("file");
         }
+        log.info("파일 업로드 요청 - postId: [{}], 파일명: [{}]", postId, file.getOriginalFilename());
+        // 현재 로그인된 사용자 정보 가져옴
+        UserDTO userDTO = AuthUtils.getCurrentUser();
+        log.info("파일 업로드 시도 시도 사용자  - userId: [{}], 사용자이름: [{}]", userDTO.getId(), userDTO.getUsername());
+
+        // 고유 파일 이름 생성
+        Path generateUniqueFilePath = postFileService.generateUniqueFilePath();
+        log.debug("서버 파일 명 생성 - [{}]", generateUniqueFilePath.toString());
+
         String filename = file.getOriginalFilename();
         String contentType = file.getContentType();
         long fileSize = file.getSize();
+        log.trace("파일 메타데이터 [filename={}], [contentType={}], [fileSize={}]", filename, contentType, fileSize);
 
-        try {
-            // 업로드 디렉토리 확인 및 생성
-            Path uploadPath = Paths.get(UPLOAD_DIR);
-            if (!Files.exists(uploadPath)) {
-                log.debug("업로드 디렉토리가 존재하지 않음 - 디렉토리 생성 중: [{}]", UPLOAD_DIR);
-                Files.createDirectories(uploadPath);
-            }
-            // 고유한 파일 경로 찾기
-            Path randomPath = findUniqueFilePath(uploadPath);
-            // 파일을 디스크에 저장
-            file.transferTo(randomPath.toFile());
-            log.info("파일 저장 완료 - 경로: [{}]", randomPath);
-            // 파일 정보를 데이터베이스에 저장
-            PostFileDTO postFileDTO = postFileService.writePostFileInfo(postId, filename,
-                    randomPath.getFileName().toString(),
-                    contentType,
-                    fileSize, userDTO);
+        // 파일 정보를 데이터베이스에 저장
+        PostFileDTO postFileDTO = postFileService.writePostFileInfo(postId, filename,
+                generateUniqueFilePath.getFileName().toString(),
+                contentType,
+                fileSize, userDTO);
 
-            // 생성된 파일의 URI 반환
-            URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/api/users/{id}")
-                    .buildAndExpand(postFileDTO.getId())
-                    .toUri();
+        log.trace("파일 메타데이터 쓰기 성공");
 
-            log.info("파일 업로드 성공 - postId: [{}], 파일 ID: [{}]", postId, postFileDTO.getId());
-            return ResponseEntity.created(location)
-                    .body(new ApiDataResponse("File uploaded successfully", postFileDTO, true));
+        // 파일 실제 이동
+        postFileService.writePostFile(file, generateUniqueFilePath, postId);
 
-        } catch (IOException e) {
-            log.error("파일 업로드 실패 - postId: [{}], 오류: [{}]", postId, e.getMessage());
-            throw new ServerIOException();
-        }
+        log.trace("파일 실제 쓰기 성공");
+
+        // 생성된 파일의 URI 반환
+        URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/users/{id}")
+                .buildAndExpand(postFileDTO.getId())
+                .toUri();
+
+        log.info("파일 업로드 성공 - postId: [{}], 파일 ID: [{}]", postId, postFileDTO.getId());
+        return ResponseEntity.created(location)
+                .body(new ApiDataResponse("File uploaded successfully", postFileDTO, true));
     }
 
-    /**
-     * 고유한 파일 경로를 찾는 재귀 메서드
-     * 
-     * @param uploadPath 업로드 경로
-     * @return 고유한 파일 경로
-     */
-    private Path findUniqueFilePath(Path uploadPath) {
-        String filename = UUID.randomUUID().toString().replace("-", "");
-        Path filePath = uploadPath.resolve(filename);
-        if (Files.exists(filePath)) {
-            log.debug("중복 파일명 발생 - 새로운 파일명 생성 중");
-            return findUniqueFilePath(uploadPath);
-        }
-        return filePath;
+    @DeleteMapping("{postId}/images/{postFileId}")
+    public ResponseEntity<ApiDataResponse> deleteFile(@PathVariable("postId") Long postId,
+            @PathVariable("postFileId") Long postFileId) {
+        // 현재 로그인된 사용자 정보 가져옴
+        UserDTO userDTO = AuthUtils.getCurrentUser();
+        PostFileDTO postFileDTO = postFileService.deleteFileInfo(postFileId, userDTO);
+        log.info("파일 ID [{}]의 정보가 성공적으로 삭제 처리되었습니다.", postFileId);
+        // 파일 삭제 수행
+        postFileService.deleteFile(postFileDTO.getFileName());
+        log.info("파일 ID [{}], fileName: [{}] 을 물리적으로 삭제 성공", postFileDTO.getId(), postFileDTO.getFileName());
+        return ResponseEntity.ok()
+                .body(new ApiDataResponse("File delected successfully", postFileId, true));
     }
-
-    // TODO : 파일 삭제 구현
 }

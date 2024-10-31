@@ -1,6 +1,9 @@
 package shop.samgak.mini_board.post.services;
 
+import java.nio.file.Path;
 import java.util.List;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpSession;
 import shop.samgak.mini_board.post.dto.PostFileDTO;
@@ -11,7 +14,7 @@ import shop.samgak.mini_board.user.dto.UserDTO;
  */
 public interface PostFileService {
     /**
-     * 특정 게시물에 첨부된 파일 목록을 가져오는 메서드
+     * 특정 게시물에 첨부된 파일 목록
      * 
      * @param postId 게시물 ID
      * @return 해당 게시물에 첨부된 파일 목록
@@ -19,7 +22,7 @@ public interface PostFileService {
     List<PostFileDTO> getItemByPost(Long postId);
 
     /**
-     * 특정 게시물에 속한 특정 파일을 가져오는 메서드
+     * 특정 게시물에 속한 특정 파일
      * 
      * @param postFileId 파일 ID
      * @param postId     게시물 ID
@@ -28,7 +31,7 @@ public interface PostFileService {
     PostFileDTO getItem(Long postFileId, Long postId);
 
     /**
-     * 특정 게시물 파일의 조회수를 증가시키는 메서드 (세션을 사용하여 중복 조회 방지)
+     * 파일의 조회수를 증가 (세션을 사용하여 중복 조회 방지)
      * 
      * @param postId  게시물 ID
      * @param session 현재 세션 객체
@@ -36,19 +39,27 @@ public interface PostFileService {
     void increaseViewCount(Long postId, HttpSession session);
 
     /**
-     * 특정 게시물 파일의 조회수를 증가시키는 메서드
+     * 파일의 조회수 증가
      * 
      * @param postId 게시물 ID
      */
     void increaseViewCount(Long postId);
 
     /**
-     * 특정 파일을 삭제하는 메서드
+     * 파일 정보를 논리 삭제
      * 
      * @param postFileId 파일 ID
      * @param userDTO    현재 사용자 정보
+     * @return 저장된 파일의 정보
      */
-    void deleteFile(Long postFileId, UserDTO userDTO);
+    PostFileDTO deleteFileInfo(Long postFileId, UserDTO userDTO);
+
+    /**
+     * 파일을 실제 삭제
+     * 
+     * @param fileName 파일 이름
+     */
+    boolean deleteFile(String fileName);
 
     /**
      * 게시물 파일 정보를 데이터베이스에 저장하는 메서드
@@ -63,4 +74,8 @@ public interface PostFileService {
      */
     PostFileDTO writePostFileInfo(Long postId, String originalFileName, String filename, String contentType,
             long fileSize, UserDTO userDTO);
+
+    Path writePostFile(MultipartFile file, Path genderatedPath, Long postId);
+
+    Path generateUniqueFilePath();
 }
