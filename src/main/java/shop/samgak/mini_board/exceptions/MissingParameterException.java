@@ -1,14 +1,11 @@
 package shop.samgak.mini_board.exceptions;
 
+/**
+ * 필수 매개변수가 누락된 경우 발생하는 예외
+ */
 public class MissingParameterException extends RuntimeException {
-    private final String parameterName;
 
     public MissingParameterException(String parameterName) {
-        super(MessageProvider.getMissingParameterMessage(parameterName));
-        this.parameterName = parameterName;
-    }
-
-    public String getParameterName() {
-        return parameterName;
+        super(String.format("Missing required parameter: %s", parameterName));
     }
 }
