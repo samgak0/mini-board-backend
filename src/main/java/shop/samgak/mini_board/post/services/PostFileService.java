@@ -1,5 +1,6 @@
 package shop.samgak.mini_board.post.services;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -19,7 +20,7 @@ public interface PostFileService {
      * @param postId 게시물 ID
      * @return 해당 게시물에 첨부된 파일 목록
      */
-    List<PostFileDTO> getItemByPost(Long postId);
+    List<PostFileDTO> getItemsByPost(Long postId);
 
     /**
      * 특정 게시물에 속한 특정 파일
@@ -35,8 +36,9 @@ public interface PostFileService {
      * 
      * @param postId  게시물 ID
      * @param session 현재 세션 객체
+     * @return
      */
-    void increaseViewCount(Long postId, HttpSession session);
+    boolean increaseViewCount(Long postId, HttpSession session);
 
     /**
      * 파일의 조회수 증가
@@ -46,7 +48,7 @@ public interface PostFileService {
     void increaseViewCount(Long postId);
 
     /**
-     * 파일 정보를 논리 삭제
+     * 파일 정보를 논리적 삭제
      * 
      * @param postFileId 파일 ID
      * @param userDTO    현재 사용자 정보
@@ -58,8 +60,9 @@ public interface PostFileService {
      * 파일을 실제 삭제
      * 
      * @param fileName 파일 이름
+     * @throws IOException
      */
-    boolean deleteFile(String fileName);
+    boolean deleteFile(String fileName) throws IOException;
 
     /**
      * 게시물 파일 정보를 데이터베이스에 저장하는 메서드

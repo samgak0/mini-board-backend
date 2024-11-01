@@ -12,6 +12,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class UserDTO {
-    private Long id; // 사용자 ID
-    private String username; // 사용자명
+    /**
+     * 사용자 ID
+     */
+    private Long id;
+    /**
+     * 사용자명
+     */
+    private String username;
 }

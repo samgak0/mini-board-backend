@@ -39,6 +39,7 @@ public class PostController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse> getTop10Post() {
+        log.info("Request to get top 10 posts");
         return ResponseEntity.ok(new ApiDataResponse("success", postService.getTop10(), true));
     }
 
@@ -51,8 +52,14 @@ public class PostController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> getPost(@PathVariable("id") Long postId, HttpSession session) {
+        log.info("Request to get post with ID: {}", postId);
+
         // 게시물 조회수를 증가시킴
-        postService.increaseViewCount(postId, session);
+        boolean isUpdated = postService.increaseViewCount(postId, session);
+        if (isUpdated) {
+            log.info("View count increased for post ID: [{}]", postId);
+        }
+
         return ResponseEntity.ok(new ApiDataResponse("success", postService.getPostById(postId), true));
     }
 
@@ -64,10 +71,10 @@ public class PostController {
      * @return 생성된 게시물의 위치 URI와 성공 응답
      */
     @PostMapping
-    public ResponseEntity<ApiResponse> createPost(@RequestParam("title") String title,
-            @RequestParam("content") String content) {
-        // 현재 로그인된 사용자 정보 가져옴
+    public ResponseEntity<ApiResponse> createPost(@RequestParam String title,
+            @RequestParam String content) {
         UserDTO userDTO = AuthUtils.getCurrentUser();
+        log.info("Request to create a new post by user ID: [{}]", userDTO.getId());
         // 게시물을 생성하고 ID를 반환받음
         Long createdId = postService.create(title, content, userDTO);
         // 생성된 게시물의 URI 반환
@@ -86,13 +93,12 @@ public class PostController {
      * @param content 업데이트할 게시물 내용
      * @return 성공 여부 응답
      */
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse> updatePost(@PathVariable("id") Long id,
-            @RequestParam("title") String title,
-            @RequestParam("content") String content) {
-        // 현재 로그인된 사용자 정보 가져옴
+    @PutMapping("/{postId}")
+    public ResponseEntity<ApiResponse> updatePost(@PathVariable("postId") Long id,
+            @RequestParam String title,
+            @RequestParam String content) {
         UserDTO userDTO = AuthUtils.getCurrentUser();
-        // 게시물 업데이트 수행
+        log.info("Request to update post with post ID: [{}] by user ID: [{}]", id, userDTO.getId());
         postService.update(id, title, content, userDTO);
         return ResponseEntity.ok(new ApiResponse("success", true));
     }
@@ -104,10 +110,10 @@ public class PostController {
      * @return 성공 여부 응답
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse> deletePost(@PathVariable("id") Long id) {
+    public ResponseEntity<ApiResponse> deletePost(@PathVariable Long id) {
         // 현재 로그인된 사용자 정보 가져옴
         UserDTO userDTO = AuthUtils.getCurrentUser();
-        // 게시물 삭제 수행
+        log.info("Request to delete post with ID: [{}] by user: [{}]", id, userDTO.getUsername());
         postService.delete(id, userDTO);
         return ResponseEntity.ok(new ApiResponse("success", true));
     }

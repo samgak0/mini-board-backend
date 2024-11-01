@@ -26,18 +26,15 @@ public class WithMockMyUserDetailsSecurityContextFactory implements WithSecurity
         String username = annotation.username(); // 어노테이션에서 사용자 이름 가져옴
         long id = annotation.id(); // 어노테이션에서 사용자 ID 가져옴
 
-        // UserDTO 객체 생성
         UserDTO userDTO = new UserDTO(id, username);
-        // MyUserDetails 객체 생성
         MyUserDetails myUserDetails = new MyUserDetails(userDTO, null);
 
-        // 빈 SecurityContext 생성
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         // 인증 정보 생성 및 설정
         Authentication authentication = new UsernamePasswordAuthenticationToken(myUserDetails, null,
                 myUserDetails.getAuthorities());
         context.setAuthentication(authentication);
 
-        return context; // 생성된 SecurityContext 반환
+        return context;
     }
 }

@@ -2,8 +2,6 @@ package shop.samgak.mini_board.user.entities;
 
 import java.time.Instant;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -52,16 +50,6 @@ public class User {
     private String password;
 
     /**
-     * 사용자 비밀번호를 해시하여 설정하는 메서드
-     *
-     * @param passwordEncoder 비밀번호 인코더
-     * @param password        평문 비밀번호
-     */
-    public void setHashedPassword(PasswordEncoder passwordEncoder, String password) {
-        this.password = passwordEncoder.encode(password);
-    }
-
-    /**
      * 사용자 계정 생성 일시
      */
     @Column(name = "created_at", nullable = false)
@@ -72,4 +60,10 @@ public class User {
      */
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
+
+    /**
+     * 사용자 삭제 일시 (논리적 삭제 처리)
+     */
+    @Column(name = "deleted_at")
+    private Instant deletedAt = null;
 }

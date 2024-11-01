@@ -14,12 +14,39 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PostFileDTO {
-    private Long id; // 파일의 고유 ID
-    private String originalName; // 파일의 원래 이름
-    private String fileName; // 서버에 저장된 파일 이름
-    private String contentType; // 파일의 MIME 타입 (예: image/png, application/pdf 등)
-    private Long viewCount; // 파일 조회수
-    private Long fileSize; // 파일 크기 (바이트 단위)
-    private Boolean isDeleted; // 파일 삭제 여부 (논리적 삭제 처리용)
-    private Instant createdAt; // 파일이 생성된 일시
+    /**
+     * 파일의 고유 ID
+     */
+    private Long id;
+
+    /**
+     * 파일의 원래 이름
+     */
+    private String originalName;
+
+    /**
+     * 서버에 저장된 파일 이름
+     */
+    private String fileName;
+
+    /**
+     * 파일의 MIME 타입
+     * 예: image/png, application/pdf 등
+     */
+    private String contentType;
+
+    /**
+     * 파일 조회수
+     */
+    private Long viewCount;
+
+    /**
+     * 파일 크기 (바이트 단위)
+     */
+    private Long fileSize;
+
+    /**
+     * 파일이 생성된 일시
+     */
+    private Instant createdAt;
 }

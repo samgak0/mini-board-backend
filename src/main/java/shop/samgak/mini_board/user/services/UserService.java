@@ -46,8 +46,7 @@ public interface UserService {
      *
      * @param username    비밀번호를 변경할 사용자 이름
      * @param newPassword 새로운 비밀번호
-     * @throws IllegalArgumentException 사용자 이름이 존재하지 않으면 예외 발생
      */
-    void changePassword(String username, String newPassword) throws IllegalArgumentException;
+    void changePassword(String username, String newPassword);
 
 }

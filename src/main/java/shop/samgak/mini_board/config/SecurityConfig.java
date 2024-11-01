@@ -16,7 +16,7 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import shop.samgak.mini_board.security.CustomAuthenticationEntryPoint;
+import shop.samgak.mini_board.security.UnauthenticationEntryPoint;
 import shop.samgak.mini_board.security.CustomAuthenticationProvider;
 
 /**
@@ -31,7 +31,7 @@ import shop.samgak.mini_board.security.CustomAuthenticationProvider;
 public class SecurityConfig {
 
         // 인증되지 않은 접근 시 처리할 Custom Authentication Entry Point
-        private final CustomAuthenticationEntryPoint customSessionAuthentication;
+        private final UnauthenticationEntryPoint unauthenticationEntryPoint;
         // 커스텀 인증 로직을 처리할 Custom Authentication Provider
         private final CustomAuthenticationProvider customAuthenticationProvider;
 
@@ -49,12 +49,13 @@ public class SecurityConfig {
                                                                 "/v3/api-docs/swagger-config",
                                                                 "/v3/api-docs",
                                                                 "/sessions",
-                                                                "/sessions-redis")
+                                                                "/sessions-redis",
+                                                                "/actuator/**")
                                                 .permitAll() // 이 엔드포인트들은 인증 없이 접근 가능
                                                 .anyRequest().authenticated()) // 그 외의 모든 요청은 인증 필요
                                 // 인증되지 않은 접근 시 커스텀 엔트리 포인트 사용
                                 .exceptionHandling(exceptionHandling -> exceptionHandling
-                                                .authenticationEntryPoint(customSessionAuthentication))
+                                                .authenticationEntryPoint(unauthenticationEntryPoint))
                                 // 기본 폼 로그인 비활성화
                                 .formLogin(form -> form.disable())
                                 // 기본 로그아웃 처리 비활성화

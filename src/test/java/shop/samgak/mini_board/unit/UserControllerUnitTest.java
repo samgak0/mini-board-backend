@@ -81,7 +81,7 @@ public class UserControllerUnitTest {
                                 .content(requestBody)) // 요청 본문 추가
                                 .andExpect(status().isOk()) // HTTP 상태 코드 200 OK 기대
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE)
-                                                .value(UserController.MESSAGE_USERNAME_AVAILABLE)) // 응답 메시지 검증
+                                                .value("Username is available")) // 응답 메시지 검증
                                 .andExpect(jsonPath(JSON_PATH_CODE)
                                                 .value(ApiResponse.Code.SUCCESS.toString())) // 응답 코드 검증
                                 .andReturn();
@@ -113,7 +113,7 @@ public class UserControllerUnitTest {
                                 .content(requestBody)) // 요청 본문 추가
                                 .andExpect(status().isOk()) // HTTP 상태 코드 200 OK 기대
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE)
-                                                .value(UserController.MESSAGE_EMAIL_AVAILABLE)) // 응답 메시지 검증
+                                                .value("Email is available")) // 응답 메시지 검증
                                 .andExpect(jsonPath(JSON_PATH_CODE)
                                                 .value(ApiResponse.Code.SUCCESS.toString())) // 응답 코드 검증
                                 .andReturn();
@@ -156,7 +156,7 @@ public class UserControllerUnitTest {
                                 .andExpect(status().isCreated()) // HTTP 상태 코드 201 Created 기대
                                 .andExpect(header().string("Location", "/api/users/1/info")) // Location 헤더의 값 검증
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE)
-                                                .value(UserController.MESSAGE_REGISTER_SUCCESSFUL)) // 성공 메시지 검증
+                                                .value("Registration successful")) // 성공 메시지 검증
                                 .andExpect(jsonPath(JSON_PATH_CODE)
                                                 .value(ApiResponse.Code.SUCCESS.toString())); // 응답 코드 검증
         }
@@ -176,7 +176,8 @@ public class UserControllerUnitTest {
                                 .content(requestBody)) // 요청 본문 추가
                                 .andExpect(status().isOk()) // HTTP 상태 코드 200 OK 기대
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE)
-                                                .value(UserController.MESSAGE_PASSWORD_CHANGE_SUCCESSFUL)) // 성공 메시지 검증
+                                                .value("Password change successful")) // 성공 메시지
+                                                                                      // 검증
                                 .andExpect(jsonPath(JSON_PATH_CODE)
                                                 .value(ApiResponse.Code.SUCCESS.toString())); // 응답 코드 검증
         }
@@ -209,7 +210,7 @@ public class UserControllerUnitTest {
                                 .contentType(MediaType.APPLICATION_JSON)) // 요청 콘텐츠 타입 설정
                                 .andExpect(status().isOk()) // HTTP 상태 코드 200 OK 기대
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE)
-                                                .value(UserController.MESSAGE_LOGIN_STATUS)) // 성공 메시지 검증
+                                                .value("Login status")) // 성공 메시지 검증
                                 .andExpect(jsonPath(JSON_PATH_CODE)
                                                 .value(ApiResponse.Code.SUCCESS.toString())) // 응답 코드 검증
                                 .andExpect(jsonPath(JSON_PATH_DATA).exists()); // 데이터 필드가 존재하는지 검증
@@ -222,12 +223,11 @@ public class UserControllerUnitTest {
                                 .contentType(MediaType.APPLICATION_JSON)) // JSON 타입으로 요청
                                 .andExpect(status().isUnauthorized()) // 인증되지 않았으므로 401 Unauthorized 기대
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE)
-                                                .value("Authentication is required")) // 응답 메시지가인증 필요임을 확인
+                                                .value("Authentication is required")) // 응답 메시지가 인증 필요임을 확인
                                 .andExpect(jsonPath(JSON_PATH_CODE)
                                                 .value(ApiResponse.Code.FAILURE.toString())); // 실패 코드 확인
         }
 
-        // DTO 객체 정의 - 테스트에서 사용할 간단한 데이터 객체
         record UsernameRequest(String username) {
         }
 

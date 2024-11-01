@@ -1,6 +1,7 @@
 package shop.samgak.mini_board.integration;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,6 +12,8 @@ import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +29,7 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -46,6 +50,9 @@ public class PostIntegrationTests {
 
     @Autowired
     private TestRestTemplate restTemplate;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private DataSource dataSource;
@@ -165,7 +172,6 @@ public class PostIntegrationTests {
      */
     @Test
     public void testDeletePostAsLoggedInUser() throws Exception {
-        updatePostAndVerify(); // 게시글을 업데이트하여 테스트 초기화
         String sessionCookie = loginUser("user", "password");
 
         HttpHeaders deleteHeaders = new HttpHeaders();
@@ -178,7 +184,11 @@ public class PostIntegrationTests {
                 String.class, 1);
         // 응답 상태가 OK인지 확인
         assertThat(deleteResponse.getStatusCode()).isEqualTo(OK);
-        updatePostAndVerify();
+
+        Connection connection = dataSource.getConnection();
+        PreparedStatement statement = connection.prepareStatement("UPDATE posts SET DELETED_AT = NULL WHERE id = ?");
+        statement.setInt(1, 1);
+        statement.executeUpdate();
     }
 
     /**
@@ -212,49 +222,5 @@ public class PostIntegrationTests {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
         return requestEntity;
-    }
-
-    /**
-     * 게시글 업데이트 후 검증하는 테스트 메서드
-     * 데이터베이스에 직접 접근하여 게시글의 삭제 플래그를 변경하고 결과를 확인합니다.
-     */
-    @Test
-    @SuppressWarnings("CallToPrintStackTrace")
-    public void updatePostAndVerify() {
-        String updateSql = "UPDATE posts SET is_deleted = 0 WHERE id = ?";
-        String selectSql = "SELECT is_deleted FROM posts WHERE id = ?";
-        int postId = 1;
-        // 데이터베이스 연결 시작
-        try (Connection connection = dataSource.getConnection()) {
-            connection.setAutoCommit(false);
-
-            // 게시글 업데이트 실행
-            try (PreparedStatement updateStatement = connection.prepareStatement(updateSql)) {
-                updateStatement.setInt(1, postId);
-                int rowsAffected = updateStatement.executeUpdate();
-                assertThat(rowsAffected).as("업데이트 실패 또는 업데이트된 행이 없습니다.").isEqualTo(1);
-            }
-
-            // 업데이트 확인을 위한 SELECT 실행
-            try (PreparedStatement selectStatement = connection.prepareStatement(selectSql)) {
-                selectStatement.setInt(1, postId);
-                try (ResultSet resultSet = selectStatement.executeQuery()) {
-                    if (resultSet.next()) {
-                        int isDeleted = resultSet.getInt("is_deleted");
-                        assertThat(isDeleted).as("is_deleted가 0이 아닙니다.").isEqualTo(0);
-                    }
-                }
-            }
-            // 트랜잭션 커밋
-            connection.commit();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            // 오류 발생 시 롤백
-            try (Connection connection = dataSource.getConnection()) {
-                connection.rollback();
-            } catch (SQLException rollbackException) {
-                rollbackException.printStackTrace();
-            }
-        }
     }
 }

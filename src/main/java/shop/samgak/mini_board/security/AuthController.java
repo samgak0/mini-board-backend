@@ -44,7 +44,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse> login(@Valid @RequestBody LoginRequest loginRequest,
             HttpSession session) {
 
-        log.info("사용자 '{}'의 로그인 요청 처리 시작", loginRequest.username);
+        log.info("Request to login for user [{}]", loginRequest.username);
         // 사용자의 인증 정보 생성
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 loginRequest.username, loginRequest.password);
@@ -54,7 +54,6 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         // SecurityContext를 세션에 저장
         AuthUtils.saveSessionSecurityContext(SecurityContextHolder.getContext(), session);
-        log.info("사용자 '{}'의 로그인 성공", loginRequest.username);
         return ResponseEntity.ok().body(new ApiResponse("Login successful", true));
     }
 
@@ -67,7 +66,6 @@ public class AuthController {
      */
     @GetMapping("logout")
     public ResponseEntity<?> logoutGet(HttpServletRequest request, HttpSession session) {
-        log.info("사용자의 로그아웃(GET) 요청 처리 시작");
         return logoutPost(request, session);
     }
 
@@ -80,24 +78,18 @@ public class AuthController {
      */
     @PostMapping("logout")
     public ResponseEntity<?> logoutPost(HttpServletRequest request, HttpSession session) {
-        log.info("사용자의 로그아웃(POST) 요청 처리 시작");
+        log.info("User logging out");
         if (session != null) {
             if (session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY) != null) {
                 // 세션 무효화
                 session.invalidate();
-                log.info("세션 무효화 완료");
             } else {
-                log.warn("로그인되지 않은 사용자의 로그아웃 시도");
                 throw new UserNotLoginException();
             }
         } else {
-            log.warn("세션이 없는 사용자의 로그아웃 시도");
             throw new UserNotLoginException();
         }
-        // SecurityContext 초기화
         SecurityContextHolder.clearContext();
-        log.info("SecurityContext 초기화 완료");
-
         return ResponseEntity.ok().body(new ApiResponse("Logout successful", true));
     }
 

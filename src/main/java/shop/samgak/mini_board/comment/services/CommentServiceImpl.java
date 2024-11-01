@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import shop.samgak.mini_board.comment.dto.CommentDTO;
 import shop.samgak.mini_board.comment.entities.Comment;
 import shop.samgak.mini_board.comment.mapper.CommentMapper;
@@ -23,6 +24,7 @@ import shop.samgak.mini_board.user.entities.User;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
@@ -52,6 +54,7 @@ public class CommentServiceImpl implements CommentService {
      */
     @Override
     public CommentDTO create(String content, Long postId, Long userId) {
+
         // 사용자와 게시물 정보를 엔티티로 가져옴
         User user = entityManager.getReference(User.class, userId);
         Post post = entityManager.getReference(Post.class, postId);
@@ -79,12 +82,17 @@ public class CommentServiceImpl implements CommentService {
      */
     @Override
     public void update(Long commentId, String content, Long userId) {
+
         // 댓글을 ID로 조회하고, 없으면 예외 발생
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId));
+                .orElseThrow(() -> {
+                    log.error("Comment not found with commentId: [{}]", commentId);
+                    return new ResourceNotFoundException("Comment not found with id: " + commentId);
+                });
 
         // 댓글 작성자와 요청 사용자가 일치하지 않으면 권한 없음 예외 발생
         if (!comment.getUser().getId().equals(userId)) {
+            log.warn("User not authorized to update commentId: [{}] by userId: [{}]", commentId, userId);
             throw new UnauthorizedActionException("User not authorized to update this comment");
         }
 
@@ -92,10 +100,10 @@ public class CommentServiceImpl implements CommentService {
         if (!comment.getContent().equals(content)) {
             comment.setContent(content);
             comment.setUpdatedAt(Instant.now());
+            commentRepository.save(comment);
+        } else {
+            log.warn("No content change detected for commentId: [{}]", commentId);
         }
-
-        // 수정된 댓글을 저장함
-        commentRepository.save(comment);
     }
 
     /**
@@ -107,16 +115,25 @@ public class CommentServiceImpl implements CommentService {
      */
     @Override
     public void delete(Long commentId, Long userId) {
+
+        log.info("Attempting to delete comment with id: [{}] by user with id: [{}]", commentId, userId);
+
         // 댓글을 ID로 조회하고, 없으면 예외 발생.
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId));
+                .orElseThrow(() -> {
+                    log.error("Comment not found with id: [{}]", commentId);
+                    return new ResourceNotFoundException("Comment not found with id: " + commentId);
+                });
 
         // 댓글 작성자와 요청 사용자가 일치하지 않으면 권한 없음 예외 발생
         if (!comment.getUser().getId().equals(userId)) {
+            log.warn("User not authorized to delete commentId: [{}] by userId: [{}]", commentId, userId);
             throw new UnauthorizedActionException("User not authorized to delete this post");
         }
 
         // 댓글을 삭제함
+        log.info("Deleting comment with id: [{}]", commentId);
         commentRepository.delete(comment);
+        log.info("Successfully deleted comment with id: [{}]", commentId);
     }
 }

@@ -42,23 +42,6 @@ public class UserController {
     public static final String SESSION_CHECKED_USER = "checked_user_name";
     public static final String SESSION_CHECKED_EMAIL = "checked_email";
 
-    // 에러 메시지 상수 정의
-    public static final String ERROR = "Error occurred";
-    public static final String ERROR_INVALID_EMAIL_FORMAT = "Invalid email format";
-    public static final String ERROR_USERNAME_CHECK_NOT_PERFORMED = "Username availability check not performed";
-    public static final String ERROR_EMAIL_CHECK_NOT_PERFORMED = "Email availability check not performed";
-    public static final String ERROR_USERNAME_ALREADY_USED = "Username is already in use";
-    public static final String ERROR_EMAIL_ALREADY_USED = "Email is already in use";
-    public static final String ERROR_USERNAME_MISMATCH = "Username does not match the checked username";
-    public static final String ERROR_EMAIL_MISMATCH = "Email does not match the checked email";
-
-    // 성공 메시지 상수 정의
-    public static final String MESSAGE_PASSWORD_CHANGE_SUCCESSFUL = "Password change successful";
-    public static final String MESSAGE_REGISTER_SUCCESSFUL = "Registration successful";
-    public static final String MESSAGE_EMAIL_AVAILABLE = "Email is available";
-    public static final String MESSAGE_USERNAME_AVAILABLE = "Username is available";
-    public static final String MESSAGE_LOGIN_STATUS = "Login status";
-
     // 사용자 서비스 객체 주입
     final UserService userService;
 
@@ -73,19 +56,14 @@ public class UserController {
     public ResponseEntity<ApiResponse> checkUsername(@RequestBody @Valid CheckUsernameRequest request,
             HttpSession session) {
 
-        log.info("사용자 이름 체크 요청: [{}]", request.username);
-        // 사용자 이름 존재 여부 확인
+        log.info("Checking username availability: [{}]", request.username);
         boolean isExistUserName = userService.existUsername(request.username);
         if (!isExistUserName) {
-            // 사용자 이름이 존재하지 않으면 세션에 저장하고 사용 가능 메시지 반환
             session.setAttribute(SESSION_CHECKED_USER, request.username);
-            log.info("사용자 이름 사용 가능: [{}]", request.username);
-            return ResponseEntity.ok().body(new ApiResponse(MESSAGE_USERNAME_AVAILABLE, true));
+            return ResponseEntity.ok().body(new ApiResponse("Username is available", true));
         } else {
-            // 사용자 이름이 이미 존재하면 CONFLICT 상태와 함께 에러 메시지 반환
-            log.warn("사용자 이름 이미 사용 중: [{}]", request.username);
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new ApiResponse(ERROR_USERNAME_ALREADY_USED, ApiResponse.Code.USED));
+                    .body(new ApiResponse("Username is already in use", ApiResponse.Code.USED));
         }
     }
 
@@ -99,28 +77,20 @@ public class UserController {
     @PostMapping("check/email")
     public ResponseEntity<ApiResponse> checkEmail(@RequestBody @Valid CheckEmailRequest request,
             HttpSession session) {
-        log.info("이메일 체크 요청: [{}]", request.email);
-        // 이메일 형식 유효성 검사
+        log.info("Checking email availability: [{}]", request.email);
         EmailValidator validator = EmailValidator.getInstance();
         if (!validator.isValid(request.email)) {
-            // 유효하지 않은 이메일 형식일 경우 BAD_REQUEST 상태와 함께 에러 메시지 반환
-            log.warn("잘못된 이메일 형식: [{}]", request.email);
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse(ERROR_INVALID_EMAIL_FORMAT, false));
+                    .body(new ApiResponse("Invalid email format", false));
         }
 
-        // 이메일 존재 여부 확인
         boolean isExistEmail = userService.existEmail(request.email);
         if (!isExistEmail) {
-            // 이메일이 존재하지 않으면 세션에 저장하고 사용 가능 메시지 반환
             session.setAttribute(SESSION_CHECKED_EMAIL, request.email);
-            log.info("이메일 사용 가능: [{}]", request.email);
-            return ResponseEntity.ok().body(new ApiResponse(MESSAGE_EMAIL_AVAILABLE, true));
+            return ResponseEntity.ok().body(new ApiResponse("Email is available", true));
         } else {
-            // 이메일이 이미 존재하면 CONFLICT 상태와 함께 에러 메시지 반환
-            log.warn("이메일 이미 사용 중: [{}]", request.email);
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new ApiResponse(ERROR_EMAIL_ALREADY_USED, ApiResponse.Code.USED));
+                    .body(new ApiResponse("Email is already in use", ApiResponse.Code.USED));
         }
     }
 
@@ -133,14 +103,8 @@ public class UserController {
     @PostMapping("check/password")
     public ResponseEntity<ApiDataResponse> checkPassword(
             @RequestBody @Valid CheckPasswordRequest request) {
-        log.info("비밀번호 형식 체크 요청");
-        // 비밀번호 정규식을 사용하여 형식 유효성 검사 후 결과 반환
+        log.info("Checking password format for: [{}]", request.password);
         boolean isValid = request.password.matches(PASSWORD_PATTERN);
-        if (isValid) {
-            log.info("비밀번호 형식이 유효함");
-        } else {
-            log.warn("비밀번호 형식이 유효하지 않음");
-        }
         return ResponseEntity
                 .ok(new ApiDataResponse("Password format check", isValid, true));
     }
@@ -154,66 +118,47 @@ public class UserController {
      */
     @PostMapping("register")
     public ResponseEntity<ApiResponse> register(@RequestBody @Valid RegisterRequest request, HttpSession session) {
-        log.info("사용자 등록 요청: [{}]", request.username);
-        // 이메일 존재 여부 확인
+        log.info("Attempting to register user with username: [{}] and email: [{}]", request.username, request.email);
         boolean isExistEmail = userService.existEmail(request.email);
         if (isExistEmail) {
-            log.warn("이메일 이미 사용 중: [{}]", request.email);
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new ApiResponse(ERROR_EMAIL_ALREADY_USED, ApiResponse.Code.USED));
+                    .body(new ApiResponse("Email is already in use", ApiResponse.Code.USED));
         }
-        // 사용자 이름 존재 여부 확인
+
         boolean isExistUserName = userService.existUsername(request.username);
         if (isExistUserName) {
-            log.warn("사용자 이름 이미 사용 중: [{}]", request.username);
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new ApiResponse(ERROR_USERNAME_ALREADY_USED, ApiResponse.Code.USED));
+                    .body(new ApiResponse("Username is already in use", ApiResponse.Code.USED));
         }
 
-        // 세션에 저장된 사용자 이름 확인
         String checkedUsername = (String) session.getAttribute(SESSION_CHECKED_USER);
         if (checkedUsername == null) {
-            log.warn("사용자 이름 체크가 수행되지 않음");
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse(ERROR_USERNAME_CHECK_NOT_PERFORMED, false));
+                    .body(new ApiResponse("Username check was not performed", false));
         }
 
-        // 세션에 저장된 이메일 확인
         String checkedEmail = (String) session.getAttribute(SESSION_CHECKED_EMAIL);
         if (checkedEmail == null) {
-            log.warn("이메일 체크가 수행되지 않음");
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse(ERROR_EMAIL_CHECK_NOT_PERFORMED, false));
+                    .body(new ApiResponse("Email check was not performed", false));
         }
 
-        // 요청된 사용자 이름과 세션에 저장된 사용자 이름이 일치하지 않는 경우
         if ((!checkedUsername.equals(request.username))) {
-            log.warn("세션에 저장된 사용자 이름과 일치하지 않음: [{}]", request.username);
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse(ERROR_USERNAME_MISMATCH, false));
+                    .body(new ApiResponse("Username does not match the confirmed username", false));
         }
 
-        // 요청된 이메일과 세션에 저장된 이메일이 일치하지 않는 경우
         if (!checkedEmail.equals(request.email)) {
-            log.warn("세션에 저장된 이메일과 일치하지 않음: [{}]", request.email);
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse(ERROR_EMAIL_MISMATCH, false));
+                    .body(new ApiResponse("Email does not match the confirmed email", false));
         }
 
-        try {
-            // 사용자 정보를 저장하고 해당 사용자의 ID를 반환
-            Long id = userService.save(request.username, request.email, request.password);
-            log.info("사용자 등록 성공: [{}]", request.username);
+        Long id = userService.save(request.username, request.email, request.password);
 
-            // 사용자 등록 성공 시 생성된 리소스 위치와 성공 메시지 반환
-            URI location = URI.create(String.format("/api/users/%d/info", id));
-            return ResponseEntity.created(location)
-                    .body(new ApiResponse(MESSAGE_REGISTER_SUCCESSFUL, true));
-        } catch (Exception e) {
-            // 예외 발생 시 에러 로그와 BAD_REQUEST 상태 반환
-            log.error("사용자 등록 중 오류 발생: [{}]", e.toString());
-            return ResponseEntity.badRequest().body(new ApiResponse(e.getMessage(), false));
-        }
+        URI location = URI.create(String.format("/api/users/%d/info", id));
+        return ResponseEntity.created(location)
+                .body(new ApiResponse("Registration successful", true));
+
     }
 
     /**
@@ -223,9 +168,8 @@ public class UserController {
      */
     @GetMapping("check/status")
     public ResponseEntity<ApiResponse> checkLoginStatus() {
-        log.info("로그인 상태 체크 요청");
-        // 현재 로그인 상태 확인 후 결과 반환
-        return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, AuthUtils.checkLogin(), true));
+        log.info("Checking login status");
+        return ResponseEntity.ok(new ApiDataResponse("Login status", AuthUtils.checkLogin(), true));
     }
 
     /**
@@ -236,10 +180,9 @@ public class UserController {
      */
     @GetMapping("me")
     public ResponseEntity<ApiResponse> me(HttpServletRequest request) {
-        log.info("로그인된 사용자 정보 요청");
-        // 현재 로그인된 사용자 정보 가져옴
+        log.info("Fetching current logged-in user information");
         UserDTO userDTO = AuthUtils.getCurrentUser();
-        return ResponseEntity.ok(new ApiDataResponse(MESSAGE_LOGIN_STATUS, userDTO, true));
+        return ResponseEntity.ok(new ApiDataResponse("Login status", userDTO, true));
     }
 
     /**
@@ -250,20 +193,10 @@ public class UserController {
      */
     @PutMapping("password")
     public ResponseEntity<ApiResponse> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
-        log.info("비밀번호 변경 요청");
-        // 현재 로그인된 사용자 정보 가져옴
+        log.info("Attempting to change password for current user");
         UserDTO user = AuthUtils.getCurrentUser();
-
-        try {
-            // 사용자 비밀번호 변경 처리
-            userService.changePassword(user.getUsername(), request.password);
-            log.info("비밀번호 변경 성공: [{}]", user.getUsername());
-            return ResponseEntity.ok(new ApiResponse(MESSAGE_PASSWORD_CHANGE_SUCCESSFUL, true));
-        } catch (RuntimeException e) {
-            // 예외 발생 시 에러 로그 기록 후 BAD_REQUEST 응답 반환
-            log.error(ERROR, e.toString());
-            return ResponseEntity.badRequest().body(new ApiExceptionResponse(e));
-        }
+        userService.changePassword(user.getUsername(), request.password);
+        return ResponseEntity.ok(new ApiResponse("Password change successful", true));
     }
 
     /**

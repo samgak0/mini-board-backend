@@ -23,14 +23,7 @@ public interface PostService {
      * @param postId  게시물 ID
      * @param session 현재 세션 객체
      */
-    void increaseViewCount(Long postId, HttpSession session);
-
-    /**
-     * 특정 게시물의 조회수를 증가시키는 메서드
-     * 
-     * @param postId 게시물 ID
-     */
-    void increaseViewCount(Long postId);
+    boolean increaseViewCount(Long postId, HttpSession session);
 
     /**
      * 특정 ID의 게시물을 가져오는 메서드

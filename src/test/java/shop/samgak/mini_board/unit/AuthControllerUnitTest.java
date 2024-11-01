@@ -71,7 +71,6 @@ public class AuthControllerUnitTest {
                 mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}"))
-                                .andDo(MockMvcResultHandlers.print()) // 요청과 응답 내용을 콘솔에 출력합니다.
                                 .andExpect(status().isOk()) // 응답 상태가 200 OK인지 확인합니다.
                                 .andExpect(jsonPath("$.message").value("Login successful")) // 응답 메시지를 확인합니다.
                                 .andExpect(jsonPath("$.code").value("SUCCESS")); // 응답 코드가 SUCCESS인지 확인합니다.

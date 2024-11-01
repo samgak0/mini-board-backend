@@ -42,27 +42,27 @@ public class SecuritySessionController {
     @GetMapping("/sessions-redis")
     public Map<String, Object> getActiveSessionsRedis() {
         Map<String, Object> allData = new HashMap<>();
-        Set<String> keys = redisTemplate.keys("*"); // Redis에서 모든 키를 조회
+        Set<String> keys = redisTemplate.keys("*");
 
         if (keys != null && !keys.isEmpty()) {
             for (String key : keys) {
-                String type = redisTemplate.type(key).code(); // 각 키의 데이터 타입 확인
+                String type = redisTemplate.type(key).code();
                 switch (type) {
                     case "string" -> {
-                        Object value = redisTemplate.opsForValue().get(key); // 문자열 타입 데이터 조회
+                        Object value = redisTemplate.opsForValue().get(key);
                         if (value != null) {
                             allData.put(key, value);
                         }
                     }
                     case "list" -> {
-                        Object listValues = redisTemplate.opsForList().range(key, 0, -1); // 리스트 타입 데이터 조회
+                        Object listValues = redisTemplate.opsForList().range(key, 0, -1);
                         allData.put(key, listValues);
                     }
                     case "hash" -> {
-                        Object hashValues = redisTemplate.opsForHash().entries(key); // 해시 타입 데이터 조회
+                        Object hashValues = redisTemplate.opsForHash().entries(key);
                         allData.put(key, hashValues);
                     }
-                    default -> allData.put(key, "Unsupported data type: " + type); // 지원되지 않는 데이터 타입 처리
+                    default -> allData.put(key, "Unsupported data type: " + type);
                 }
             }
         }

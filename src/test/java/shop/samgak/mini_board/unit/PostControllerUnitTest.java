@@ -56,9 +56,11 @@ public class PostControllerUnitTest {
         public void testGetTop10Posts() throws Exception {
                 // 테스트용 Mock 데이터 생성
                 List<PostDTO> mockPosts = new ArrayList<>();
-                mockPosts.add(new PostDTO(1L, null, "First Post", "Content of the first post", 0L, null, null, false,
+                mockPosts.add(new PostDTO(1L, null, "First Post", "Content of the first post", 0L, Instant.now(),
+                                Instant.now(), null,
                                 null));
-                mockPosts.add(new PostDTO(2L, null, "Second Post", "Content of the second post", 0L, null, null, false,
+                mockPosts.add(new PostDTO(2L, null, "Second Post", "Content of the second post", 0L, Instant.now(),
+                                Instant.now(), null,
                                 null));
 
                 // postService.getTop10() 호출 시 mockPosts 반환
@@ -81,7 +83,7 @@ public class PostControllerUnitTest {
 
                 // 테스트용 Mock 데이터 생성
                 PostDTO mockPost = new PostDTO(postId, new UserDTO(1L, "user"), "First Post",
-                                "Content of the first post", 0L, Instant.now(), Instant.now(), false, null);
+                                "Content of the first post", 0L, Instant.now(), Instant.now(), null, null);
 
                 // postService.getPostById(postId) 호출 시 mockPost 반환
                 when(postService.getPostById(postId)).thenReturn(mockPost);
@@ -89,7 +91,6 @@ public class PostControllerUnitTest {
                 // /api/posts/{id} 엔드포인트로 GET 요청 수행 및 응답 검증
                 mockMvc.perform(get("/api/posts/{id}", postId)
                                 .contentType(MediaType.APPLICATION_JSON))
-                                .andDo(MockMvcResultHandlers.print()) // 요청/응답 내용 출력
                                 .andExpect(status().isOk()) // HTTP 상태 코드 200 확인
                                 .andExpect(jsonPath("$.data.title").value("First Post")) // 게시글 제목 확인
                                 .andExpect(jsonPath("$.data.content").value("Content of the first post")) // 게시글 내용 확인

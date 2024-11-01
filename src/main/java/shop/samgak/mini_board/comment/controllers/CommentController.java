@@ -29,7 +29,7 @@ import shop.samgak.mini_board.utility.AuthUtils;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/api/posts")
+@RequestMapping("/api/posts/")
 public class CommentController {
     private final CommentService commentService;
 
@@ -39,9 +39,9 @@ public class CommentController {
      * @param postId 댓글을 가져올 게시물의 ID
      * @return 댓글 목록과 성공 응답을 포함한 ResponseEntity 객체
      */
-    @GetMapping("/{postId}/comments")
-    public ResponseEntity<ApiResponse> getComment(@PathVariable("postId") Long postId) {
-        log.info("게시물 ID {}의 댓글 목록 조회", postId);
+    @GetMapping("{postId}/comments")
+    public ResponseEntity<ApiResponse> getComment(@PathVariable Long postId) {
+        log.info("Retrieve the list of comments for post ID [{}]", postId);
         return ResponseEntity.ok(new ApiDataResponse("success", commentService.get(postId), true));
     }
 
@@ -52,11 +52,11 @@ public class CommentController {
      * @param content 추가할 댓글의 내용
      * @return 생성된 댓글 정보와 성공 응답을 포함한 ResponseEntity 객체
      */
-    @PostMapping("/{postId}/comments")
-    public ResponseEntity<ApiResponse> createComment(@PathVariable("postId") Long postId,
-            @RequestParam("content") String content) {
+    @PostMapping("{postId}/comments")
+    public ResponseEntity<ApiResponse> createComment(@PathVariable Long postId,
+            @RequestParam String content) {
         UserDTO userDTO = AuthUtils.getCurrentUser();
-        log.info("사용자 ID {}가 게시물 ID {}에 새로운 댓글 생성", userDTO.getId(), postId);
+        log.info("User ID [{}] ​​creates a new comment on post ID [{}]", userDTO.getId(), postId);
         CommentDTO savedComment = commentService.create(content, postId, userDTO.getId());
 
         URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
@@ -74,11 +74,12 @@ public class CommentController {
      * @param content   수정할 댓글의 내용
      * @return 수정 성공 응답을 포함한 ResponseEntity 객체
      */
-    @PutMapping("/{postId}/comments")
-    public ResponseEntity<ApiResponse> updateComment(@PathVariable("postId") Long commentId,
-            @RequestParam("content") String content) {
+    @PutMapping("{postId}/comments/{commentId}")
+    public ResponseEntity<ApiResponse> updateComment(@PathVariable Long postId,
+            @PathVariable Long commentId,
+            @RequestParam String content) {
         UserDTO userDTO = AuthUtils.getCurrentUser();
-        log.info("사용자 ID {}가 댓글 ID {} 수정", userDTO.getId(), commentId);
+        log.info("User ID {} ​​edits comment ID {}", userDTO.getId(), commentId);
         commentService.update(commentId, content, userDTO.getId());
         return ResponseEntity.ok(new ApiResponse("Comment updated successfully", true));
     }
@@ -89,10 +90,11 @@ public class CommentController {
      * @param commentId 삭제할 댓글의 ID
      * @return 삭제 성공 응답을 포함한 ResponseEntity 객체
      */
-    @DeleteMapping("/{postId}/comments")
-    public ResponseEntity<ApiResponse> deleteComment(@PathVariable("postId") Long commentId) {
+    @DeleteMapping("{postId}/comments/{commentId}")
+    public ResponseEntity<ApiResponse> deleteComment(@PathVariable Long postId,
+            @PathVariable Long commentId) {
         UserDTO userDTO = AuthUtils.getCurrentUser();
-        log.info("사용자 ID {}가 댓글 ID {} 삭제", userDTO.getId(), commentId);
+        log.info("User ID {} deletes comment ID {}", userDTO.getId(), commentId);
         commentService.delete(commentId, userDTO.getId());
         return ResponseEntity.ok(new ApiResponse("Comment deleted successfully", true));
     }

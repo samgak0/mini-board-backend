@@ -21,7 +21,6 @@ public interface PostFileMapper {
 
     /**
      * PostFileDTO를 PostFile 엔티티로 변환하는 메서드
-     * (Post 객체는 무시하여 매핑하지 않음)
      * 
      * @param postFileDTO 변환할 PostFileDTO 객체
      * @return 변환된 PostFile 엔티티

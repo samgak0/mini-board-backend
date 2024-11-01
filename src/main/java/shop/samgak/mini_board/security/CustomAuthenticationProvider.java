@@ -24,12 +24,8 @@ import shop.samgak.mini_board.user.repositories.UserRepository;
 @RequiredArgsConstructor
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
-    // 비밀번호 인코더, 외부에서 주입받아 사용
     private PasswordEncoder passwordEncoder;
-
-    // 사용자 정보를 조회하기 위한 UserRepository
     private final UserRepository userRepository;
-    // User 엔티티를 DTO로 변환하기 위한 매퍼
     private final UserMapper userMapper;
 
     /**
@@ -51,33 +47,27 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
      */
     @Override
     public Authentication authenticate(Authentication authentication) {
-        // 인증 요청에서 사용자명과 비밀번호 추출함
         String username = authentication.getName();
         String password = (String) authentication.getCredentials();
+        log.info("Username [{}] authenticate started", username);
 
-        // 사용자명으로 UserRepository에서 사용자 정보 조회함
-        log.info("사용자 [{}] 인증 시도 중", username);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> {
-                    log.warn("사용자 [{}]를 찾을 수 없음", username);
                     return new UserNotFoundException(username);
-                }); // 사용자가 존재하지 않으면 예외 발생
+                });
 
-        // User 엔티티를 UserDTO로 변환함
         UserDTO userDTO = userMapper.userToUserDTO(user);
+        log.debug("userDTO = ", userDTO);
 
-        // UserDTO와 비밀번호로 MyUserDetails 객체 생성
         MyUserDetails myUserDetails = new MyUserDetails(userDTO, user.getPassword());
-        // 입력된 비밀번호와 저장된 비밀번호 비교함
         if (!passwordEncoder.matches(password, myUserDetails.getPassword())) {
-            log.warn("사용자 [{}]의 비밀번호가 일치하지 않음", username);
-            throw new WrongPasswordException(username); // 비밀번호가 일치하지 않으면 예외 발생
+            log.warn("Username [{}] access denied because password is incorrect", username);
+            throw new WrongPasswordException(username);
         }
         // 인증 후 비밀번호는 null로 설정하여 보안 강화함
         myUserDetails.setPassword(null);
 
-        log.info("사용자 [{}] 인증 성공", username);
-        // 인증이 성공하면 UsernamePasswordAuthenticationToken 반환함
+        log.info("Username [{}] authenticate success", username);
         return new UsernamePasswordAuthenticationToken(myUserDetails, null, myUserDetails.getAuthorities());
     }
 

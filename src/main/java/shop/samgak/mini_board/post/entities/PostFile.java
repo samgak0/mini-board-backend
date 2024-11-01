@@ -71,12 +71,6 @@ public class PostFile {
     private Long viewCount = 0L;
 
     /**
-     * 파일 삭제 여부 (논리적 삭제)
-     */
-    @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted = false;
-
-    /**
      * 파일 생성 일시
      */
     @Column(name = "created_at", nullable = false, updatable = false)

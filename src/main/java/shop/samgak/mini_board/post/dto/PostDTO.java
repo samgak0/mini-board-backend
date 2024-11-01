@@ -17,13 +17,40 @@ import shop.samgak.mini_board.user.dto.UserDTO;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PostDTO {
-    private Long id; // 게시글 ID
-    private UserDTO user; // 게시글 작성자 정보
-    private String title; // 게시글 제목
-    private String content; // 게시글 내용
-    private Long viewCount; // 게시글 조회수
-    private Instant createdAt; // 게시글 생성 일시
-    private Instant updatedAt; // 게시글 수정 일시
-    private Boolean isDeleted; // 게시글 삭제 여부 (논리적 삭제 처리용)
-    private List<PostFile> postFiles; // 게시글에 첨부된 파일 목록
+    /**
+     * 게시글 ID
+     */
+    private Long id;
+    /**
+     * 게시글 작성자 정보
+     */
+    private UserDTO user;
+    /**
+     * 게시글 제목
+     */
+    private String title;
+    /**
+     * 게시글 내용
+     */
+    private String content;
+    /**
+     * 게시글 조회수
+     */
+    private Long viewCount;
+    /**
+     * 게시글 생성 일시
+     */
+    private Instant createdAt;
+    /**
+     * 게시글 수정 일시
+     */
+    private Instant updatedAt;
+    /**
+     * 게시글 삭제 일시 (논리적 삭제 처리)
+     */
+    private Instant deletedAt;
+    /**
+     * 게시글에 첨부된 파일 목록
+     */
+    private List<PostFile> postFiles;
 }

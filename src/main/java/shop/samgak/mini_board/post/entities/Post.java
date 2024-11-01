@@ -80,8 +80,8 @@ public class Post {
     /**
      * 게시물 삭제 여부 (논리적 삭제)
      */
-    @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted = false;
+    @Column(name = "deleted_at")
+    private Instant deletedAt = null;
 
     /**
      * 게시물에 첨부된 파일 목록
