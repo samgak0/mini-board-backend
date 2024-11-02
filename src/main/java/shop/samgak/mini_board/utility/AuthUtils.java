@@ -26,7 +26,6 @@ public class AuthUtils {
      * @param session         SecurityContext를 저장할 HTTP 세션
      */
     public static void saveSessionSecurityContext(SecurityContext securityContext, HttpSession session) {
-        log.debug("SecurityContext를 세션에 저장합니다.");
         // HttpSessionSecurityContextRepository에서 사용되는 키를 사용하여 SecurityContext를 세션에 저장
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
     }

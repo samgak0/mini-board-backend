@@ -78,14 +78,14 @@ public class AuthIntegrationTest {
         loginRequest.put("username", "user");
         loginRequest.put("password", "wrongpassword");
         HttpEntity<String> requestEntity = createRequestEntity(loginRequest);
-        ResponseEntity<String> response = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-        System.out.println(response);
-        // try {
-
-        // fail("Expected ResourceAccessException to be thrown"); // 예외가 발생해야 함
-        // } catch (ResourceAccessException e) {
-        // assertThat(e).isInstanceOf(ResourceAccessException.class); // 예외 타입 확인
-        // }
+        // ResponseEntity<String> response = restTemplate.postForEntity(loginUrl,
+        // requestEntity, String.class);
+        try {
+            restTemplate.postForEntity(loginUrl, requestEntity, String.class);
+            fail("Expected ResourceAccessException to be thrown"); // 예외가 발생해야 함
+        } catch (ResourceAccessException e) {
+            assertThat(e).isInstanceOf(ResourceAccessException.class); // 예외 타입 확인
+        }
     }
 
     /**

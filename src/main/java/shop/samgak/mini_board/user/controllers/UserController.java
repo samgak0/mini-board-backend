@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.user.services.UserService;
 import shop.samgak.mini_board.utility.ApiDataResponse;
-import shop.samgak.mini_board.utility.ApiExceptionResponse;
 import shop.samgak.mini_board.utility.ApiResponse;
 import shop.samgak.mini_board.utility.AuthUtils;
 
@@ -118,7 +117,7 @@ public class UserController {
      */
     @PostMapping("register")
     public ResponseEntity<ApiResponse> register(@RequestBody @Valid RegisterRequest request, HttpSession session) {
-        log.info("Attempting to register user with username: [{}] and email: [{}]", request.username, request.email);
+        log.info("trying to register user with username: [{}] and email: [{}]", request.username, request.email);
         boolean isExistEmail = userService.existEmail(request.email);
         if (isExistEmail) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
