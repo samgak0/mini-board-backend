@@ -34,7 +34,7 @@ import shop.samgak.mini_board.post.dto.PostFileDTO;
 import shop.samgak.mini_board.post.services.PostFileService;
 import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.utility.ApiDataResponse;
-import shop.samgak.mini_board.utility.ApiResponse;
+import shop.samgak.mini_board.utility.ApiFailureResponse;
 import shop.samgak.mini_board.utility.AuthUtils;
 
 /**
@@ -93,7 +93,7 @@ public class PostFileContorller {
                 if (!Files.isReadable(filePath)) {
                         log.warn("Unable to read file at path: [{}]", filePath);
                         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                        .body(new ApiResponse("Can not read this file", ApiResponse.Code.FAILURE));
+                                        .body(new ApiFailureResponse("Can not read this file"));
                 }
 
                 byte[] fileData = Files.readAllBytes(filePath);
@@ -151,7 +151,7 @@ public class PostFileContorller {
                                 .toUri();
 
                 return ResponseEntity.created(location)
-                                .body(new ApiDataResponse("File uploaded successfully", postFileDTO, true));
+                                .body(new ApiDataResponse("File uploaded successfully", postFileDTO));
         }
 
         @DeleteMapping("{postId}/images/{postFileId}")
@@ -175,6 +175,6 @@ public class PostFileContorller {
                 }
 
                 return ResponseEntity.ok()
-                                .body(new ApiDataResponse("File deleted successfully", postFileId, true));
+                                .body(new ApiDataResponse("File deleted successfully", postFileId));
         }
 }

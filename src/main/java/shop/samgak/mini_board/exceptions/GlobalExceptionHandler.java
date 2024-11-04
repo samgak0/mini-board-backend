@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import shop.samgak.mini_board.utility.ApiExceptionResponse;
+import shop.samgak.mini_board.utility.ApiFailureResponse;
 import shop.samgak.mini_board.utility.ApiResponse;
 import shop.samgak.mini_board.utility.ApiUnauthrizationResponse;
 
@@ -36,7 +37,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ApiResponse> handleMissingParams(MissingServletRequestParameterException e) {
         String errorMessage = String.format("Missing required parameter: %s", e.getParameterName());
-        return ResponseEntity.badRequest().body(new ApiResponse(errorMessage, false));
+        return ResponseEntity.badRequest().body(new ApiFailureResponse(errorMessage));
     }
 
     /**
@@ -61,7 +62,7 @@ public class GlobalExceptionHandler {
         }
 
         String errorMessage = errorMessageBuilder.toString().trim();
-        return ResponseEntity.badRequest().body(new ApiResponse(errorMessage, false));
+        return ResponseEntity.badRequest().body(new ApiFailureResponse(errorMessage));
     }
 
     /**
@@ -73,7 +74,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingParameterException.class)
     public ResponseEntity<ApiResponse> handleMissingParameterException(MissingParameterException e) {
         return ResponseEntity.badRequest()
-                .body(new ApiResponse(e.getMessage(), false));
+                .body(new ApiFailureResponse(e.getMessage()));
     }
 
     /**
@@ -141,7 +142,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ApiResponse> handleUserNotExistFoundException(UserNotFoundException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(new ApiResponse(e.getMessage(), false));
+                .body(new ApiFailureResponse(e.getMessage()));
     }
 
     /**
@@ -153,7 +154,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(WrongPasswordException.class)
     public ResponseEntity<ApiResponse> handleWrongPasswordException(WrongPasswordException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(new ApiResponse(e.getMessage(), false));
+                .body(new ApiFailureResponse(e.getMessage()));
     }
 
     /**

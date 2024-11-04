@@ -20,6 +20,7 @@ import shop.samgak.mini_board.comment.services.CommentService;
 import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.utility.ApiDataResponse;
 import shop.samgak.mini_board.utility.ApiResponse;
+import shop.samgak.mini_board.utility.ApiSuccessResponse;
 import shop.samgak.mini_board.utility.AuthUtils;
 
 /**
@@ -42,7 +43,7 @@ public class CommentController {
     @GetMapping("{postId}/comments")
     public ResponseEntity<ApiResponse> getComment(@PathVariable Long postId) {
         log.info("Retrieve the list of comments for post ID [{}]", postId);
-        return ResponseEntity.ok(new ApiDataResponse("success", commentService.get(postId), true));
+        return ResponseEntity.ok(new ApiDataResponse("success", commentService.get(postId)));
     }
 
     /**
@@ -64,7 +65,7 @@ public class CommentController {
                 .buildAndExpand(savedComment.getId())
                 .toUri();
         return ResponseEntity.created(location)
-                .body(new ApiDataResponse("Comment created successfully", savedComment, true));
+                .body(new ApiDataResponse("Comment created successfully", savedComment));
     }
 
     /**
@@ -81,7 +82,7 @@ public class CommentController {
         UserDTO userDTO = AuthUtils.getCurrentUser();
         log.info("User ID {} ​​edits comment ID {}", userDTO.getId(), commentId);
         commentService.update(commentId, content, userDTO.getId());
-        return ResponseEntity.ok(new ApiResponse("Comment updated successfully", true));
+        return ResponseEntity.ok(new ApiSuccessResponse("Comment updated successfully"));
     }
 
     /**
@@ -96,6 +97,6 @@ public class CommentController {
         UserDTO userDTO = AuthUtils.getCurrentUser();
         log.info("User ID {} deletes comment ID {}", userDTO.getId(), commentId);
         commentService.delete(commentId, userDTO.getId());
-        return ResponseEntity.ok(new ApiResponse("Comment deleted successfully", true));
+        return ResponseEntity.ok(new ApiSuccessResponse("Comment deleted successfully"));
     }
 }

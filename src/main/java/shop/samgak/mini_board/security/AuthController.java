@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import shop.samgak.mini_board.exceptions.UserNotLoginException;
 import shop.samgak.mini_board.utility.ApiResponse;
+import shop.samgak.mini_board.utility.ApiSuccessResponse;
 import shop.samgak.mini_board.utility.AuthUtils;
 
 /**
@@ -54,7 +55,7 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         // SecurityContext를 세션에 저장
         AuthUtils.saveSessionSecurityContext(SecurityContextHolder.getContext(), session);
-        return ResponseEntity.ok().body(new ApiResponse("Login successful", true));
+        return ResponseEntity.ok().body(new ApiSuccessResponse("Login successful"));
     }
 
     /**
@@ -90,7 +91,7 @@ public class AuthController {
             throw new UserNotLoginException();
         }
         SecurityContextHolder.clearContext();
-        return ResponseEntity.ok().body(new ApiResponse("Logout successful", true));
+        return ResponseEntity.ok().body(new ApiSuccessResponse("Logout successful"));
     }
 
     /**

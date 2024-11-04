@@ -20,6 +20,7 @@ import shop.samgak.mini_board.post.services.PostService;
 import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.utility.ApiDataResponse;
 import shop.samgak.mini_board.utility.ApiResponse;
+import shop.samgak.mini_board.utility.ApiSuccessResponse;
 import shop.samgak.mini_board.utility.AuthUtils;
 
 /**
@@ -40,7 +41,7 @@ public class PostController {
     @GetMapping
     public ResponseEntity<ApiResponse> getTop10Post() {
         log.info("Request to get top 10 posts");
-        return ResponseEntity.ok(new ApiDataResponse("success", postService.getTop10(), true));
+        return ResponseEntity.ok(new ApiDataResponse("success", postService.getTop10()));
     }
 
     /**
@@ -60,7 +61,7 @@ public class PostController {
             log.info("View count increased for post ID: [{}]", postId);
         }
 
-        return ResponseEntity.ok(new ApiDataResponse("success", postService.getPostById(postId), true));
+        return ResponseEntity.ok(new ApiDataResponse("success", postService.getPostById(postId)));
     }
 
     /**
@@ -82,7 +83,7 @@ public class PostController {
                 .path("/{id}")
                 .buildAndExpand(createdId)
                 .toUri();
-        return ResponseEntity.created(location).body(new ApiResponse("success", true));
+        return ResponseEntity.created(location).body(new ApiSuccessResponse());
     }
 
     /**
@@ -100,7 +101,7 @@ public class PostController {
         UserDTO userDTO = AuthUtils.getCurrentUser();
         log.info("Request to update post with post ID: [{}] by user ID: [{}]", id, userDTO.getId());
         postService.update(id, title, content, userDTO);
-        return ResponseEntity.ok(new ApiResponse("success", true));
+        return ResponseEntity.ok(new ApiSuccessResponse());
     }
 
     /**
@@ -115,6 +116,6 @@ public class PostController {
         UserDTO userDTO = AuthUtils.getCurrentUser();
         log.info("Request to delete post with ID: [{}] by user: [{}]", id, userDTO.getUsername());
         postService.delete(id, userDTO);
-        return ResponseEntity.ok(new ApiResponse("success", true));
+        return ResponseEntity.ok(new ApiSuccessResponse());
     }
 }

@@ -21,8 +21,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.user.services.UserService;
+import shop.samgak.mini_board.utility.ApiAlreadyUsedResponse;
 import shop.samgak.mini_board.utility.ApiDataResponse;
+import shop.samgak.mini_board.utility.ApiFailureResponse;
 import shop.samgak.mini_board.utility.ApiResponse;
+import shop.samgak.mini_board.utility.ApiSuccessResponse;
 import shop.samgak.mini_board.utility.AuthUtils;
 
 /**
@@ -59,10 +62,10 @@ public class UserController {
         boolean isExistUserName = userService.existUsername(request.username);
         if (!isExistUserName) {
             session.setAttribute(SESSION_CHECKED_USER, request.username);
-            return ResponseEntity.ok().body(new ApiResponse("Username is available", true));
+            return ResponseEntity.ok().body(new ApiSuccessResponse("Username is available"));
         } else {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new ApiResponse("Username is already in use", ApiResponse.Code.USED));
+                    .body(new ApiAlreadyUsedResponse("Username is already in use"));
         }
     }
 
@@ -80,16 +83,16 @@ public class UserController {
         EmailValidator validator = EmailValidator.getInstance();
         if (!validator.isValid(request.email)) {
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse("Invalid email format", false));
+                    .body(new ApiFailureResponse("Invalid email format"));
         }
 
         boolean isExistEmail = userService.existEmail(request.email);
         if (!isExistEmail) {
             session.setAttribute(SESSION_CHECKED_EMAIL, request.email);
-            return ResponseEntity.ok().body(new ApiResponse("Email is available", true));
+            return ResponseEntity.ok().body(new ApiSuccessResponse("Email is available"));
         } else {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new ApiResponse("Email is already in use", ApiResponse.Code.USED));
+                    .body(new ApiAlreadyUsedResponse("Email is already in use"));
         }
     }
 
@@ -105,7 +108,7 @@ public class UserController {
         log.info("Checking password format for: [{}]", request.password);
         boolean isValid = request.password.matches(PASSWORD_PATTERN);
         return ResponseEntity
-                .ok(new ApiDataResponse("Password format check", isValid, true));
+                .ok(new ApiDataResponse("Password format check", isValid));
     }
 
     /**
@@ -121,42 +124,42 @@ public class UserController {
         boolean isExistEmail = userService.existEmail(request.email);
         if (isExistEmail) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new ApiResponse("Email is already in use", ApiResponse.Code.USED));
+                    .body(new ApiAlreadyUsedResponse("Email is already in use"));
         }
 
         boolean isExistUserName = userService.existUsername(request.username);
         if (isExistUserName) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new ApiResponse("Username is already in use", ApiResponse.Code.USED));
+                    .body(new ApiAlreadyUsedResponse("Username is already in use"));
         }
 
         String checkedUsername = (String) session.getAttribute(SESSION_CHECKED_USER);
         if (checkedUsername == null) {
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse("Username check was not performed", false));
+                    .body(new ApiFailureResponse("Username check was not performed"));
         }
 
         String checkedEmail = (String) session.getAttribute(SESSION_CHECKED_EMAIL);
         if (checkedEmail == null) {
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse("Email check was not performed", false));
+                    .body(new ApiFailureResponse("Email check was not performed"));
         }
 
         if ((!checkedUsername.equals(request.username))) {
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse("Username does not match the confirmed username", false));
+                    .body(new ApiFailureResponse("Username does not match the confirmed username"));
         }
 
         if (!checkedEmail.equals(request.email)) {
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse("Email does not match the confirmed email", false));
+                    .body(new ApiFailureResponse("Email does not match the confirmed email"));
         }
 
         Long id = userService.save(request.username, request.email, request.password);
 
         URI location = URI.create(String.format("/api/users/%d/info", id));
         return ResponseEntity.created(location)
-                .body(new ApiResponse("Registration successful", true));
+                .body(new ApiSuccessResponse("Registration successful"));
 
     }
 
@@ -168,7 +171,7 @@ public class UserController {
     @GetMapping("check/status")
     public ResponseEntity<ApiResponse> checkLoginStatus() {
         log.info("Checking login status");
-        return ResponseEntity.ok(new ApiDataResponse("Login status", AuthUtils.checkLogin(), true));
+        return ResponseEntity.ok(new ApiDataResponse("Login status", AuthUtils.checkLogin()));
     }
 
     /**
@@ -181,7 +184,7 @@ public class UserController {
     public ResponseEntity<ApiResponse> me(HttpServletRequest request) {
         log.info("Fetching current logged-in user information");
         UserDTO userDTO = AuthUtils.getCurrentUser();
-        return ResponseEntity.ok(new ApiDataResponse("Login status", userDTO, true));
+        return ResponseEntity.ok(new ApiDataResponse("Login status", userDTO));
     }
 
     /**
@@ -195,7 +198,7 @@ public class UserController {
         log.info("Attempting to change password for current user");
         UserDTO user = AuthUtils.getCurrentUser();
         userService.changePassword(user.getUsername(), request.password);
-        return ResponseEntity.ok(new ApiResponse("Password change successful", true));
+        return ResponseEntity.ok(new ApiSuccessResponse("Password change successful"));
     }
 
     /**
