@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -37,6 +38,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ApiResponse> handleMissingParams(MissingServletRequestParameterException e) {
         String errorMessage = String.format("Missing required parameter: %s", e.getParameterName());
+        return ResponseEntity.badRequest().body(new ApiFailureResponse(errorMessage));
+    }
+
+    /**
+     * 사용자에게서 온 타입과 요청 파라미터 타입이 불일치한 경우
+     * ex) 숫자(Long) 자리에 문자(String)가 들어감
+     * 
+     * @param e 불일치 요청 파라미터 예외
+     * @return 요청 파라미터 누락 메시지와 HTTP 400 상태 코드
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse> handleMethodArgumentTypeMismatchException(
+            MethodArgumentTypeMismatchException e) {
+        String errorMessage = String.format("An invalid parameter was given: %s", e.getParameter().getParameterName());
         return ResponseEntity.badRequest().body(new ApiFailureResponse(errorMessage));
     }
 
@@ -119,7 +134,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
-        return ResponseEntity.badRequest().body(new ApiExceptionResponse(e));
+        return ResponseEntity.badRequest().body(new ApiFailureResponse("Required request body is missing"));
     }
 
     /**
