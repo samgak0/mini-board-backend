@@ -18,7 +18,7 @@ public interface UserMapper {
      * @param user User 엔티티 객체
      * @return UserDTO 객체
      */
-    UserDTO userToUserDTO(User user);
+    UserDTO toDTO(User user);
 
     /**
      * UserDTO를 User 엔티티로 변환하는 메서드입니다.
@@ -31,5 +31,6 @@ public interface UserMapper {
     @Mapping(target = "email", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    User userDTOToUser(UserDTO userDTO);
+    @Mapping(target = "deletedAt", ignore = true)
+    User fromDTO(UserDTO userDTO);
 }

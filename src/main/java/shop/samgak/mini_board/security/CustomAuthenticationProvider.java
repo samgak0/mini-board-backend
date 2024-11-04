@@ -56,7 +56,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
                     return new UserNotFoundException(username);
                 });
 
-        UserDTO userDTO = userMapper.userToUserDTO(user);
+        UserDTO userDTO = userMapper.toDTO(user);
         log.debug("userDTO = ", userDTO);
 
         MyUserDetails myUserDetails = new MyUserDetails(userDTO, user.getPassword());
