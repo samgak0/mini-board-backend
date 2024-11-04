@@ -76,7 +76,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void update(Long postId, String title, String content, UserDTO userDTO) {
+    public boolean update(Long postId, String title, String content, UserDTO userDTO) {
         Post post = findPostOrThrow(postId);
         // 수정 권한이 있는 자신의 게시글인지 확인
         if (!post.getUser().getId().equals(userDTO.getId())) {
@@ -84,11 +84,11 @@ public class PostServiceImpl implements PostService {
                     "User with ID " + userDTO.getId() + " not authorized to update post with ID " + postId);
         }
         boolean isUpdated = false;
-        if (!post.getTitle().equals(title)) {
+        if (title != null & !post.getTitle().equals(title)) {
             post.setTitle(title);
             isUpdated = true;
         }
-        if (!post.getContent().equals(content)) {
+        if (content != null & !post.getContent().equals(content)) {
             post.setContent(content);
             isUpdated = true;
         }
@@ -97,6 +97,7 @@ public class PostServiceImpl implements PostService {
             post.setUpdatedAt(Instant.now());
             postRepository.save(post);
         }
+        return isUpdated;
     }
 
     @Override

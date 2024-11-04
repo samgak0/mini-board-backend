@@ -49,6 +49,21 @@ curl -X POST http://localhost:8080/api/posts \
     -d '{"title": "title", "content": "content"}' \
     -b "cookies.txt"
 
+curl -X PUT http://localhost:8080/api/posts/1 \
+    -H "Content-Type: application/json" \
+    -d '{"title": "title2"}' \
+    -b "cookies.txt"
+    
+curl -X PUT http://localhost:8080/api/posts/1 \
+    -H "Content-Type: application/json" \
+    -d '{"content": "content2"}' \
+    -b "cookies.txt"
+    
+curl -X PUT http://localhost:8080/api/posts/1 \
+    -H "Content-Type: application/json" \
+    -d '{"title": "title1", "content": "content1"}' \
+    -b "cookies.txt"
+
 curl -X GET http://localhost:8080/api/posts/1/comments \
     -b "cookies.txt"
 

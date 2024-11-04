@@ -50,8 +50,9 @@ public interface PostService {
      * @param title   수정할 제목
      * @param content 수정할 내용
      * @param userDTO 수정 요청 사용자 정보
+     * @return 게시글의 업데이트 여부
      */
-    void update(Long id, String title, String content, UserDTO userDTO);
+    boolean update(Long id, String title, String content, UserDTO userDTO);
 
     /**
      * 특정 게시물을 삭제하는 메서드
