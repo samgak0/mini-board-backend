@@ -9,6 +9,6 @@ import lombok.Getter;
 public class ApiAlreadyUsedResponse extends ApiResponse {
 
     public ApiAlreadyUsedResponse(String message) {
-        super(message, "ALREADYUSED");
+        super(message, "USED");
     }
 }
