@@ -169,8 +169,9 @@ public class PostFileServiceImpl implements PostFileService {
             Path filePath = uploadPath.resolve(filename);
 
             if (!Files.exists(filePath)) {
+                // 파일 쓰기 권한 여부를 검사해서 권한이 없을 때에도 재생성을 시도한다.
                 if (!Files.isWritable(filePath)) {
-                    log.warn("Generated file name [{}] is not writable. - trying to generate new file name [{}/{}]",
+                    log.error("Generated file name [{}] is not writable. - trying to generate new file name [{}/{}]",
                             filePath.getFileName(),
                             count, maxRetry);
                     continue;
@@ -178,7 +179,7 @@ public class PostFileServiceImpl implements PostFileService {
                 return filePath;
             }
 
-            log.warn("Generated file name [{}] already exists. - trying to generate new file name [{}/{}]",
+            log.error("Generated file name [{}] already exists. - trying to generate new file name [{}/{}]",
                     filePath.getFileName(),
                     count, maxRetry);
         }
