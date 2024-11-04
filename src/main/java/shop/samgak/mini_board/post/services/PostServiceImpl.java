@@ -113,19 +113,16 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public boolean existsById(Long id) {
-        // 해당 ID의 게시물이 존재하는지 확인
         return postRepository.existsById(id);
     }
 
     private void increaseViewCount(Long postId) {
-        // 게시물을 찾고 조회수를 증가시킨 뒤 저장
         Post post = findPostOrThrow(postId);
         post.setViewCount(post.getViewCount() + 1);
         postRepository.save(post);
     }
 
     private Post findPostOrThrow(Long postId) {
-        // 삭제되지 않은 게시물을 찾습니다. 존재하지 않으면 예외를 발생
         return postRepository.findByIdAndDeletedAtIsNull(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + postId));
     }
