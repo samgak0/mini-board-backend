@@ -57,7 +57,6 @@ public class PostFileContorller {
          * @param postFileId 게시물 ID
          * @return 게시물에 포함된 파일 목록
          */
-        // TODO : getPostFile 테스트 코드 추가
         @GetMapping("{postId}/images")
         public List<PostFileDTO> getPostFile(@PathVariable Long postId) {
                 log.info("Request to get image files for Post ID: [{}]", postId);
@@ -78,7 +77,6 @@ public class PostFileContorller {
          * @return 이미지 파일의 바이트 데이터와 메타데이터 응답
          * @throws IOException 파일을 읽을 수 없을 때 예외 발생
          */
-        // TODO : getPostFileAndPostFileId 테스트 코드 추가
         @GetMapping("{postId}/images/{postFileId}")
         public ResponseEntity<?> getPostFileAndPostFileId(@PathVariable Long postId,
                         @PathVariable Long postFileId,

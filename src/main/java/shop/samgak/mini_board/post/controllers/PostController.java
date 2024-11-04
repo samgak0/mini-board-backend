@@ -8,14 +8,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import shop.samgak.mini_board.exceptions.MissingParameterException;
 import shop.samgak.mini_board.post.services.PostService;
 import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.utility.ApiDataResponse;
@@ -72,12 +75,11 @@ public class PostController {
      * @return 생성된 게시물의 위치 URI와 성공 응답
      */
     @PostMapping
-    public ResponseEntity<ApiResponse> createPost(@RequestParam String title,
-            @RequestParam String content) {
+    public ResponseEntity<ApiResponse> createPost(@Valid @RequestBody CreatePostRequest createPostRequest) {
         UserDTO userDTO = AuthUtils.getCurrentUser();
         log.info("Request to create a new post by user ID: [{}]", userDTO.getId());
         // 게시물을 생성하고 ID를 반환받음
-        Long createdId = postService.create(title, content, userDTO);
+        Long createdId = postService.create(createPostRequest.title, createPostRequest.content, userDTO);
         // 생성된 게시물의 URI 반환
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
@@ -96,11 +98,13 @@ public class PostController {
      */
     @PutMapping("/{postId}")
     public ResponseEntity<ApiResponse> updatePost(@PathVariable("postId") Long id,
-            @RequestParam String title,
-            @RequestParam String content) {
+            @Valid @RequestBody UpdatePostRequest updatePostRequest) {
+        if (updatePostRequest.title == null && updatePostRequest.content == null) {
+            throw new MissingParameterException("There must be a title or content");
+        }
         UserDTO userDTO = AuthUtils.getCurrentUser();
         log.info("Request to update post with post ID: [{}] by user ID: [{}]", id, userDTO.getId());
-        postService.update(id, title, content, userDTO);
+        postService.update(id, updatePostRequest.title, updatePostRequest.content, userDTO);
         return ResponseEntity.ok(new ApiSuccessResponse());
     }
 
@@ -117,5 +121,21 @@ public class PostController {
         log.info("Request to delete post with ID: [{}] by user: [{}]", id, userDTO.getUsername());
         postService.delete(id, userDTO);
         return ResponseEntity.ok(new ApiSuccessResponse());
+    }
+
+    /**
+     * 게시글 수정 요청을 위한 레코드 정의
+     */
+    public record UpdatePostRequest(
+            String title,
+            String content) {
+    }
+
+    /**
+     * 게시글 생성 요청을 위한 레코드 정의
+     */
+    public record CreatePostRequest(
+            @NotNull(message = "Missing required parameter") String title,
+            @NotNull(message = "Missing required parameter") String content) {
     }
 }
