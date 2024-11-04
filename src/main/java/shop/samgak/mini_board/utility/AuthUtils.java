@@ -37,24 +37,17 @@ public class AuthUtils {
      * @return 사용자가 로그인한 상태이면 true, 그렇지 않으면 false
      */
     public static boolean checkLogin() {
-        log.debug("사용자의 로그인 상태를 확인합니다.");
-        // 현재 스레드의 SecurityContextHolder에서 SecurityContext를 가져옴
         SecurityContext context = SecurityContextHolder.getContext();
         if (context == null) {
-            log.warn("SecurityContext가 존재하지 않습니다.");
             return false;
         }
 
-        // SecurityContext에서 인증(Authentication) 객체를 가져옴
         Authentication authentication = context.getAuthentication();
         if (authentication == null || authentication.getPrincipal() == null) {
-            log.warn("인증 정보가 존재하지 않거나 Principal이 없습니다.");
             return false;
         }
 
-        // 인증 객체의 Principal이 MyUserDetails 인스턴스인지 확인하여 로그인 여부 판단
         boolean isLoggedIn = authentication.getPrincipal() instanceof MyUserDetails;
-        log.debug("로그인 상태: {}", isLoggedIn);
         return isLoggedIn;
     }
 
@@ -66,23 +59,17 @@ public class AuthUtils {
      * @throws UserNotLoginException 사용자가 로그인하지 않은 경우 예외 발생
      */
     public static UserDTO getCurrentUser() throws UserNotLoginException {
-        log.debug("현재 로그인된 사용자 정보를 가져옵니다.");
-        // SecurityContextHolder에서 현재 SecurityContext를 가져옴
         SecurityContext securityContext = SecurityContextHolder.getContext();
         if (securityContext.getAuthentication() != null) {
-            // SecurityContext에서 인증(Authentication) 객체를 가져옴
             Authentication authentication = securityContext.getAuthentication();
             if (authentication.getPrincipal() != null) {
-                // 인증 객체에서 사용자 정보를 담고 있는 MyUserDetails 객체를 가져옴
                 MyUserDetails myUserDetails = (MyUserDetails) authentication.getPrincipal();
-                log.debug("로그인된 사용자 ID: {}", myUserDetails.getUserDTO().getId());
                 return myUserDetails.getUserDTO();
             } else {
-                log.warn("인증 정보에서 Principal을 찾을 수 없습니다.");
+                log.warn("Principal not found in credentials.");
                 throw new UserNotLoginException();
             }
         } else {
-            log.warn("SecurityContext에 인증 정보가 없습니다.");
             throw new UserNotLoginException();
         }
     }
