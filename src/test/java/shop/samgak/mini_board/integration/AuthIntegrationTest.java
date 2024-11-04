@@ -49,7 +49,6 @@ public class AuthIntegrationTest {
         loginRequest.put("password", "password");
         HttpEntity<String> requestEntity = createRequestEntity(loginRequest);
 
-        // 로그인 요청을 전송하고 성공적인 응답인지 확인
         ResponseEntity<String> response = restTemplate.postForEntity(loginUrl, requestEntity, String.class);
         assertSuccessResponse(response, HttpStatus.OK, "Login successful");
     }
@@ -62,9 +61,9 @@ public class AuthIntegrationTest {
      * @param expectedMessage 기대하는 메시지
      */
     private void assertSuccessResponse(ResponseEntity<String> response, HttpStatus status, String expectedMessage) {
-        assertThat(response.getStatusCode()).isEqualTo(status); // 상태 코드 확인
-        assertThat(response.getBody()).isNotNull(); // 응답 본문이 null이 아닌지 확인
-        assertThat(response.getBody()).contains(expectedMessage); // 응답 본문에 기대하는 메시지가 포함되어 있는지 확인
+        assertThat(response.getStatusCode()).isEqualTo(status);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).contains(expectedMessage);
     }
 
     /**
@@ -82,14 +81,14 @@ public class AuthIntegrationTest {
         // requestEntity, String.class);
         try {
             restTemplate.postForEntity(loginUrl, requestEntity, String.class);
-            fail("Expected ResourceAccessException to be thrown"); // 예외가 발생해야 함
+            fail("Expected ResourceAccessException to be thrown");
         } catch (ResourceAccessException e) {
-            assertThat(e).isInstanceOf(ResourceAccessException.class); // 예외 타입 확인
+            assertThat(e).isInstanceOf(ResourceAccessException.class);
         }
     }
 
     /**
-     * 로그인 실패 테스트 - 사용자명과 비밀번호가 모두 없는 경우.
+     * 로그인 실패 테스트 - 사용자명과 비밀번호가 모두 없는 경우
      * 
      * @throws Exception 요청 중 발생할 수 있는 예외
      */
@@ -105,7 +104,7 @@ public class AuthIntegrationTest {
     }
 
     /**
-     * 로그인 실패 테스트 - 사용자명이 없는 경우.
+     * 로그인 실패 테스트 - 사용자명이 없는 경우
      * 
      * @throws Exception 요청 중 발생할 수 있는 예외
      */
@@ -119,7 +118,7 @@ public class AuthIntegrationTest {
     }
 
     /**
-     * 로그인 실패 테스트 - 비밀번호가 없는 경우.
+     * 로그인 실패 테스트 - 비밀번호가 없는 경우
      * 
      * @throws Exception 요청 중 발생할 수 있는 예외
      */
@@ -134,7 +133,7 @@ public class AuthIntegrationTest {
     }
 
     /**
-     * 요청 본문을 JSON 형식으로 변환하고 HTTP 엔티티를 생성하는 메서드.
+     * 요청 본문을 JSON 형식으로 변환하고 HTTP 엔티티를 생성
      * 
      * @param body 요청 본문 데이터
      * @return 생성된 HTTP 엔티티
@@ -142,13 +141,13 @@ public class AuthIntegrationTest {
      */
     private HttpEntity<String> createRequestEntity(Map<String, String> body) throws Exception {
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON); // Content-Type을 JSON으로 설정
-        String requestBody = objectMapper.writeValueAsString(body); // 본문을 JSON 문자열로 변환
-        return new HttpEntity<>(requestBody, headers); // HTTP 엔티티 생성
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        String requestBody = objectMapper.writeValueAsString(body);
+        return new HttpEntity<>(requestBody, headers);
     }
 
     /**
-     * 오류 응답을 검증하는 메서드.
+     * 오류 응답을 검증
      * 
      * @param response        응답 객체
      * @param status          기대하는 상태 코드
@@ -162,8 +161,8 @@ public class AuthIntegrationTest {
                 new TypeReference<Map<String, String>>() {
                 });
 
-        assertThat(response.getStatusCode()).isEqualTo(status); // 상태 코드 확인
-        assertThat(responseBody.get("message")).isEqualTo(expectedMessage); // 메시지 내용 확인
-        assertThat(responseBody.get("code")).isEqualTo("FAILURE"); // 코드 확인
+        assertThat(response.getStatusCode()).isEqualTo(status);
+        assertThat(responseBody.get("message")).isEqualTo(expectedMessage);
+        assertThat(responseBody.get("code")).isEqualTo("FAILURE");
     }
 }
