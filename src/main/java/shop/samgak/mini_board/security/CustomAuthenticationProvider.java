@@ -49,7 +49,6 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) {
         String username = authentication.getName();
         String password = (String) authentication.getCredentials();
-        log.info("Username [{}] authenticate started", username);
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> {
@@ -61,13 +60,11 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
         MyUserDetails myUserDetails = new MyUserDetails(userDTO, user.getPassword());
         if (!passwordEncoder.matches(password, myUserDetails.getPassword())) {
-            log.warn("Username [{}] access denied because password is incorrect", username);
             throw new WrongPasswordException(username);
         }
         // 인증 후 비밀번호는 null로 설정하여 보안 강화함
         myUserDetails.setPassword(null);
 
-        log.info("Username [{}] authenticate success", username);
         return new UsernamePasswordAuthenticationToken(myUserDetails, null, myUserDetails.getAuthorities());
     }
 
