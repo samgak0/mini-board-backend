@@ -44,16 +44,11 @@ public class AuthController {
     @PostMapping("login")
     public ResponseEntity<ApiResponse> login(@Valid @RequestBody LoginRequest loginRequest,
             HttpSession session) {
-
         log.info("Request to login for user [{}]", loginRequest.username);
-        // 사용자의 인증 정보 생성
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 loginRequest.username, loginRequest.password);
-        // 인증 처리
         Authentication authentication = authenticationManager.authenticate(authenticationToken);
-        // 인증된 사용자 정보 SecurityContext에 저장
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        // SecurityContext를 세션에 저장
         AuthUtils.saveSessionSecurityContext(SecurityContextHolder.getContext(), session);
         return ResponseEntity.ok().body(new ApiSuccessResponse("Login successful"));
     }
