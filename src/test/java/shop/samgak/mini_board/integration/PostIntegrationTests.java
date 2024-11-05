@@ -2,6 +2,7 @@ package shop.samgak.mini_board.integration;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -178,7 +179,10 @@ public class PostIntegrationTests {
 
         assertThat(deleteResponse.getStatusCode()).isEqualTo(OK);
 
-        // 게시글 삭제 상태 복원
+        restorePostDelete();
+    }
+
+    private void restorePostDelete() throws SQLException {
         Connection connection = dataSource.getConnection();
         PreparedStatement statement = connection.prepareStatement("UPDATE posts SET DELETED_AT = NULL WHERE id = ?");
         statement.setInt(1, 1);
