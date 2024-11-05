@@ -5,21 +5,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpEntity;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClient;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,14 +34,23 @@ import shop.samgak.mini_board.user.services.UserService;
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 public class UserIntegrationTests {
 
-    @Autowired
-    private TestRestTemplate restTemplate; // RestTemplate을 사용하여 애플리케이션에 HTTP 요청을 보냅
-
     @MockBean
     private UserService userService; // UserService를 모킹하여 특정 시나리오를 테스트
 
     @Autowired
     private ObjectMapper objectMapper; // JSON 파싱을 위해 ObjectMapper를 사용
+
+    private RestClient restClient;
+
+    @LocalServerPort
+    private int port;
+
+    @BeforeEach
+    public void setup() {
+        restClient = RestClient.builder()
+                .baseUrl("http://localhost:" + port)
+                .build();
+    }
 
     /**
      * 이미 사용 중인 이메일로 회원가입을 시도할 때의 테스트
@@ -62,24 +71,25 @@ public class UserIntegrationTests {
         registerRequest.put("username", username);
         registerRequest.put("email", email);
         registerRequest.put("password", password);
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(registerRequest, headers);
 
-        // 회원가입 엔드포인트로 POST 요청을 보냄
-        ResponseEntity<String> response = restTemplate.postForEntity("/api/users/register", requestEntity,
-                String.class);
+        try {
+            restClient.post()
+                    .uri("/api/users/register")
+                    .body(registerRequest)
+                    .retrieve()
+                    .toEntity(String.class);
+        } catch (HttpClientErrorException e) {
+            assertThat(e.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 
-        // 응답 상태 코드 검증
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+            // JSON 응답을 객체로 변환
+            Map<String, Object> responseBody = objectMapper.readValue(e.getResponseBodyAsString(),
+                    new TypeReference<Map<String, Object>>() {
+                    });
 
-        // JSON 응답을 객체로 변환
-        Map<String, Object> responseBody = objectMapper.readValue(response.getBody(),
-                new TypeReference<Map<String, Object>>() {
-                });
-
-        // 응답이 정상적인지 확인
-        assertThat(responseBody.get("message")).isEqualTo("Email is already in use");
-        assertThat(responseBody.get("code")).isEqualTo("USED");
+            // 응답이 정상적인지 확인
+            assertThat(responseBody.get("message")).isEqualTo("Email is already in use");
+            assertThat(responseBody.get("code")).isEqualTo("USED");
+        }
     }
 
     /**
@@ -92,33 +102,34 @@ public class UserIntegrationTests {
         String email = "newuser@example.com";
         String password = "password123";
 
+        // 사용자 이름이 이미 존재하고 이메일은 존재하지 않는 경우를 모킹
+        when(userService.existUsername(username)).thenReturn(true);
+        when(userService.existEmail(email)).thenReturn(false);
+
         // 회원가입 요청을 준비합니다.
         Map<String, String> registerRequest = new HashMap<>();
         registerRequest.put("username", username);
         registerRequest.put("email", email);
         registerRequest.put("password", password);
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(registerRequest, headers);
 
-        // 사용자 이름이 이미 존재하고 이메일은 존재하지 않는 경우를 모킹
-        when(userService.existUsername(username)).thenReturn(true);
-        when(userService.existEmail(email)).thenReturn(false);
+        try {
+            restClient.post()
+                    .uri("/api/users/register")
+                    .body(registerRequest)
+                    .retrieve()
+                    .toEntity(String.class);
+            fail("Expected HttpClientErrorException to be thrown");
+        } catch (HttpClientErrorException e) {
+            assertThat(e.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 
-        // 회원가입 엔드포인트로 POST 요청을 보냄
-        ResponseEntity<String> response = restTemplate.postForEntity("/api/users/register", requestEntity,
-                String.class);
+            Map<String, Object> responseBody = objectMapper.readValue(e.getResponseBodyAsString(),
+                    new TypeReference<Map<String, Object>>() {
+                    });
 
-        // 응답 상태 코드 검증
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-
-        // JSON 응답을 객체로 변환
-        Map<String, Object> responseBody = objectMapper.readValue(response.getBody(),
-                new TypeReference<Map<String, Object>>() {
-                });
-
-        // 응답이 정상적인지 확인
-        assertThat(responseBody.get("message")).isEqualTo("Username is already in use");
-        assertThat(responseBody.get("code")).isEqualTo("USED");
+            // 응답이 정상적인지 확인
+            assertThat(responseBody.get("message")).isEqualTo("Username is already in use");
+            assertThat(responseBody.get("code")).isEqualTo("USED");
+        }
     }
 
     /**
@@ -134,13 +145,16 @@ public class UserIntegrationTests {
         Map<String, String> registerRequest = new HashMap<>();
         registerRequest.put("email", email);
         registerRequest.put("password", password);
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(registerRequest, headers);
+
         try {
-            // 회원가입 엔드포인트로 POST 요청을 보냅
-            restTemplate.postForEntity("/api/users/register", requestEntity, String.class);
-        } catch (ResourceAccessException e) {
-            assertThat(e).isInstanceOf(ResourceAccessException.class);
+            restClient.post()
+                    .uri("/api/users/register")
+                    .body(registerRequest)
+                    .retrieve()
+                    .toEntity(String.class);
+            fail("Expected HttpClientErrorException to be thrown");
+        } catch (HttpClientErrorException e) {
+            assertThat(e.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -157,13 +171,15 @@ public class UserIntegrationTests {
         Map<String, String> registerRequest = new HashMap<>();
         registerRequest.put("username", username);
         registerRequest.put("email", email);
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(registerRequest, headers);
+
         try {
-            // 회원가입 엔드포인트로 POST 요청을 보냅
-            restTemplate.postForEntity("/api/users/register", requestEntity, String.class);
-        } catch (ResourceAccessException e) {
-            assertThat(e).isInstanceOf(ResourceAccessException.class);
+            restClient.post()
+                    .uri("/api/users/register")
+                    .body(registerRequest)
+                    .retrieve()
+                    .toEntity(String.class);
+        } catch (HttpClientErrorException e) {
+            assertThat(e.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -173,16 +189,13 @@ public class UserIntegrationTests {
      */
     @Test
     public void testMeUnauthorized() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<String> request = new HttpEntity<>(headers);
-
         try {
-            // 인증되지 않은 상태로 사용자 정보를 요청
-            restTemplate.exchange("/api/users/me", HttpMethod.GET, request, String.class);
-        } catch (ResourceAccessException e) {
-            assertThat(e).isInstanceOf(ResourceAccessException.class);
+            restClient.get()
+                    .uri("/api/users/me")
+                    .retrieve()
+                    .toEntity(String.class);
+        } catch (HttpClientErrorException e) {
+            assertThat(e.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         }
     }
 
@@ -196,13 +209,12 @@ public class UserIntegrationTests {
         Map<String, String> loginRequest = new HashMap<>();
         loginRequest.put("username", "user");
         loginRequest.put("password", "password");
-        HttpHeaders loginHeaders = new HttpHeaders();
-        loginHeaders.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(loginRequest, loginHeaders);
 
-        // 로그인 요청을 보냅
-        ResponseEntity<String> loginResponse = restTemplate.exchange("/api/auth/login", HttpMethod.POST, requestEntity,
-                String.class);
+        ResponseEntity<String> loginResponse = restClient.post()
+                .uri("/api/auth/login")
+                .body(loginRequest)
+                .retrieve()
+                .toEntity(String.class);
         assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         // 로그인 후 세션 쿠키를 추출
@@ -211,14 +223,11 @@ public class UserIntegrationTests {
         assertThat(cookies).isNotEmpty();
 
         // 인증된 상태로 사용자 정보를 요청
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.put(HttpHeaders.COOKIE, cookies);
-
-        HttpEntity<String> request = new HttpEntity<>(headers);
-
-        // 사용자 정보 요청을 보냅
-        ResponseEntity<String> response = restTemplate.exchange("/api/users/me", HttpMethod.GET, request, String.class);
+        ResponseEntity<String> response = restClient.get()
+                .uri("/api/users/me")
+                .header(HttpHeaders.COOKIE, String.join("; ", cookies))
+                .retrieve()
+                .toEntity(String.class);
 
         // JSON 응답을 객체로 변환
         Map<String, Object> responseBody = objectMapper.readValue(response.getBody(),

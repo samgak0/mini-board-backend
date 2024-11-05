@@ -1,5 +1,8 @@
 package shop.samgak.mini_board.unit;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,6 +27,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import shop.samgak.mini_board.exceptions.UserNotFoundException;
 import shop.samgak.mini_board.security.AuthController;
 import shop.samgak.mini_board.security.MyUserDetails;
@@ -46,6 +51,9 @@ public class AuthControllerUnitTest {
         @MockBean
         private UserDetailsService userDetailsService;
 
+        @Autowired
+        private ObjectMapper objectMapper;
+
         @BeforeEach
         public void setUp() {
         }
@@ -54,6 +62,11 @@ public class AuthControllerUnitTest {
         public void testLoginSuccess() throws Exception {
                 String username = "testUser";
                 String password = "testPassword";
+
+                Map<String, String> requestBody = new HashMap<>();
+                requestBody.put("username", username);
+                requestBody.put("password", password);
+
                 Authentication authentication = new UsernamePasswordAuthenticationToken(username, null);
                 UserDetails userDetails = mock(UserDetails.class);
 
@@ -64,7 +77,7 @@ public class AuthControllerUnitTest {
 
                 mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content("{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}"))
+                                .content(objectMapper.writeValueAsString(requestBody)))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.message").value("Login successful")) // 응답 메시지를 확인합니다.
                                 .andExpect(jsonPath("$.code").value("SUCCESS")); // 응답 코드가 SUCCESS인지 확인합니다.
@@ -75,12 +88,16 @@ public class AuthControllerUnitTest {
                 String username = "invalidUser";
                 String password = "invalidPassword";
 
+                Map<String, String> requestBody = new HashMap<>();
+                requestBody.put("username", username);
+                requestBody.put("password", password);
+
                 when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                                 .thenThrow(new UserNotFoundException(username));
 
                 mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content("{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}"))
+                                .content(objectMapper.writeValueAsString(requestBody)))
                                 .andExpect(status().isUnauthorized())
                                 .andExpect(jsonPath("$.message").value("User not found: " + username))
                                 .andExpect(jsonPath("$.code").value("FAILURE"));

@@ -2,7 +2,9 @@ package shop.samgak.mini_board.unit;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +24,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import shop.samgak.mini_board.exceptions.ResourceNotFoundException;
 import shop.samgak.mini_board.post.controllers.PostController;
 import shop.samgak.mini_board.post.dto.PostDTO;
@@ -39,6 +43,9 @@ public class PostControllerUnitTest {
 
         @MockBean
         private PostService postService;
+
+        @Autowired
+        private ObjectMapper objectMapper;
 
         @BeforeEach
         public void setUp() {
@@ -105,9 +112,13 @@ public class PostControllerUnitTest {
                 String title = "Test Title";
                 String content = "Test Content";
 
+                Map<String, String> requestBody = new HashMap<>();
+                requestBody.put("title", title);
+                requestBody.put("content", content);
+
                 mockMvc.perform(post("/api/posts")
-                                .param("title", title)
-                                .param("content", content))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestBody)))
                                 .andExpect(status().isUnauthorized());
         }
 
@@ -116,8 +127,12 @@ public class PostControllerUnitTest {
         public void createPostMissingTitle() throws Exception {
                 String content = "Test Content";
 
+                Map<String, String> requestBody = new HashMap<>();
+                requestBody.put("content", content);
+
                 mockMvc.perform(post("/api/posts")
-                                .param("content", content))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestBody)))
                                 .andExpect(status().isBadRequest());
         }
 
@@ -126,8 +141,12 @@ public class PostControllerUnitTest {
         public void createPostMissingContent() throws Exception {
                 String title = "Test Title";
 
+                Map<String, String> requestBody = new HashMap<>();
+                requestBody.put("title", title);
+
                 mockMvc.perform(post("/api/posts")
-                                .param("title", title))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestBody)))
                                 .andExpect(status().isBadRequest());
         }
 
@@ -144,9 +163,13 @@ public class PostControllerUnitTest {
                 String title = "Test Title";
                 String content = "Test Content";
 
+                Map<String, String> requestBody = new HashMap<>();
+                requestBody.put("title", title);
+                requestBody.put("content", content);
+
                 mockMvc.perform(post("/api/posts")
-                                .param("title", title)
-                                .param("content", content))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestBody)))
                                 .andExpect(status().isCreated());
         }
 
@@ -157,9 +180,13 @@ public class PostControllerUnitTest {
                 String title = "Updated Title";
                 String content = "Updated Content";
 
+                Map<String, String> requestBody = new HashMap<>();
+                requestBody.put("title", title);
+                requestBody.put("content", content);
+
                 mockMvc.perform(put("/api/posts/{id}", postId)
-                                .param("title", title)
-                                .param("content", content))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestBody)))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.code").value("SUCCESS"));
         }
@@ -170,9 +197,13 @@ public class PostControllerUnitTest {
                 String title = "Updated Title";
                 String content = "Updated Content";
 
+                Map<String, String> requestBody = new HashMap<>();
+                requestBody.put("title", title);
+                requestBody.put("content", content);
+
                 mockMvc.perform(put("/api/posts/{id}", postId)
-                                .param("title", title)
-                                .param("content", content))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestBody)))
                                 .andExpect(status().isUnauthorized());
         }
 
