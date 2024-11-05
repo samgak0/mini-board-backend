@@ -118,7 +118,8 @@ public class PostServiceImpl implements PostService {
     private void checkPermition(Post post, UserDTO userDTO) {
         if (!post.getUser().getId().equals(userDTO.getId())) {
             throw new UnauthorizedActionException(
-                    String.format("User with ID %d does not have permission to perform the requested action on post %d",
+                    String.format(
+                            "User with ID [%d] does not have permission to perform the requested action on post [%d]",
                             userDTO.getId(), post.getId()));
         }
     }
