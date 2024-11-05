@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -34,10 +35,15 @@ public class AuthIntegrationTest {
     @LocalServerPort
     private int port;
 
+    @Value("${app.hostname:localhost}")
+    String hostname;
+    @Value("${app.secure:false}")
+    boolean secure;
+
     @BeforeEach
     public void setup() {
         restClient = RestClient.builder()
-                .baseUrl("http://localhost:" + port)
+                .baseUrl((secure ? "https" : "http") + "://" + hostname + ":" + port)
                 .build();
     }
 
