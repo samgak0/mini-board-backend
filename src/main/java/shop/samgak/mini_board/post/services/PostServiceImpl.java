@@ -78,11 +78,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public boolean update(Long postId, String title, String content, UserDTO userDTO) {
         Post post = findPostOrThrow(postId);
-        // 수정 권한이 있는 자신의 게시글인지 확인
-        if (!post.getUser().getId().equals(userDTO.getId())) {
-            throw new UnauthorizedActionException(
-                    "User with ID " + userDTO.getId() + " not authorized to update post with ID " + postId);
-        }
+        checkPermition(post, userDTO);
         boolean isUpdated = false;
         if (title != null & !post.getTitle().equals(title)) {
             post.setTitle(title);
@@ -103,11 +99,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public void delete(Long postId, UserDTO userDTO) {
         Post post = findPostOrThrow(postId);
-        // 삭제 권한이 있는 자신의 게시글인지 확인
-        if (!post.getUser().getId().equals(userDTO.getId())) {
-            throw new UnauthorizedActionException(
-                    "User with ID " + userDTO.getId() + " not authorized to update/delete post with ID " + postId);
-        }
+        checkPermition(post, userDTO);
         post.setDeletedAt(Instant.now());
         postRepository.save(post);
     }
@@ -117,12 +109,37 @@ public class PostServiceImpl implements PostService {
         return postRepository.existsById(id);
     }
 
+    /**
+     * 게시글이 자신의 것인지 확인하여 아니면 예외가 발생합니다.
+     * 
+     * @param userDTO 채크할 사용자 DTO
+     * @param post    르
+     */
+    private void checkPermition(Post post, UserDTO userDTO) {
+        if (!post.getUser().getId().equals(userDTO.getId())) {
+            throw new UnauthorizedActionException(
+                    String.format("User with ID %d does not have permission to perform the requested action on post %d",
+                            userDTO.getId(), post.getId()));
+        }
+    }
+
+    /**
+     * 해당 게시글 View Count 증가
+     * 
+     * @param postId
+     */
     private void increaseViewCount(Long postId) {
         Post post = findPostOrThrow(postId);
         post.setViewCount(post.getViewCount() + 1);
         postRepository.save(post);
     }
 
+    /**
+     * 글이 DB에 없다면 ResourceNotFoundException 예외 발생
+     * 
+     * @param postId
+     * @return
+     */
     private Post findPostOrThrow(Long postId) {
         return postRepository.findByIdAndDeletedAtIsNull(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + postId));
