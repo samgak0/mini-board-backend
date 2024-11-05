@@ -8,7 +8,6 @@ import shop.samgak.mini_board.user.entities.User;
 
 /**
  * 사용자 정보를 저장하고 조회하기 위한 레포지토리 인터페이스 정의
- * JpaRepository를 상속받아 기본적인 CRUD 기능을 제공함
  */
 public interface UserRepository extends JpaRepository<User, Long> {
     /**

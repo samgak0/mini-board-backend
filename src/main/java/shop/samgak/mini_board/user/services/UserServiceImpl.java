@@ -15,7 +15,6 @@ import shop.samgak.mini_board.user.entities.User;
 import shop.samgak.mini_board.user.mapper.UserMapper;
 import shop.samgak.mini_board.user.repositories.UserRepository;
 
-// UserService 구현체 - 사용자 관련 비즈니스 로직을 처리하는 서비스 클래스
 @Service
 @Slf4j
 @RequiredArgsConstructor
