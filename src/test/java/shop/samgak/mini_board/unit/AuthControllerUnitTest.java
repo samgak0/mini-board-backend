@@ -24,6 +24,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -79,8 +80,8 @@ public class AuthControllerUnitTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.message").value("Login successful")) // 응답 메시지를 확인합니다.
-                                .andExpect(jsonPath("$.code").value("SUCCESS")); // 응답 코드가 SUCCESS인지 확인합니다.
+                                .andExpect(jsonPath("$.message").value("Login successful"))
+                                .andExpect(jsonPath("$.code").value("SUCCESS"));
         }
 
         @Test
@@ -99,7 +100,38 @@ public class AuthControllerUnitTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)))
                                 .andExpect(status().isUnauthorized())
+                                .andDo(MockMvcResultHandlers.print())
                                 .andExpect(jsonPath("$.message").value("User not found: " + username))
+                                .andExpect(jsonPath("$.code").value("FAILURE"));
+        }
+
+        @Test
+        public void testLoginFailureMissingUsername() throws Exception {
+                String password = "testPassword";
+
+                Map<String, String> requestBody = new HashMap<>();
+                requestBody.put("password", password);
+
+                mockMvc.perform(post("/api/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestBody)))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.message").value("username: Missing required parameter;"))
+                                .andExpect(jsonPath("$.code").value("FAILURE"));
+        }
+
+        @Test
+        public void testLoginFailureMissingPassword() throws Exception {
+                String username = "testUser";
+
+                Map<String, String> requestBody = new HashMap<>();
+                requestBody.put("username", username);
+
+                mockMvc.perform(post("/api/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestBody)))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.message").value("password: Missing required parameter;"))
                                 .andExpect(jsonPath("$.code").value("FAILURE"));
         }
 
