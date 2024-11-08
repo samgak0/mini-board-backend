@@ -31,15 +31,15 @@ import shop.samgak.mini_board.user.services.UserService;
  * 통합 테스트 클래스 - 사용자 관련 기능을 테스트
  * 이 클래스는 사용자 인증 및 보호된 자원 접근에 대한 테스트를 수행
  */
-@ActiveProfiles("test") // 테스트 프로필 사용
+@ActiveProfiles("test")
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 public class UserIntegrationTests {
 
     @MockBean
-    private UserService userService; // UserService를 모킹하여 특정 시나리오를 테스트
+    private UserService userService;
 
     @Autowired
-    private ObjectMapper objectMapper; // JSON 파싱을 위해 ObjectMapper를 사용
+    private ObjectMapper objectMapper;
 
     private RestClient restClient;
 
@@ -54,8 +54,9 @@ public class UserIntegrationTests {
 
     @BeforeEach
     public void setup() {
+        String baseUrl = (secure ? "https" : "http") + "://" + hostname + ":" + port;
         restClient = RestClient.builder()
-                .baseUrl((secure ? "https" : "http") + "://" + hostname + ":" + port)
+                .baseUrl(baseUrl)
                 .build();
     }
 
@@ -69,11 +70,9 @@ public class UserIntegrationTests {
         String email = "existing@example.com";
         String password = "password123";
 
-        // 이메일이 이미 존재하고 사용자 이름은 존재하지 않는 경우를 모킹
         when(userService.existEmail(email)).thenReturn(true);
         when(userService.existUsername(username)).thenReturn(false);
 
-        // 회원가입 요청을 준비합니다.
         Map<String, String> registerRequest = new HashMap<>();
         registerRequest.put("username", username);
         registerRequest.put("email", email);
@@ -88,12 +87,10 @@ public class UserIntegrationTests {
         } catch (HttpClientErrorException e) {
             assertThat(e.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 
-            // JSON 응답을 객체로 변환
             Map<String, Object> responseBody = objectMapper.readValue(e.getResponseBodyAsString(),
                     new TypeReference<Map<String, Object>>() {
                     });
 
-            // 응답이 정상적인지 확인
             assertThat(responseBody.get("message")).isEqualTo("Email is already in use");
             assertThat(responseBody.get("code")).isEqualTo("USED");
         }
@@ -109,11 +106,9 @@ public class UserIntegrationTests {
         String email = "newuser@example.com";
         String password = "password123";
 
-        // 사용자 이름이 이미 존재하고 이메일은 존재하지 않는 경우를 모킹
         when(userService.existUsername(username)).thenReturn(true);
         when(userService.existEmail(email)).thenReturn(false);
 
-        // 회원가입 요청을 준비합니다.
         Map<String, String> registerRequest = new HashMap<>();
         registerRequest.put("username", username);
         registerRequest.put("email", email);
@@ -133,7 +128,6 @@ public class UserIntegrationTests {
                     new TypeReference<Map<String, Object>>() {
                     });
 
-            // 응답이 정상적인지 확인
             assertThat(responseBody.get("message")).isEqualTo("Username is already in use");
             assertThat(responseBody.get("code")).isEqualTo("USED");
         }
@@ -148,7 +142,6 @@ public class UserIntegrationTests {
         String email = "newuser@example.com";
         String password = "password123";
 
-        // 회원가입 요청을 준비합니다.
         Map<String, String> registerRequest = new HashMap<>();
         registerRequest.put("email", email);
         registerRequest.put("password", password);
@@ -174,7 +167,6 @@ public class UserIntegrationTests {
         String username = "newUser";
         String email = "newuser@example.com";
 
-        // 회원가입 요청을 준비합니다.
         Map<String, String> registerRequest = new HashMap<>();
         registerRequest.put("username", username);
         registerRequest.put("email", email);
@@ -212,7 +204,6 @@ public class UserIntegrationTests {
      */
     @Test
     public void testMeAuthorizedAfterLogin() throws Exception {
-        // 로그인 요청을 준비
         Map<String, String> loginRequest = new HashMap<>();
         loginRequest.put("username", "user");
         loginRequest.put("password", "password");

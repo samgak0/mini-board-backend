@@ -76,7 +76,8 @@ public class CommentControllerUnitTest {
                                 .andExpect(jsonPath("$.data.length()").value(2))
                                 .andExpect(jsonPath("$.data[0].content").value("First Comment"))
                                 .andExpect(jsonPath("$.data[1].content").value("Second Comment"))
-                                .andExpect(jsonPath("$.code").value("SUCCESS"));
+                                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                                .andExpect(jsonPath("$.message").value("Comments retrieved successfully"));
         }
 
         @Test
@@ -99,10 +100,11 @@ public class CommentControllerUnitTest {
                 String content = "Test Content";
                 Long postId = 1L;
 
-                // 인증되지 않은 상태에서 댓글 생성 요청
                 mockMvc.perform(post("/api/posts/{postId}/comments", postId)
                                 .param("content", content))
-                                .andExpect(status().isUnauthorized());
+                                .andExpect(status().isUnauthorized())
+                                .andExpect(jsonPath("$.code").value("FAILURE"))
+                                .andExpect(jsonPath("$.message").value("User not authorized"));
         }
 
         @Test
@@ -111,7 +113,9 @@ public class CommentControllerUnitTest {
                 Long postId = 1L;
 
                 mockMvc.perform(post("/api/posts/{postId}/comments", postId))
-                                .andExpect(status().isBadRequest());
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.code").value("FAILURE"))
+                                .andExpect(jsonPath("$.message").value("Content is required"));
         }
 
         @Test
@@ -136,7 +140,9 @@ public class CommentControllerUnitTest {
 
                 mockMvc.perform(post("/api/posts/{commentId}/comments", postId)
                                 .param("content", content))
-                                .andExpect(status().isCreated());
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                                .andExpect(jsonPath("$.message").value("Comment created successfully"));
         }
 
         @Test
@@ -150,9 +156,9 @@ public class CommentControllerUnitTest {
 
                 mockMvc.perform(put("/api/posts/{postId}/comments/{commentId}", postId, commentId)
                                 .param("content", content))
-                                .andExpect(status().isOk()) // HTTP 상태 코드 200 확인
-                                .andExpect(jsonPath("$.code").value("SUCCESS")) // 응답 코드가 SUCCESS인지 확인
-                                .andExpect(jsonPath("$.message").value("Comment updated successfully")); // 성공 메시지 확인
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                                .andExpect(jsonPath("$.message").value("Comment updated successfully"));
         }
 
         @Test
@@ -163,7 +169,9 @@ public class CommentControllerUnitTest {
 
                 mockMvc.perform(put("/api/posts/{postId}/comments/{commentId}", postId, commentId)
                                 .param("content", content))
-                                .andExpect(status().isUnauthorized()); // 인증되지 않은 경우 401 응답 기대
+                                .andExpect(status().isUnauthorized())
+                                .andExpect(jsonPath("$.code").value("FAILURE"))
+                                .andExpect(jsonPath("$.message").value("User not authorized"));
         }
 
         @Test
@@ -186,6 +194,8 @@ public class CommentControllerUnitTest {
                 Long commentId = 1L;
 
                 mockMvc.perform(delete("/api/posts/{postId}/comments/{commentId}", postId, commentId))
-                                .andExpect(status().isUnauthorized());
+                                .andExpect(status().isUnauthorized())
+                                .andExpect(jsonPath("$.code").value("FAILURE"))
+                                .andExpect(jsonPath("$.message").value("User not authorized"));
         }
 }

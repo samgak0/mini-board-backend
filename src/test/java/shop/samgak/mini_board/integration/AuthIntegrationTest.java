@@ -42,8 +42,9 @@ public class AuthIntegrationTest {
 
     @BeforeEach
     public void setup() {
+        String baseUrl = (secure ? "https" : "http") + "://" + hostname + ":" + port;
         restClient = RestClient.builder()
-                .baseUrl((secure ? "https" : "http") + "://" + hostname + ":" + port)
+                .baseUrl(baseUrl)
                 .build();
     }
 

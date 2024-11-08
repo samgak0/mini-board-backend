@@ -9,7 +9,6 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +29,9 @@ import org.springframework.web.client.RestClient;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = RANDOM_PORT)
-public class PostIntegrationTests {
+public class CommentIntegrationTest {
 
-    private final String postsUrl = "/api/posts";
+    private final String commentsUrl = "/api/posts/{postId}/comments";
     private final String loginUrl = "/api/auth/login";
 
     @Autowired
@@ -57,98 +56,77 @@ public class PostIntegrationTests {
                 .build();
     }
 
-    /**
-     * 로그인된 사용자가 게시글 목록에 접근하는 테스트 메서드
-     * 세션 쿠키를 사용하여 인증된 사용자로서 게시글을 조회하는 시나리오를 테스트합니다.
-     */
     @Test
-    public void testAccessPostsAsLoggedInUser() throws Exception {
+    public void testAccessCommentsAsLoggedInUser() throws Exception {
         String sessionCookie = loginUser("user", "password");
+        Long postId = 1L;
 
-        ResponseEntity<String> postsResponse = restClient.get()
-                .uri(postsUrl)
+        ResponseEntity<String> commentsResponse = restClient.get()
+                .uri(commentsUrl, postId)
                 .header("Cookie", sessionCookie)
                 .retrieve()
                 .toEntity(String.class);
 
-        assertThat(postsResponse.getStatusCode()).isEqualTo(OK);
+        assertThat(commentsResponse.getStatusCode()).isEqualTo(OK);
     }
 
-    /**
-     * 로그인하지 않은 사용자가 게시글 목록에 접근하는 테스트 메서드
-     * 인증 없이 게시글에 접근했을 때 UNAUTHORIZED 상태가 반환되는지 테스트합니다.
-     */
     @Test
-    public void testAccessPostsAsNotLoggedInUser() throws Exception {
+    public void testAccessCommentsAsNotLoggedInUser() throws Exception {
+        Long postId = 1L;
         try {
             restClient.get()
-                    .uri(postsUrl)
+                    .uri(commentsUrl, postId)
                     .retrieve()
                     .toEntity(String.class);
-            fail("Expected HttpClientErrorException to be thrown");
         } catch (HttpClientErrorException e) {
             assertThat(e.getStatusCode()).isEqualTo(UNAUTHORIZED);
         }
     }
 
-    /**
-     * 로그인된 사용자가 새로운 게시글을 생성하는 테스트 메서드
-     * 인증된 사용자로서 새로운 게시글을 작성할 수 있는지 테스트합니다.
-     */
     @Test
-    public void testCreatePostAsLoggedInUser() throws Exception {
+    public void testCreateCommentAsLoggedInUser() throws Exception {
+        Long postId = 1L;
         String sessionCookie = loginUser("user", "password");
-        Map<String, String> postRequest = new HashMap<>();
-        postRequest.put("title", "New Post Title");
-        postRequest.put("content", "Content of the new post");
+        Map<String, String> commentRequest = new HashMap<>();
+        commentRequest.put("content", "New Comment Content");
 
-        ResponseEntity<String> postResponse = restClient.post()
-                .uri(postsUrl)
+        ResponseEntity<String> commentResponse = restClient.post()
+                .uri(commentsUrl, postId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Cookie", sessionCookie)
-                .body(postRequest)
+                .body(commentRequest)
                 .retrieve()
                 .toEntity(String.class);
 
-        assertThat(postResponse.getStatusCode()).isEqualTo(CREATED);
+        assertThat(commentResponse.getStatusCode()).isEqualTo(CREATED);
     }
 
-    /**
-     * 로그인하지 않은 상태에서 새로운 게시글을 생성하려는 테스트 메서드
-     * 인증 없이 게시글을 작성했을 때 예외가 발생하는지 테스트합니다.
-     */
     @Test
-    public void testCreatePostAsNotLoggedInUser() throws Exception {
-        Map<String, String> postRequest = new HashMap<>();
-        postRequest.put("title", "Unauthorized Post Title");
-        postRequest.put("content", "Content of the unauthorized post");
+    public void testCreateCommentAsNotLoggedInUser() throws Exception {
+        Map<String, String> commentRequest = new HashMap<>();
+        commentRequest.put("content", "Unauthorized Comment Content");
 
         try {
             restClient.post()
-                    .uri(postsUrl)
+                    .uri(commentsUrl, 1)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(postRequest)
+                    .body(commentRequest)
                     .retrieve()
                     .toEntity(String.class);
-            fail("Expected HttpClientErrorException to be thrown");
         } catch (HttpClientErrorException e) {
             assertThat(e.getStatusCode()).isEqualTo(UNAUTHORIZED);
         }
     }
 
-    /**
-     * 로그인된 사용자가 본인의 게시글을 업데이트하는 테스트 메서드
-     * 인증된 사용자로서 게시글 내용을 수정할 수 있는지 테스트합니다.
-     */
     @Test
-    public void testUpdatePostAsLoggedInUser() throws Exception {
+    public void testUpdateCommentAsLoggedInUser() throws Exception {
         String sessionCookie = loginUser("user", "password");
+
         Map<String, String> updateRequest = new HashMap<>();
-        updateRequest.put("title", "Updated Post Title");
-        updateRequest.put("content", "Updated content of the post");
+        updateRequest.put("content", "Updated Comment Content");
 
         ResponseEntity<String> updateResponse = restClient.put()
-                .uri(postsUrl + "/{id}", 1)
+                .uri(commentsUrl + "/{commentId}", 1, 1)
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Cookie", sessionCookie)
                 .body(updateRequest)
@@ -158,40 +136,42 @@ public class PostIntegrationTests {
         assertThat(updateResponse.getStatusCode()).isEqualTo(OK);
     }
 
-    /**
-     * 로그인된 사용자가 본인의 게시글을 삭제하는 테스트 메서드
-     * 인증된 사용자로서 게시글을 삭제할 수 있는지 테스트합니다.
-     */
     @Test
-    public void testDeletePostAsLoggedInUser() throws Exception {
+    public void testDeleteCommentAsLoggedInUser() throws Exception {
         String sessionCookie = loginUser("user", "password");
 
         ResponseEntity<String> deleteResponse = restClient.delete()
-                .uri(postsUrl + "/{id}", 1)
+                .uri(commentsUrl + "/{commentId}", 1, 1)
                 .header("Cookie", sessionCookie)
                 .retrieve()
                 .toEntity(String.class);
 
         assertThat(deleteResponse.getStatusCode()).isEqualTo(OK);
 
-        restorePostDelete();
+        restoreCommentDelete();
     }
 
-    private void restorePostDelete() throws SQLException {
-        Connection connection = dataSource.getConnection();
-        PreparedStatement statement = connection.prepareStatement("UPDATE posts SET DELETED_AT = NULL WHERE id = ?");
-        statement.setInt(1, 1);
-        statement.executeUpdate();
+    private void restoreCommentDelete() throws SQLException {
+        String sql = "INSERT INTO SAMGAK_TEST.POSTS " +
+                "(ID, USER_ID, TITLE, CONTENT, CREATED_AT, UPDATED_AT, VIEW_COUNT, DELETED_AT) " +
+                "VALUES (?, ?, ?, TO_CLOB(?), ?, ?, ?, ?)";
+
+        try (Connection connection = dataSource.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, 1);
+            statement.setInt(2, 1);
+            statement.setString(3, "Updated Post Title");
+            statement.setString(4, "Updated content of the post");
+            statement.setTimestamp(5, java.sql.Timestamp.valueOf("2024-09-26 17:58:39.494061"));
+            statement.setTimestamp(6, java.sql.Timestamp.valueOf("2024-10-30 04:37:58.257705"));
+            statement.setInt(7, 11);
+            statement.setNull(8, java.sql.Types.TIMESTAMP);
+
+            statement.executeUpdate();
+        }
     }
 
-    /**
-     * 사용자 로그인을 시뮬레이션하고 세션 쿠키를 반환하는 메서드
-     * 주어진 사용자명과 비밀번호로 로그인 요청을 보내고 세션 쿠키를 얻습니다.
-     *
-     * @param username 사용자명
-     * @param password 비밀번호
-     * @return 세션 쿠키 문자열
-     */
     private String loginUser(String username, String password) throws Exception {
         Map<String, String> loginRequest = new HashMap<>();
         loginRequest.put("username", username);
