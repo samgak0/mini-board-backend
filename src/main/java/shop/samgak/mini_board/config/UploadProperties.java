@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Component
-@ConfigurationProperties(prefix = "app.upload")
+@ConfigurationProperties(prefix = "shop.samgak.mini-board.upload")
 public class UploadProperties {
     /**
      * 파일 업로드 경로를 나타내는 설정값입니다.

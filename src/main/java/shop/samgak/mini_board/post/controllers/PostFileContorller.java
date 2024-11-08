@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,6 +26,7 @@ import org.springframework.web.util.UriUtils;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import shop.samgak.mini_board.config.UploadProperties;
 import shop.samgak.mini_board.exceptions.MissingParameterException;
 import shop.samgak.mini_board.exceptions.ResourceNotFoundException;
 import shop.samgak.mini_board.exceptions.ServerIOException;
@@ -48,8 +48,7 @@ public class PostFileContorller {
 
         final PostFileService postFileService;
 
-        @Value("${app.upload.uploadDir}")
-        private String uploadDir;
+        final UploadProperties uploadProperties;
 
         /**
          * 특정 게시물에 포함된 이미지 파일 목록을 가져오는 엔드포인트
@@ -84,7 +83,7 @@ public class PostFileContorller {
                 log.info("Request to get image file - Post ID: [{}], PostFile ID: [{}]", postId, postFileId);
 
                 PostFileDTO postFileDTO = postFileService.getItem(postFileId, postId);
-                Path uploadPath = Paths.get(uploadDir);
+                Path uploadPath = Paths.get(uploadProperties.getUploadDir());
                 Path filePath = uploadPath.resolve(postFileDTO.getFileName());
 
                 // 파일 읽기 가능 여부 확인
