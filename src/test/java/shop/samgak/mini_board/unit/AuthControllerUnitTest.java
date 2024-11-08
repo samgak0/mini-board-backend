@@ -35,9 +35,6 @@ import shop.samgak.mini_board.security.AuthController;
 import shop.samgak.mini_board.security.MyUserDetails;
 import shop.samgak.mini_board.user.dto.UserDTO;
 
-/**
- * AuthController의 단위 테스트를 위한 클래스입니다.
- */
 @ActiveProfiles("test")
 @WebMvcTest(controllers = { AuthController.class })
 @AutoConfigureMockMvc(addFilters = false)

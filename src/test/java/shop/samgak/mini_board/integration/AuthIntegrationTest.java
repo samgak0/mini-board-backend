@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -32,6 +33,9 @@ public class AuthIntegrationTest {
     private RestClient restClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private final String loginUrl = "/api/auth/login";
+    private final String logoutUrl = "/api/auth/logout";
+
     @LocalServerPort
     private int port;
 
@@ -48,8 +52,6 @@ public class AuthIntegrationTest {
                 .build();
     }
 
-    private final String loginUrl = "/api/auth/login";
-
     /**
      * 로그인 성공 테스트 - 유효한 사용자명과 비밀번호를 사용하여 로그인 요청을 보냅니다.
      * 
@@ -61,14 +63,43 @@ public class AuthIntegrationTest {
         loginRequest.put("username", "user");
         loginRequest.put("password", "password");
 
-        // RestClient로 POST 요청 보내기
         ResponseEntity<String> response = restClient.post()
                 .uri(loginUrl)
-                .body(loginRequest) // JSON 변환은 RestClient가 자동 처리
+                .body(loginRequest)
                 .retrieve()
                 .toEntity(String.class);
 
         assertSuccessResponse(response, HttpStatus.OK, "Login successful");
+    }
+
+    /**
+     * 로그아웃 테스트 - 유효한 사용자명과 비밀번호를 사용하여 로그인 후 로그아웃 요청을 보냅니다.
+     * 
+     * @throws Exception 요청 중 발생할 수 있는 예외
+     */
+    @Test
+    public void testLoginAndLogoutSuccess() throws Exception {
+        // 로그인 요청
+        Map<String, String> loginRequest = new HashMap<>();
+        loginRequest.put("username", "user");
+        loginRequest.put("password", "password");
+
+        ResponseEntity<String> loginResponse = restClient.post()
+                .uri(loginUrl)
+                .body(loginRequest)
+                .retrieve()
+                .toEntity(String.class);
+
+        assertSuccessResponse(loginResponse, HttpStatus.OK, "Login successful");
+        String sessionCookie = loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+        // 로그아웃 요청
+        ResponseEntity<String> logoutResponse = restClient.post()
+                .uri(logoutUrl)
+                .header("Cookie", sessionCookie)
+                .retrieve()
+                .toEntity(String.class);
+
+        assertSuccessResponse(logoutResponse, HttpStatus.OK, "Logout successful");
     }
 
     /**

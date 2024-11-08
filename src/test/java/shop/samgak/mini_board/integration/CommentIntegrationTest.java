@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import static org.springframework.http.HttpHeaders.SET_COOKIE;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -184,6 +184,6 @@ public class CommentIntegrationTest {
                 .toEntity(String.class);
 
         assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        return loginResponse.getHeaders().getFirst(SET_COOKIE);
+        return loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
     }
 }
