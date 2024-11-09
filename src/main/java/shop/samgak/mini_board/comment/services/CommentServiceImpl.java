@@ -4,10 +4,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import shop.samgak.mini_board.comment.dto.CommentDTO;
@@ -17,7 +16,9 @@ import shop.samgak.mini_board.comment.repository.CommentRepository;
 import shop.samgak.mini_board.exceptions.ResourceNotFoundException;
 import shop.samgak.mini_board.exceptions.UnauthorizedActionException;
 import shop.samgak.mini_board.post.entities.Post;
+import shop.samgak.mini_board.post.repositories.PostRepository;
 import shop.samgak.mini_board.user.entities.User;
+import shop.samgak.mini_board.user.repositories.UserRepository;
 
 /**
  * 댓글 관련 기능을 제공하는 서비스 클래스 구현체
@@ -26,11 +27,10 @@ import shop.samgak.mini_board.user.entities.User;
 @RequiredArgsConstructor
 @Slf4j
 public class CommentServiceImpl implements CommentService {
+    private final UserRepository userRepository;
+    private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     /**
      * 특정 게시물의 모든 댓글을 조회합니다.
@@ -55,19 +55,19 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentDTO create(String content, Long postId, Long userId) {
 
-        // 사용자와 게시물 정보를 엔티티로 가져옴
-        User user = entityManager.getReference(User.class, userId);
-        Post post = entityManager.getReference(Post.class, postId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with Id : [" + userId + "]"));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found with Id : [" + postId + "]"));
 
-        // 새로운 댓글 객체를 생성하고 설정함
         Comment comment = new Comment();
         comment.setContent(content);
         comment.setUser(user);
         comment.setPost(post);
         comment.setCreatedAt(Instant.now());
         comment.setUpdatedAt(Instant.now());
+        Hibernate.initialize(comment.getUser());
 
-        // 댓글을 저장하고 DTO로 변환하여 반환
         Comment savedComment = commentRepository.save(comment);
         return commentMapper.toDTO(savedComment);
     }
@@ -76,31 +76,26 @@ public class CommentServiceImpl implements CommentService {
      * 특정 댓글을 수정합니다.
      * 
      * @param commentId 수정할 댓글의 ID
-     * @param content   수정할 댓글 내용
-     * @param userId    댓글을 수정하는 사용자의 ID
-     * @throws UnauthorizedActionException 사용자가 댓글을 수정할 권한이 없는 경우 발생
+     * @param postId    게시글 ID
+     * @param content   수정할 내용
+     * @param userId    사용자 ID
+     * @throws UnauthorizedActionException 사용자가 댓글을 수정할 권한이 없는 경우
      */
     @Override
-    public void update(Long commentId, String content, Long userId) {
+    public void update(Long commentId, Long postId, String content, Long userId) {
+        Comment comment = findCommentOrThrow(commentId, postId);
 
-        // 댓글을 ID로 조회하고, 없으면 예외 발생
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> {
-                    log.error("Comment not found with commentId: [{}]", commentId);
-                    return new ResourceNotFoundException("Comment not found with id: " + commentId);
-                });
-
-        // 댓글 작성자와 요청 사용자가 일치하지 않으면 권한 없음 예외 발생
         if (!comment.getUser().getId().equals(userId)) {
-            log.warn("User not authorized to update commentId: [{}] by userId: [{}]", commentId, userId);
+            log.warn("The user with ID [{}] is not authorized to update the comment with ID [{}] on post with ID [{}]",
+                    userId, commentId, postId);
             throw new UnauthorizedActionException("User not authorized to update this comment");
         }
 
-        // 댓글 내용이 수정된 경우에만 업데이트 수행
         if (!comment.getContent().equals(content)) {
             comment.setContent(content);
             comment.setUpdatedAt(Instant.now());
             commentRepository.save(comment);
+            log.info("Successfully updated comment with id: [{}]", commentId);
         } else {
             log.warn("No content change detected for commentId: [{}]", commentId);
         }
@@ -110,30 +105,39 @@ public class CommentServiceImpl implements CommentService {
      * 특정 댓글을 삭제합니다.
      * 
      * @param commentId 삭제할 댓글의 ID
-     * @param userId    댓글을 삭제하는 사용자의 ID
-     * @throws UnauthorizedActionException 사용자가 댓글을 삭제할 권한이 없는 경우 발생
+     * @param postId    게시글 ID
+     * @param userId    사용자 ID
+     * @throws UnauthorizedActionException 사용자가 댓글을 삭제할 권한이 없는 경우
      */
     @Override
-    public void delete(Long commentId, Long userId) {
+    public void delete(Long commentId, Long postId, Long userId) {
+        Comment comment = findCommentOrThrow(commentId, postId);
 
-        log.info("Attempting to delete comment with id: [{}] by user with id: [{}]", commentId, userId);
-
-        // 댓글을 ID로 조회하고, 없으면 예외 발생.
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> {
-                    log.error("Comment not found with id: [{}]", commentId);
-                    return new ResourceNotFoundException("Comment not found with id: " + commentId);
-                });
-
-        // 댓글 작성자와 요청 사용자가 일치하지 않으면 권한 없음 예외 발생
         if (!comment.getUser().getId().equals(userId)) {
-            log.warn("User not authorized to delete commentId: [{}] by userId: [{}]", commentId, userId);
-            throw new UnauthorizedActionException("User not authorized to delete this post");
+            log.warn("The user with ID [{}] is not authorized to delete the comment with ID [{}] on post with ID [{}]",
+                    userId, commentId, postId);
+            throw new UnauthorizedActionException("User not authorized to delete this comment");
         }
 
-        // 댓글을 삭제함
-        log.info("Deleting comment with id: [{}]", commentId);
         commentRepository.delete(comment);
         log.info("Successfully deleted comment with id: [{}]", commentId);
     }
+
+    /**
+     * 특정 댓글을 조회하여 수정 또는 삭제를 위해 반환합니다.
+     *
+     * @param commentId 댓글 ID
+     * @param postId    게시글 ID
+     * @return Comment 객체
+     * @throws ResourceNotFoundException 댓글이 존재하지 않는 경우
+     */
+    private Comment findCommentOrThrow(Long commentId, Long postId) {
+        return commentRepository.findByIdAndPostId(commentId, postId)
+                .orElseThrow(() -> {
+                    return new ResourceNotFoundException(
+                            String.format("Comment not found with commentId: [%d], postId: [%d]",
+                                    commentId, postId));
+                });
+    }
+
 }

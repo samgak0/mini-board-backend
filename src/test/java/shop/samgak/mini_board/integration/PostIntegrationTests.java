@@ -3,7 +3,6 @@ package shop.samgak.mini_board.integration;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -17,7 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import static org.springframework.http.HttpHeaders.SET_COOKIE;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -44,10 +43,10 @@ public class PostIntegrationTests {
     private int port;
 
     @Value("${app.hostname:localhost}")
-    String hostname;
+    private String hostname;
 
     @Value("${app.secure:false}")
-    boolean secure;
+    private boolean secure;
 
     @BeforeEach
     public void setup() {
@@ -67,7 +66,7 @@ public class PostIntegrationTests {
 
         ResponseEntity<String> postsResponse = restClient.get()
                 .uri(postsUrl)
-                .header("Cookie", sessionCookie)
+                .header(HttpHeaders.COOKIE, sessionCookie)
                 .retrieve()
                 .toEntity(String.class);
 
@@ -98,15 +97,14 @@ public class PostIntegrationTests {
     @Test
     public void testCreatePostAsLoggedInUser() throws Exception {
         String sessionCookie = loginUser("user", "password");
-        Map<String, String> postRequest = new HashMap<>();
-        postRequest.put("title", "New Post Title");
-        postRequest.put("content", "Content of the new post");
+        String title = "New Post Title";
+        String content = "Content of the new post";
 
         ResponseEntity<String> postResponse = restClient.post()
                 .uri(postsUrl)
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Cookie", sessionCookie)
-                .body(postRequest)
+                .header(HttpHeaders.COOKIE, sessionCookie)
+                .body(Map.of("title", title, "content", content))
                 .retrieve()
                 .toEntity(String.class);
 
@@ -119,15 +117,14 @@ public class PostIntegrationTests {
      */
     @Test
     public void testCreatePostAsNotLoggedInUser() throws Exception {
-        Map<String, String> postRequest = new HashMap<>();
-        postRequest.put("title", "Unauthorized Post Title");
-        postRequest.put("content", "Content of the unauthorized post");
+        String title = "Unauthorized Post Title";
+        String content = "Content of the unauthorized post";
 
         try {
             restClient.post()
                     .uri(postsUrl)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(postRequest)
+                    .body(Map.of("title", title, "content", content))
                     .retrieve()
                     .toEntity(String.class);
             fail("Expected HttpClientErrorException to be thrown");
@@ -143,15 +140,14 @@ public class PostIntegrationTests {
     @Test
     public void testUpdatePostAsLoggedInUser() throws Exception {
         String sessionCookie = loginUser("user", "password");
-        Map<String, String> updateRequest = new HashMap<>();
-        updateRequest.put("title", "Updated Post Title");
-        updateRequest.put("content", "Updated content of the post");
+        String title = "Updated Post Title";
+        String content = "Updated content of the post";
 
         ResponseEntity<String> updateResponse = restClient.put()
                 .uri(postsUrl + "/{id}", 1)
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Cookie", sessionCookie)
-                .body(updateRequest)
+                .header(HttpHeaders.COOKIE, sessionCookie)
+                .body(Map.of("title", title, "content", content))
                 .retrieve()
                 .toEntity(String.class);
 
@@ -168,7 +164,7 @@ public class PostIntegrationTests {
 
         ResponseEntity<String> deleteResponse = restClient.delete()
                 .uri(postsUrl + "/{id}", 1)
-                .header("Cookie", sessionCookie)
+                .header(HttpHeaders.COOKIE, sessionCookie)
                 .retrieve()
                 .toEntity(String.class);
 
@@ -193,17 +189,14 @@ public class PostIntegrationTests {
      * @return 세션 쿠키 문자열
      */
     private String loginUser(String username, String password) throws Exception {
-        Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("username", username);
-        loginRequest.put("password", password);
 
         ResponseEntity<String> loginResponse = restClient.post()
                 .uri(loginUrl)
-                .body(loginRequest)
+                .body(Map.of("username", username, "password", password))
                 .retrieve()
                 .toEntity(String.class);
 
         assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        return loginResponse.getHeaders().getFirst(SET_COOKIE);
+        return loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
     }
 }

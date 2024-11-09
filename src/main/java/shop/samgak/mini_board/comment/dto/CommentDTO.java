@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import shop.samgak.mini_board.post.dto.PostDTO;
 import shop.samgak.mini_board.user.dto.UserDTO;
 
@@ -17,6 +18,7 @@ import shop.samgak.mini_board.user.dto.UserDTO;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(exclude = { "user", "post", "parentComment" })
 public class CommentDTO {
     /**
      * 댓글 ID (고유 식별자)
@@ -26,11 +28,13 @@ public class CommentDTO {
     /**
      * 댓글 작성자 정보
      */
+    @JsonIgnore
     private UserDTO user;
 
     /**
      * 댓글이 달린 게시물 정보
      */
+    @JsonIgnore
     private PostDTO post;
 
     /**

@@ -1,6 +1,7 @@
 package shop.samgak.mini_board.comment.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -18,4 +19,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
      * @return 해당 게시물에 속한 댓글 리스트
      */
     List<Comment> findByPostId(Long postId);
+
+    Optional<Comment> findByIdAndPostId(Long commentId, Long postId);
 }

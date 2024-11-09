@@ -86,7 +86,6 @@ public class PostFileContorller {
                 Path uploadPath = Paths.get(uploadProperties.getUploadDir());
                 Path filePath = uploadPath.resolve(postFileDTO.getFileName());
 
-                // 파일 읽기 가능 여부 확인
                 if (!Files.isReadable(filePath)) {
                         log.warn("Unable to read file at path: [{}]", filePath);
                         return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -123,25 +122,20 @@ public class PostFileContorller {
                 String contentType = file.getContentType();
                 long fileSize = file.getSize();
 
-                // 현재 로그인된 사용자 정보 가져옴
                 UserDTO userDTO = AuthUtils.getCurrentUser();
                 log.info("Request to upload file - Post ID: [{}], User ID: [{}], Param name : [], File metadata [filename={}], [contentType={}], [fileSize={}]",
                                 postId, userDTO.getId(), filename, contentType,
                                 fileSize);
 
-                // 고유 파일 이름 생성
                 Path generateUniqueFilePath = postFileService.generateUniqueFilePath();
 
-                // 파일 정보를 데이터베이스에 저장
                 PostFileDTO postFileDTO = postFileService.writePostFileInfo(postId, filename,
                                 generateUniqueFilePath.getFileName().toString(),
                                 contentType,
                                 fileSize, userDTO);
 
-                // 파일 실제 이동
                 postFileService.writePostFile(file, generateUniqueFilePath, postId);
 
-                // 생성된 파일의 URI 반환
                 URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
                                 .path("/api/users/{id}")
                                 .buildAndExpand(postFileDTO.getId())
@@ -156,13 +150,10 @@ public class PostFileContorller {
                         @PathVariable Long postFileId) throws IOException {
                 log.info("Request to delete file - postId: [{}], postFileId: [{}]", postId, postFileId);
 
-                // 현재 로그인된 사용자 정보 가져옴
                 UserDTO userDTO = AuthUtils.getCurrentUser();
 
-                // 파일 정보 삭제
                 PostFileDTO postFileDTO = postFileService.deleteFileInfo(postFileId, userDTO);
 
-                // 파일 삭제 수행
                 boolean isDeleted = postFileService.deleteFile(postFileDTO.getFileName());
                 if (!isDeleted) {
                         String errorMessage = "File delete failed because the file does not exist - File ID ["

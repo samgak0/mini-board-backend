@@ -22,10 +22,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import shop.samgak.mini_board.security.WithMockMyUserDetails;
 import shop.samgak.mini_board.user.controllers.UserController;
+import shop.samgak.mini_board.user.controllers.UserController.RegisterRequest;
 import shop.samgak.mini_board.user.services.UserService;
 
 @ActiveProfiles("test")
@@ -66,11 +69,9 @@ public class UserControllerUnitTest {
 
                 when(userService.existUsername(username)).thenReturn(false);
 
-                String requestBody = objectMapper.writeValueAsString(new UsernameRequest(username));
-
                 MvcResult result = mockMvc.perform(post(API_USERS_CHECK_USERNAME)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestBody))
+                                .content(objectMapper.writeValueAsString(Map.of("username", username))))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE)
                                                 .value("Username is available"))
@@ -93,11 +94,9 @@ public class UserControllerUnitTest {
 
                 when(userService.existEmail(email)).thenReturn(false);
 
-                String requestBody = objectMapper.writeValueAsString(new EmailRequest(email));
-
                 MvcResult result = mockMvc.perform(post(API_USERS_CHECK_EMAIL)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestBody))
+                                .content(objectMapper.writeValueAsString(Map.of("email", email))))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath(JSON_PATH_MESSAGE)
                                                 .value("Email is available"))
@@ -147,7 +146,7 @@ public class UserControllerUnitTest {
         public void testChangePasswordSuccess() throws Exception {
                 String validPassword = "ValidPassword1!";
 
-                String requestBody = objectMapper.writeValueAsString(new PasswordRequest(validPassword));
+                String requestBody = objectMapper.writeValueAsString(Map.of("password", validPassword));
 
                 mockMvc.perform(put(API_USERS_PASSWORD)
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -164,7 +163,7 @@ public class UserControllerUnitTest {
         public void testChangePasswordInvalidFailure() throws Exception {
                 String invalidPassword = "short";
 
-                String requestBody = objectMapper.writeValueAsString(new PasswordRequest(invalidPassword));
+                String requestBody = objectMapper.writeValueAsString(Map.of("password", invalidPassword));
 
                 mockMvc.perform(put(API_USERS_PASSWORD)
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -198,17 +197,5 @@ public class UserControllerUnitTest {
                                                 .value("Authentication is required"))
                                 .andExpect(jsonPath(JSON_PATH_CODE)
                                                 .value("FAILURE"));
-        }
-
-        record UsernameRequest(String username) {
-        }
-
-        record EmailRequest(String email) {
-        }
-
-        record RegisterRequest(String username, String email, String password) {
-        }
-
-        record PasswordRequest(String password) {
         }
 }

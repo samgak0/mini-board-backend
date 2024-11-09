@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import shop.samgak.mini_board.post.entities.PostFile;
 import shop.samgak.mini_board.user.dto.UserDTO;
 
@@ -16,6 +17,7 @@ import shop.samgak.mini_board.user.dto.UserDTO;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(exclude = { "user", "postFiles" })
 public class PostDTO {
     /**
      * 게시글 ID

@@ -51,9 +51,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         String password = (String) authentication.getCredentials();
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> {
-                    return new UserNotFoundException(username);
-                });
+                .orElseThrow(() -> new UserNotFoundException(username));
 
         UserDTO userDTO = userMapper.toDTO(user);
         log.debug("userDTO = ", userDTO);

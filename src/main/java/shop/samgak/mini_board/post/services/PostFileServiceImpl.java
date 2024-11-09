@@ -54,10 +54,8 @@ public class PostFileServiceImpl implements PostFileService {
     public PostFileDTO getItem(Long postFileId, Long postId) {
         return postFileRepository.findByIdAndPostId(postFileId, postId)
                 .map(postFileMapper::toDTO)
-                .orElseThrow(() -> {
-                    return new ResourceNotFoundException(
-                            "PostFile not found with Post ID: [" + postId + "] and PostFile ID: [" + postFileId + "]");
-                });
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "PostFile not found with Post ID: [" + postId + "] and PostFile ID: [" + postFileId + "]"));
     }
 
     @Override
@@ -144,19 +142,13 @@ public class PostFileServiceImpl implements PostFileService {
     private Post findPostOrThrow(Long postId) {
         log.debug("Fetching post with ID: {}", postId);
         return postRepository.findByIdAndDeletedAtIsNull(postId)
-                .orElseThrow(() -> {
-                    log.error("Post not found with ID: {}", postId);
-                    return new ResourceNotFoundException("Post not found with id: " + postId);
-                });
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + postId));
     }
 
     private PostFile findPostFileOrThrow(Long postFileId) {
         log.debug("Fetching post file with ID: {}", postFileId);
         return postFileRepository.findById(postFileId)
-                .orElseThrow(() -> {
-                    log.error("Post file not found with ID: {}", postFileId);
-                    return new ResourceNotFoundException("Post File not found with id: " + postFileId);
-                });
+                .orElseThrow(() -> new ResourceNotFoundException("Post File not found with id: " + postFileId));
     }
 
     @Override

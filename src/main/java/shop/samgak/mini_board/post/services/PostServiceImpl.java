@@ -7,8 +7,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +18,7 @@ import shop.samgak.mini_board.post.mapper.PostMapper;
 import shop.samgak.mini_board.post.repositories.PostRepository;
 import shop.samgak.mini_board.user.dto.UserDTO;
 import shop.samgak.mini_board.user.entities.User;
+import shop.samgak.mini_board.user.repositories.UserRepository;
 
 /**
  * 게시물 관련 기능을 구현하는 서비스 클래스
@@ -29,11 +28,9 @@ import shop.samgak.mini_board.user.entities.User;
 @Slf4j
 public class PostServiceImpl implements PostService {
     private static final String SESSION_VIEWED_POSTS = "viewedPosts";
+    private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final PostMapper postMapper;
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     @Override
     public List<PostDTO> getTop10() {
@@ -69,7 +66,8 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Long create(String title, String content, UserDTO userDTO) {
-        User user = entityManager.getReference(User.class, userDTO.getId());
+        User user = userRepository.findById(userDTO.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userDTO.getId()));
         Post post = new Post(null, user, title, content, 0L, Instant.now(), Instant.now(), null, null);
         Post savedPost = postRepository.save(post);
         return savedPost.getId();

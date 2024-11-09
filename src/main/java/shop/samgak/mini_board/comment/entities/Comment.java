@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.ToString;
 import shop.samgak.mini_board.post.entities.Post;
 import shop.samgak.mini_board.user.entities.User;
 
@@ -23,6 +24,7 @@ import shop.samgak.mini_board.user.entities.User;
 @Entity
 @Table(name = "comments")
 @Data
+@ToString(exclude = { "user", "post" })
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comments_seq")
@@ -33,14 +35,14 @@ public class Comment {
     /**
      * 댓글 작성자 정보. 댓글은 특정 사용자에 의해 작성
      */
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
     private User user;
 
     /**
      * 댓글이 속한 게시물 정보. 각 댓글은 특정 게시물에 속함
      */
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "post_id", nullable = false, updatable = false)
     private Post post;
 

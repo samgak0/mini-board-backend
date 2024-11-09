@@ -1,7 +1,6 @@
 package shop.samgak.mini_board.integration;
 
 import java.util.List;
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,10 +46,10 @@ public class UserIntegrationTests {
     private int port;
 
     @Value("${app.hostname:localhost}")
-    String hostname;
+    private String hostname;
 
     @Value("${app.secure:false}")
-    boolean secure;
+    private boolean secure;
 
     @BeforeEach
     public void setup() {
@@ -73,15 +72,10 @@ public class UserIntegrationTests {
         when(userService.existEmail(email)).thenReturn(true);
         when(userService.existUsername(username)).thenReturn(false);
 
-        Map<String, String> registerRequest = new HashMap<>();
-        registerRequest.put("username", username);
-        registerRequest.put("email", email);
-        registerRequest.put("password", password);
-
         try {
             restClient.post()
                     .uri("/api/users/register")
-                    .body(registerRequest)
+                    .body(Map.of("username", username, "email", email, "password", password))
                     .retrieve()
                     .toEntity(String.class);
         } catch (HttpClientErrorException e) {
@@ -109,15 +103,10 @@ public class UserIntegrationTests {
         when(userService.existUsername(username)).thenReturn(true);
         when(userService.existEmail(email)).thenReturn(false);
 
-        Map<String, String> registerRequest = new HashMap<>();
-        registerRequest.put("username", username);
-        registerRequest.put("email", email);
-        registerRequest.put("password", password);
-
         try {
             restClient.post()
                     .uri("/api/users/register")
-                    .body(registerRequest)
+                    .body(Map.of("username", username, "email", email, "password", password))
                     .retrieve()
                     .toEntity(String.class);
             fail("Expected HttpClientErrorException to be thrown");
@@ -142,14 +131,10 @@ public class UserIntegrationTests {
         String email = "newuser@example.com";
         String password = "password123";
 
-        Map<String, String> registerRequest = new HashMap<>();
-        registerRequest.put("email", email);
-        registerRequest.put("password", password);
-
         try {
             restClient.post()
                     .uri("/api/users/register")
-                    .body(registerRequest)
+                    .body(Map.of("email", email, "password", password))
                     .retrieve()
                     .toEntity(String.class);
             fail("Expected HttpClientErrorException to be thrown");
@@ -167,14 +152,10 @@ public class UserIntegrationTests {
         String username = "newUser";
         String email = "newuser@example.com";
 
-        Map<String, String> registerRequest = new HashMap<>();
-        registerRequest.put("username", username);
-        registerRequest.put("email", email);
-
         try {
             restClient.post()
                     .uri("/api/users/register")
-                    .body(registerRequest)
+                    .body(Map.of("username", username, "email", email))
                     .retrieve()
                     .toEntity(String.class);
         } catch (HttpClientErrorException e) {
@@ -204,13 +185,12 @@ public class UserIntegrationTests {
      */
     @Test
     public void testMeAuthorizedAfterLogin() throws Exception {
-        Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("username", "user");
-        loginRequest.put("password", "password");
+        String username = "user";
+        String password = "password";
 
         ResponseEntity<String> loginResponse = restClient.post()
                 .uri("/api/auth/login")
-                .body(loginRequest)
+                .body(Map.of("username", username, "password", password))
                 .retrieve()
                 .toEntity(String.class);
         assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);

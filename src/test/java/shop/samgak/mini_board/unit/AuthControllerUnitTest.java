@@ -1,6 +1,5 @@
 package shop.samgak.mini_board.unit;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -24,9 +23,9 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -61,10 +60,6 @@ public class AuthControllerUnitTest {
                 String username = "testUser";
                 String password = "testPassword";
 
-                Map<String, String> requestBody = new HashMap<>();
-                requestBody.put("username", username);
-                requestBody.put("password", password);
-
                 Authentication authentication = new UsernamePasswordAuthenticationToken(username, null);
                 UserDetails userDetails = mock(UserDetails.class);
 
@@ -75,8 +70,10 @@ public class AuthControllerUnitTest {
 
                 mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(requestBody)))
+                                .content(objectMapper.writeValueAsString(
+                                                Map.of("username", username, "password", password))))
                                 .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.message").value("Login successful"))
                                 .andExpect(jsonPath("$.code").value("SUCCESS"));
         }
@@ -86,18 +83,15 @@ public class AuthControllerUnitTest {
                 String username = "invalidUser";
                 String password = "invalidPassword";
 
-                Map<String, String> requestBody = new HashMap<>();
-                requestBody.put("username", username);
-                requestBody.put("password", password);
-
                 when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                                 .thenThrow(new UserNotFoundException(username));
 
                 mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(requestBody)))
+                                .content(objectMapper.writeValueAsString(
+                                                Map.of("username", username, "password", password))))
                                 .andExpect(status().isUnauthorized())
-                                .andDo(MockMvcResultHandlers.print())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.message").value("User not found: " + username))
                                 .andExpect(jsonPath("$.code").value("FAILURE"));
         }
@@ -106,13 +100,11 @@ public class AuthControllerUnitTest {
         public void testLoginFailureMissingUsername() throws Exception {
                 String password = "testPassword";
 
-                Map<String, String> requestBody = new HashMap<>();
-                requestBody.put("password", password);
-
                 mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(requestBody)))
+                                .content(objectMapper.writeValueAsString(Map.of("password", password))))
                                 .andExpect(status().isBadRequest())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.message").value("username: Missing required parameter;"))
                                 .andExpect(jsonPath("$.code").value("FAILURE"));
         }
@@ -121,13 +113,11 @@ public class AuthControllerUnitTest {
         public void testLoginFailureMissingPassword() throws Exception {
                 String username = "testUser";
 
-                Map<String, String> requestBody = new HashMap<>();
-                requestBody.put("username", username);
-
                 mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(requestBody)))
+                                .content(objectMapper.writeValueAsString(Map.of("username", username))))
                                 .andExpect(status().isBadRequest())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.message").value("password: Missing required parameter;"))
                                 .andExpect(jsonPath("$.code").value("FAILURE"));
         }
@@ -153,6 +143,7 @@ public class AuthControllerUnitTest {
                 mockMvc.perform(post("/api/auth/logout")
                                 .session(localSession))
                                 .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.message").value("Logout successful"))
                                 .andExpect(jsonPath("$.code").value("SUCCESS"));
         }
@@ -161,6 +152,7 @@ public class AuthControllerUnitTest {
         public void testLogoutUserNotFound() throws Exception {
                 mockMvc.perform(post("/api/auth/logout"))
                                 .andExpect(status().isUnauthorized())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.message").value("Authentication is required"))
                                 .andExpect(jsonPath("$.code").value("FAILURE"));
         }

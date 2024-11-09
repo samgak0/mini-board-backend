@@ -25,19 +25,21 @@ public interface CommentService {
         CommentDTO create(String content, Long postId, Long userId);
 
         /**
-         * 특정 댓글을 수정합
+         * 특정 댓글을 수정합니다.
          * 
          * @param commentId 수정할 댓글의 ID
+         * @param postId    수정할 댓글의 소속 글 ID
          * @param content   수정된 댓글 내용
          * @param userId    댓글을 수정하는 사용자의 ID
          */
-        void update(Long commentId, String content, Long userId);
+        void update(Long commentId, Long postId, String content, Long userId);
 
         /**
-         * 특정 댓글을 삭제
+         * 특정 댓글을 삭제합니다.
          * 
          * @param commentId 삭제할 댓글의 ID
+         * @param postId    수정할 댓글의 소속 글 ID
          * @param userId    댓글을 삭제하는 사용자의 ID
          */
-        void delete(Long commentId, Long userId);
+        void delete(Long commentId, Long postId, Long userId);
 }

@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -56,6 +58,20 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 사용자에게서 온 타입과 요청 파라미터 타입이 불일치한 경우
+     * ex) 숫자(Long) 자리에 문자(String)가 들어감
+     * 
+     * @param e 불일치 요청 파라미터 예외
+     * @return 요청 파라미터 누락 메시지와 HTTP 400 상태 코드
+     */
+    @ExceptionHandler(MissingPathVariableException.class)
+    public ResponseEntity<ApiResponse> handleMissingPathVariableException(
+            MissingPathVariableException e) {
+        String errorMessage = String.format("Path variable was not provided: %s", e.getParameter().getParameterName());
+        return ResponseEntity.badRequest().body(new ApiFailureResponse(errorMessage));
+    }
+
+    /**
      * 메서드 인자 유효성 검사 실패 시 처리
      * 
      * @param e 유효하지 않은 메서드 인자 예외
@@ -88,6 +104,18 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(MissingParameterException.class)
     public ResponseEntity<ApiResponse> handleMissingParameterException(MissingParameterException e) {
+        return ResponseEntity.badRequest()
+                .body(new ApiFailureResponse(e.getMessage()));
+    }
+
+    /**
+     * 미 지원 컨탠츠 타입(application/json 이외) 예외 처리
+     * 
+     * @param e 사용자 정의 누락 파라미터 예외
+     * @return 오류 메시지와 HTTP 400 상태 코드
+     */
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ApiResponse> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException e) {
         return ResponseEntity.badRequest()
                 .body(new ApiFailureResponse(e.getMessage()));
     }
@@ -206,7 +234,6 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 런타임 예외 처리 - 디버그 모드일 경우 스택 트레이스를 포함해 응답
      * 
      * @param e 런타임 예외
      * @return 예외 메시지와 HTTP 500 상태 코드

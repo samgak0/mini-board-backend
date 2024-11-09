@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void changePassword(String username, String newPassword) throws IllegalArgumentException {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with username : [" + username + "]"));
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }

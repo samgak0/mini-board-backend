@@ -3,6 +3,7 @@ package shop.samgak.mini_board.unit;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,12 +17,16 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 import shop.samgak.mini_board.comment.controllers.CommentController;
 import shop.samgak.mini_board.comment.dto.CommentDTO;
@@ -41,6 +46,9 @@ public class CommentControllerUnitTest {
 
         @MockBean
         private CommentService commentService;
+
+        @Autowired
+        private ObjectMapper objectMapper;
 
         @BeforeEach
         public void setUp() {
@@ -73,11 +81,12 @@ public class CommentControllerUnitTest {
                 mockMvc.perform(get("/api/posts/{postId}/comments", postId)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.data.length()").value(2))
                                 .andExpect(jsonPath("$.data[0].content").value("First Comment"))
                                 .andExpect(jsonPath("$.data[1].content").value("Second Comment"))
                                 .andExpect(jsonPath("$.code").value("SUCCESS"))
-                                .andExpect(jsonPath("$.message").value("Comments retrieved successfully"));
+                                .andExpect(jsonPath("$.message").value("success"));
         }
 
         @Test
@@ -86,13 +95,16 @@ public class CommentControllerUnitTest {
                 Long postId = 1L;
 
                 when(commentService.get(postId))
-                                .thenThrow(new ResourceNotFoundException("Comment not found with Post ID : " + postId));
+                                .thenThrow(new ResourceNotFoundException(
+                                                "Comment not found with Post ID : [" + postId + "]"));
 
                 mockMvc.perform(get("/api/posts/{postId}/comments", postId)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isNotFound())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.code").value("FAILURE"))
-                                .andExpect(jsonPath("$.message").value("Comment not found with Post ID : " + postId));
+                                .andExpect(jsonPath("$.message")
+                                                .value("Comment not found with Post ID : [" + postId + "]"));
         }
 
         @Test
@@ -101,10 +113,13 @@ public class CommentControllerUnitTest {
                 Long postId = 1L;
 
                 mockMvc.perform(post("/api/posts/{postId}/comments", postId)
-                                .param("content", content))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(Map.of("content", content))))
                                 .andExpect(status().isUnauthorized())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.code").value("FAILURE"))
-                                .andExpect(jsonPath("$.message").value("User not authorized"));
+                                .andExpect(jsonPath("$.message")
+                                                .value("Authentication is required"));
         }
 
         @Test
@@ -114,8 +129,9 @@ public class CommentControllerUnitTest {
 
                 mockMvc.perform(post("/api/posts/{postId}/comments", postId))
                                 .andExpect(status().isBadRequest())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.code").value("FAILURE"))
-                                .andExpect(jsonPath("$.message").value("Content is required"));
+                                .andExpect(jsonPath("$.message").value("Required request body is missing"));
         }
 
         @Test
@@ -138,9 +154,11 @@ public class CommentControllerUnitTest {
 
                 when(commentService.create(content, postId, userId)).thenReturn(commentDTO);
 
-                mockMvc.perform(post("/api/posts/{commentId}/comments", postId)
-                                .param("content", content))
+                mockMvc.perform(post("/api/posts/{postId}/comments", postId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(Map.of("content", content))))
                                 .andExpect(status().isCreated())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.code").value("SUCCESS"))
                                 .andExpect(jsonPath("$.message").value("Comment created successfully"));
         }
@@ -149,14 +167,16 @@ public class CommentControllerUnitTest {
         @WithMockMyUserDetails
         public void updateCommentSuccess() throws Exception {
                 Long postId = 1L;
-                String content = "Updated Content";
                 Long commentId = 1L;
+                String content = "Updated Content";
 
-                doNothing().when(commentService).update(commentId, content, 1L);
+                doNothing().when(commentService).update(commentId, postId, content, 1L);
 
                 mockMvc.perform(put("/api/posts/{postId}/comments/{commentId}", postId, commentId)
-                                .param("content", content))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(Map.of("content", content))))
                                 .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.code").value("SUCCESS"))
                                 .andExpect(jsonPath("$.message").value("Comment updated successfully"));
         }
@@ -168,10 +188,12 @@ public class CommentControllerUnitTest {
                 String content = "Updated Content";
 
                 mockMvc.perform(put("/api/posts/{postId}/comments/{commentId}", postId, commentId)
-                                .param("content", content))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(Map.of("content", content))))
                                 .andExpect(status().isUnauthorized())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.code").value("FAILURE"))
-                                .andExpect(jsonPath("$.message").value("User not authorized"));
+                                .andExpect(jsonPath("$.message").value("Authentication is required"));
         }
 
         @Test
@@ -179,11 +201,13 @@ public class CommentControllerUnitTest {
         public void deleteCommentSuccess() throws Exception {
                 Long postId = 1L;
                 Long commentId = 1L;
+                Long userId = 1L;
 
-                doNothing().when(commentService).delete(commentId, 1L);
+                doNothing().when(commentService).delete(commentId, postId, userId);
 
                 mockMvc.perform(delete("/api/posts/{postId}/comments/{commentId}", postId, commentId))
                                 .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.code").value("SUCCESS"))
                                 .andExpect(jsonPath("$.message").value("Comment deleted successfully"));
         }
@@ -195,7 +219,8 @@ public class CommentControllerUnitTest {
 
                 mockMvc.perform(delete("/api/posts/{postId}/comments/{commentId}", postId, commentId))
                                 .andExpect(status().isUnauthorized())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.code").value("FAILURE"))
-                                .andExpect(jsonPath("$.message").value("User not authorized"));
+                                .andExpect(jsonPath("$.message").value("Authentication is required"));
         }
 }

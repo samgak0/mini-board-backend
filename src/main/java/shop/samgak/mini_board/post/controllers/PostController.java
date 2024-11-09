@@ -98,13 +98,13 @@ public class PostController {
      */
     @PutMapping("/{postId}")
     public ResponseEntity<ApiResponse> updatePost(@PathVariable("postId") Long id,
-            @Valid @RequestBody UpdatePostRequest updatePostRequest) {
-        if (updatePostRequest.title == null && updatePostRequest.content == null) {
+            @Valid @RequestBody UpdatePostRequest request) {
+        if (request.title == null && request.content == null) {
             throw new MissingParameterException("There must be a title or content");
         }
         UserDTO userDTO = AuthUtils.getCurrentUser();
         log.info("Request to update post with post ID: [{}] by user ID: [{}]", id, userDTO.getId());
-        postService.update(id, updatePostRequest.title, updatePostRequest.content, userDTO);
+        postService.update(id, request.title, request.content, userDTO);
         return ResponseEntity.ok(new ApiSuccessResponse());
     }
 

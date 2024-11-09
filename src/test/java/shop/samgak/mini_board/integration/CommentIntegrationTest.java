@@ -3,7 +3,7 @@ package shop.samgak.mini_board.integration;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.sql.Timestamp;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -18,7 +18,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import org.springframework.http.MediaType;
@@ -31,7 +30,11 @@ import org.springframework.web.client.RestClient;
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 public class CommentIntegrationTest {
 
-    private final String commentsUrl = "/api/posts/{postId}/comments";
+    private final String commentGetUrl = "/api/posts/{postId}/comments";
+    private final String commentCreateUrl = "/api/posts/{postId}/comments";
+    private final String commentUpdateUrl = "/api/posts/{postId}/comments/{commentId}";
+    private final String commentDeleteUrl = "/api/posts/{postId}/comments/{commentId}";
+
     private final String loginUrl = "/api/auth/login";
 
     @Autowired
@@ -43,10 +46,10 @@ public class CommentIntegrationTest {
     private int port;
 
     @Value("${app.hostname:localhost}")
-    String hostname;
+    private String hostname;
 
     @Value("${app.secure:false}")
-    boolean secure;
+    private boolean secure;
 
     @BeforeEach
     public void setup() {
@@ -62,8 +65,8 @@ public class CommentIntegrationTest {
         Long postId = 1L;
 
         ResponseEntity<String> commentsResponse = restClient.get()
-                .uri(commentsUrl, postId)
-                .header("Cookie", sessionCookie)
+                .uri(commentGetUrl, postId)
+                .header(HttpHeaders.COOKIE, sessionCookie)
                 .retrieve()
                 .toEntity(String.class);
 
@@ -75,7 +78,7 @@ public class CommentIntegrationTest {
         Long postId = 1L;
         try {
             restClient.get()
-                    .uri(commentsUrl, postId)
+                    .uri(commentGetUrl, postId)
                     .retrieve()
                     .toEntity(String.class);
         } catch (HttpClientErrorException e) {
@@ -87,30 +90,27 @@ public class CommentIntegrationTest {
     public void testCreateCommentAsLoggedInUser() throws Exception {
         Long postId = 1L;
         String sessionCookie = loginUser("user", "password");
-        Map<String, String> commentRequest = new HashMap<>();
-        commentRequest.put("content", "New Comment Content");
 
         ResponseEntity<String> commentResponse = restClient.post()
-                .uri(commentsUrl, postId)
+                .uri(commentCreateUrl, postId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Cookie", sessionCookie)
-                .body(commentRequest)
+                .header(HttpHeaders.COOKIE, sessionCookie)
+                .body(Map.of("content", "New Comment Content"))
                 .retrieve()
                 .toEntity(String.class);
 
-        assertThat(commentResponse.getStatusCode()).isEqualTo(CREATED);
+        assertThat(commentResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     }
 
     @Test
     public void testCreateCommentAsNotLoggedInUser() throws Exception {
-        Map<String, String> commentRequest = new HashMap<>();
-        commentRequest.put("content", "Unauthorized Comment Content");
-
+        Long commentId = 1L;
+        Long postId = 1L;
         try {
             restClient.post()
-                    .uri(commentsUrl, 1)
+                    .uri(commentDeleteUrl, postId, commentId)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(commentRequest)
+                    .body(Map.of("content", "Unauthorized Comment Content"))
                     .retrieve()
                     .toEntity(String.class);
         } catch (HttpClientErrorException e) {
@@ -120,29 +120,29 @@ public class CommentIntegrationTest {
 
     @Test
     public void testUpdateCommentAsLoggedInUser() throws Exception {
+        Long commentId = 1L;
+        Long postId = 1L;
         String sessionCookie = loginUser("user", "password");
 
-        Map<String, String> updateRequest = new HashMap<>();
-        updateRequest.put("content", "Updated Comment Content");
-
         ResponseEntity<String> updateResponse = restClient.put()
-                .uri(commentsUrl + "/{commentId}", 1, 1)
+                .uri(commentUpdateUrl, postId, commentId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Cookie", sessionCookie)
-                .body(updateRequest)
+                .header(HttpHeaders.COOKIE, sessionCookie)
+                .body(Map.of("content", "Updated Comment Content"))
                 .retrieve()
                 .toEntity(String.class);
-
         assertThat(updateResponse.getStatusCode()).isEqualTo(OK);
     }
 
     @Test
     public void testDeleteCommentAsLoggedInUser() throws Exception {
+        Long commentId = 1L;
+        Long postId = 1L;
         String sessionCookie = loginUser("user", "password");
 
         ResponseEntity<String> deleteResponse = restClient.delete()
-                .uri(commentsUrl + "/{commentId}", 1, 1)
-                .header("Cookie", sessionCookie)
+                .uri(commentDeleteUrl, commentId, postId)
+                .header(HttpHeaders.COOKIE, sessionCookie)
                 .retrieve()
                 .toEntity(String.class);
 
@@ -151,35 +151,41 @@ public class CommentIntegrationTest {
         restoreCommentDelete();
     }
 
-    private void restoreCommentDelete() throws SQLException {
-        String sql = "INSERT INTO SAMGAK_TEST.POSTS " +
-                "(ID, USER_ID, TITLE, CONTENT, CREATED_AT, UPDATED_AT, VIEW_COUNT, DELETED_AT) " +
-                "VALUES (?, ?, ?, TO_CLOB(?), ?, ?, ?, ?)";
+    public void restoreCommentDelete() throws SQLException {
+
+        int id = 1;
+        int postId = 1;
+        int userId = 1;
+        Timestamp createdAt = Timestamp.valueOf("2024-09-19 15:36:42.512476");
+        Timestamp updatedAt = Timestamp.valueOf("2024-10-25 14:12:39.910166");
+        String content = "첫 번째 댓글입니다.";
+
+        // SQL INSERT 쿼리
+        String sql = "INSERT INTO COMMENTS " +
+                "(ID, POST_ID, USER_ID, CREATED_AT, PARENT_COMMENT_ID, UPDATED_AT, CONTENT) " +
+                "VALUES (?, ?, ?, ?, NULL, ?, ?)";
 
         try (Connection connection = dataSource.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            statement.setInt(1, 1);
-            statement.setInt(2, 1);
-            statement.setString(3, "Updated Post Title");
-            statement.setString(4, "Updated content of the post");
-            statement.setTimestamp(5, java.sql.Timestamp.valueOf("2024-09-26 17:58:39.494061"));
-            statement.setTimestamp(6, java.sql.Timestamp.valueOf("2024-10-30 04:37:58.257705"));
-            statement.setInt(7, 11);
-            statement.setNull(8, java.sql.Types.TIMESTAMP);
+            // 각 필드에 지역 변수 값 설정
+            statement.setInt(1, id);
+            statement.setInt(2, postId);
+            statement.setInt(3, userId);
+            statement.setTimestamp(4, createdAt);
+            statement.setTimestamp(5, updatedAt);
+            statement.setString(6, content);
 
+            // SQL 쿼리 실행
             statement.executeUpdate();
         }
     }
 
     private String loginUser(String username, String password) throws Exception {
-        Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("username", username);
-        loginRequest.put("password", password);
 
         ResponseEntity<String> loginResponse = restClient.post()
                 .uri(loginUrl)
-                .body(loginRequest)
+                .body(Map.of("username", username, "password", password))
                 .retrieve()
                 .toEntity(String.class);
 

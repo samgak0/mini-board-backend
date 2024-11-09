@@ -19,6 +19,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import shop.samgak.mini_board.user.entities.User;
 
 /**
@@ -29,6 +30,7 @@ import shop.samgak.mini_board.user.entities.User;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(exclude = { "user", "postFiles" })
 public class Post {
     /**
      * 게시물 ID (기본 키)

@@ -1,6 +1,5 @@
 package shop.samgak.mini_board.integration;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,10 +21,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * 통합 테스트 클래스 AuthIntegrationTest.
- * Spring Boot의 RestClient를 사용해 인증 관련 엔드포인트를 테스트합니다.
- */
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 public class AuthIntegrationTest {
@@ -40,9 +35,9 @@ public class AuthIntegrationTest {
     private int port;
 
     @Value("${app.hostname:localhost}")
-    String hostname;
+    private String hostname;
     @Value("${app.secure:false}")
-    boolean secure;
+    private boolean secure;
 
     @BeforeEach
     public void setup() {
@@ -59,13 +54,12 @@ public class AuthIntegrationTest {
      */
     @Test
     public void testLoginSuccess() throws Exception {
-        Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("username", "user");
-        loginRequest.put("password", "password");
+        String username = "user";
+        String password = "password";
 
         ResponseEntity<String> response = restClient.post()
                 .uri(loginUrl)
-                .body(loginRequest)
+                .body(Map.of("username", username, "password", password))
                 .retrieve()
                 .toEntity(String.class);
 
@@ -79,23 +73,21 @@ public class AuthIntegrationTest {
      */
     @Test
     public void testLoginAndLogoutSuccess() throws Exception {
-        // 로그인 요청
-        Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("username", "user");
-        loginRequest.put("password", "password");
+        String username = "user";
+        String password = "password";
 
         ResponseEntity<String> loginResponse = restClient.post()
                 .uri(loginUrl)
-                .body(loginRequest)
+                .body(Map.of("username", username, "password", password))
                 .retrieve()
                 .toEntity(String.class);
 
         assertSuccessResponse(loginResponse, HttpStatus.OK, "Login successful");
         String sessionCookie = loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
-        // 로그아웃 요청
+
         ResponseEntity<String> logoutResponse = restClient.post()
                 .uri(logoutUrl)
-                .header("Cookie", sessionCookie)
+                .header(HttpHeaders.COOKIE, sessionCookie)
                 .retrieve()
                 .toEntity(String.class);
 
@@ -109,14 +101,13 @@ public class AuthIntegrationTest {
      */
     @Test
     public void testLoginFailure() throws Exception {
-        Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("username", "user");
-        loginRequest.put("password", "wrongpassword");
+        String username = "user";
+        String password = "wrongpassword";
 
         try {
             restClient.post()
                     .uri(loginUrl)
-                    .body(loginRequest)
+                    .body(Map.of("username", username, "password", password))
                     .retrieve()
                     .toEntity(String.class);
         } catch (HttpClientErrorException e) {
@@ -131,12 +122,10 @@ public class AuthIntegrationTest {
      */
     @Test
     public void testLoginMissingBoth() throws Exception {
-        Map<String, String> loginRequest = new HashMap<>();
-
         try {
             restClient.post()
                     .uri(loginUrl)
-                    .body(loginRequest)
+                    .body(Map.of())
                     .retrieve()
                     .toEntity(String.class);
         } catch (HttpClientErrorException e) {
@@ -152,13 +141,10 @@ public class AuthIntegrationTest {
      */
     @Test
     public void testLoginMissingUsername() throws Exception {
-        Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("password", "password");
-
         try {
             restClient.post()
                     .uri(loginUrl)
-                    .body(loginRequest)
+                    .body(Map.of("password", "password"))
                     .retrieve()
                     .toEntity(String.class);
         } catch (HttpClientErrorException e) {
@@ -173,13 +159,10 @@ public class AuthIntegrationTest {
      */
     @Test
     public void testLoginMissingPassword() throws Exception {
-        Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("username", "user");
-
         try {
             restClient.post()
                     .uri(loginUrl)
-                    .body(loginRequest)
+                    .body(Map.of("username", "user"))
                     .retrieve()
                     .toEntity(String.class);
         } catch (HttpClientErrorException e) {
