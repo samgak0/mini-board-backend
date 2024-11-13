@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
@@ -230,6 +231,17 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(JsonProcessingException.class)
     public ResponseEntity<ApiExceptionResponse> handleJsonProcessingException(JsonProcessingException e) {
+        return ResponseEntity.internalServerError().body(new ApiExceptionResponse(e));
+    }
+
+    /**
+     * 
+     * @param e DB 조회 오류
+     * @return 예외 메시지와 HTTP 500 상태 코드
+     */
+    @ExceptionHandler(DataAccessException.class)
+    @SuppressWarnings("CallToPrintStackTrace")
+    public ResponseEntity<ApiResponse> handleDataAccessException(DataAccessException e) {
         return ResponseEntity.internalServerError().body(new ApiExceptionResponse(e));
     }
 
