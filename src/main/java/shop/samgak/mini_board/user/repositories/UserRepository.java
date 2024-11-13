@@ -3,12 +3,14 @@ package shop.samgak.mini_board.user.repositories;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import shop.samgak.mini_board.user.entities.User;
 
 /**
  * 사용자 정보를 저장하고 조회하기 위한 레포지토리 인터페이스 정의
  */
+@Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     /**
      * 이메일을 기반으로 사용자 정보를 조회하는 메서드

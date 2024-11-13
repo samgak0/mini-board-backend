@@ -4,9 +4,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import shop.samgak.mini_board.post.entities.PostFile;
 
+@Repository
 public interface PostFileRepository extends JpaRepository<PostFile, Long> {
 
     /**

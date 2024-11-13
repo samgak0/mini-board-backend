@@ -4,12 +4,14 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import shop.samgak.mini_board.post.entities.Post;
 
 /**
  * 게시물 데이터 접근을 처리하는 레포지토리 인터페이스
  */
+@Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     /**
